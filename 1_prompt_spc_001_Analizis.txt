@@ -1,0 +1,25 @@
+Necesito que analices la especificación ubicada en:
+
+docs/specs/SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md
+
+Antes de implementar cualquier cambio:
+
+1. Lee completamente el archivo SPEC-001.
+2. Analiza la solución actual ROCA.Emuna360.
+3. Valida si la estructura actual coincide o no con la especificación.
+4. Identifica qué proyectos faltan crear.
+5. Identifica qué referencias faltan configurar.
+6. Identifica qué paquetes NuGet faltan instalar.
+7. Identifica qué archivos faltan crear.
+8. Identifica qué archivos existentes se deben modificar.
+9. Confirma que no vas a implementar módulos funcionales.
+10. Confirma que no vas a usar Entity Framework.
+11. Confirma que no vas a crear DbContext.
+
+No implementes nada todavía.
+
+Entrégame únicamente:
+- Análisis de la solución actual.
+- Plan técnico de implementación.
+- Lista de cambios propuestos.
+- Riesgos o advertencias antes de ejecutar.

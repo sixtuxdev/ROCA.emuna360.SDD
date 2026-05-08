@@ -1,0 +1,51 @@
+Plan aprobado.
+
+Respuesta a las Preguntas:
+
+* ¿Deseas que proceda a mover físicamente la carpeta Presentation dentro de la carpeta src para
+cumplir a cabalidad con la ruta src/Presentation/... solicitada en la SPEC, o prefieres
+mantener la estructura actual en la raíz y solo crear src/Core y src/Infrastructure?
+
+Respuesta: Si por favor mueve fisicamente la carpeta Presentation dentro de la carpeta src para
+cumplir a cabalidad
+
+* ¿Respecto a la solución .slnx, ¿debo editar el archivo XML manualmente para agregar los nuevos
+proyectos, o prefieres que genere un .sln tradicional?
+
+Respuesta: Si edita el archivo XML manualmente para agregar los nuevos proyectos.
+
+
+Ejecuta ahora la especificación ubicada en:
+
+docs/specs/SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md
+
+Debes implementar exactamente lo definido en ese archivo.
+
+Reglas obligatorias:
+- No implementes Login.
+- No implementes Usuarios.
+- No implementes Registros.
+- No implementes Denominaciones.
+- No implementes Iglesias.
+- No implementes Roles.
+- No implementes Permisos.
+- No implementes entidades de negocio.
+- No implementes módulos funcionales.
+- No uses Entity Framework.
+- No crees DbContext.
+- Usa Dapper únicamente en Infrastructure.
+- Usa ADO.NET para conexión a SQL Server.
+- Mantén .NET 9.
+- No elimines ni dañes el proyecto existente ROCA.Emuna360.Presentation.WebUI.
+
+Al finalizar:
+1. Ejecuta compilación de la solución.
+2. Corrige errores si aparecen.
+3. Entrégame resumen de:
+   - Proyectos creados.
+   - Carpetas creadas.
+   - Archivos creados.
+   - Archivos modificados.
+   - Paquetes instalados.
+   - Referencias configuradas.
+   - Resultado de compilación.

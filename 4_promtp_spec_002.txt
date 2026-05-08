@@ -1,0 +1,69 @@
+Necesito que analices la especificación ubicada en:
+
+docs/specs/SPEC-002 - Modelo Base Multiorganizacional ROCA.Emuna360.md
+
+Esta SPEC contiene:
+- El modelo organizacional base.
+- Las tablas oficiales SQL Server.
+- Los campos, tipos de datos, PK, FK, índices y constraints.
+- Los procedimientos almacenados existentes.
+- La organización modular esperada.
+- Las entidades base requeridas.
+- Los DTOs base requeridos.
+- Las interfaces base requeridas.
+- Las reglas arquitectónicas obligatorias.
+
+Debes tomar esta SPEC como fuente principal de verdad.
+
+Antes de implementar cualquier cambio:
+
+1. Lee completamente la SPEC-002.
+2. Analiza la solución actual ROCA.Emuna360.
+3. Valida que la SPEC-001 esté correctamente aplicada.
+4. Analiza las tablas SQL Server definidas en la SPEC.
+5. Analiza las relaciones entre entidades.
+6. Analiza los procedimientos almacenados existentes.
+7. Valida la organización modular propuesta.
+8. Identifica posibles inconsistencias en nombres, relaciones o estructuras.
+9. Identifica riesgos técnicos.
+10. Propón el plan exacto de implementación.
+
+Debes validar especialmente:
+- Separación de capas.
+- Dependencias entre proyectos.
+- Organización modular.
+- Ubicación correcta de entidades.
+- Ubicación correcta de DTOs.
+- Ubicación correcta de interfaces.
+- Compatibilidad con Dapper.
+- Compatibilidad con ADO.NET.
+- Compatibilidad con SQL Server.
+- Compatibilidad con .NET 9.
+
+NO implementes todavía:
+- Repositorios funcionales.
+- Login.
+- JWT.
+- Servicios.
+- CRUDs.
+- Pantallas.
+- Middleware.
+- Seguridad avanzada.
+- Consumo real desde Blazor.
+
+NO modifiques código todavía.
+
+Entrégame únicamente:
+1. Análisis técnico completo.
+2. Validación de arquitectura actual.
+3. Validación del modelo SQL.
+4. Entidades exactas que vas a crear.
+5. DTOs exactos que vas a crear.
+6. Interfaces exactas que vas a crear.
+7. Organización final de carpetas.
+8. Riesgos técnicos detectados.
+9. Recomendaciones antes de implementar.
+10. Plan de implementación paso a paso.
+
+No implementes nada todavía.
+Solo realiza el análisis técnico completo basado en la SPEC-002.

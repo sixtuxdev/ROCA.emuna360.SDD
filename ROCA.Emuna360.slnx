@@ -1,0 +1,34 @@
+<Solution>
+  <Folder Name="/docs/" />
+  <Folder Name="/docs/database/" />
+  <Folder Name="/docs/database/sqlserver/" />
+  <Folder Name="/docs/database/sqlserver/migrations/" />
+  <Folder Name="/docs/database/sqlserver/seed/" />
+  <Folder Name="/docs/database/sqlserver/stored-procedures/" />
+  <Folder Name="/docs/database/sqlserver/tables/" />
+  <Folder Name="/docs/decisions/" />
+  <Folder Name="/docs/prompts/">
+    <File Path="1_prompt_spc_001_Analizis.txt" />
+    <File Path="2_prompt_spc_001_Aprobado.txt" />
+    <File Path="3_PROMPT_DOCUMENTAR_SPEC_001.txt" />
+    <File Path="4_promtp_spec_002.txt" />
+  </Folder>
+  <Folder Name="/docs/specs/">
+    <File Path="docs/specs/SPEC-002 - Modelo Base Multiorganizacional ROCA.Emuna360.md" />
+    <File Path="SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md" />
+  </Folder>
+  <Folder Name="/docs/specs/doc/">
+    <File Path="docs/specs/doc/SPEC-001-Documentacion - Validación de Arquitectura Base.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/ROCA.Emuna360.Application/ROCA.Emuna360.Application.csproj" />
+    <Project Path="src/Core/ROCA.Emuna360.Domain/ROCA.Emuna360.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/ROCA.Emuna360.Infrastructure/ROCA.Emuna360.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/ROCA.Emuna360.Presentation.WebUI/ROCA.Emuna360.Presentation.WebUI.csproj" />
+  </Folder>
+</Solution>
