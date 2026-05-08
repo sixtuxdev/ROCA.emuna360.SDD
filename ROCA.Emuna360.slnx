@@ -7,6 +7,10 @@
   <Folder Name="/docs/database/sqlserver/stored-procedures/" />
   <Folder Name="/docs/database/sqlserver/tables/" />
   <Folder Name="/docs/decisions/" />
+  <Folder Name="/docs/doc/">
+    <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
+    <File Path="docs/doc/SPEC-001-Documentacion - Validación de Arquitectura Base.md" />
+  </Folder>
   <Folder Name="/docs/prompts/">
     <File Path="1_prompt_spc_001_Analizis.txt" />
     <File Path="2_prompt_spc_001_Aprobado.txt" />
@@ -14,11 +18,9 @@
     <File Path="4_promtp_spec_002.txt" />
   </Folder>
   <Folder Name="/docs/specs/">
+    <File Path="docs/specs/SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-002 - Modelo Base Multiorganizacional ROCA.Emuna360.md" />
-    <File Path="SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md" />
-  </Folder>
-  <Folder Name="/docs/specs/doc/">
-    <File Path="docs/specs/doc/SPEC-001-Documentacion - Validación de Arquitectura Base.md" />
+    <File Path="docs/specs/SPEC-003 - Repositorios CRUD y API REST ROCA.Emuna360.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">
