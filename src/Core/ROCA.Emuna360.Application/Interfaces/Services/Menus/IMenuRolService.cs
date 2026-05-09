@@ -1,0 +1,8 @@
+using ROCA.Emuna360.Application.DTOs.Menus;
+
+namespace ROCA.Emuna360.Application.Interfaces.Services.Menus;
+
+public interface IMenuRolService : IBaseService<MenuRolDto>
+{
+    System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<MenuRolDto>> GetByDenominacionAsync(int denominacionId);
+}

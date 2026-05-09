@@ -1,0 +1,18 @@
+using ROCA.Emuna360.Domain.Entities.Parameters;
+using AutoMapper;
+using ROCA.Emuna360.Application.DTOs.Parameters;
+using ROCA.Emuna360.Application.Interfaces.Repositories.Parameters;
+using ROCA.Emuna360.Application.Interfaces.Services.Parameters;
+
+namespace ROCA.Emuna360.Application.Services.Parameters;
+
+public class ClaseService : BaseService<ClaseDto, Clase>, IClaseService
+{
+    private readonly IClaseRepository _specificRepository;
+
+    public ClaseService(IClaseRepository repository, IMapper mapper) : base(repository, mapper)
+    {
+        _specificRepository = repository;
+    }
+    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ClaseDto>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return _mapper.Map<IEnumerable<ClaseDto>>(entities); }
+}

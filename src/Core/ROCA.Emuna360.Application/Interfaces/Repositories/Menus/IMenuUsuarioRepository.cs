@@ -1,10 +1,11 @@
+using ROCA.Emuna360.Domain.Entities.Menus;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ROCA.Emuna360.Application.DTOs.Menus;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Menus;
 
-public interface IMenuUsuarioRepository : IBaseRepository<MenuUsuarioDto>
+public interface IMenuUsuarioRepository : IBaseRepository<MenuUsuario>
 {
-    Task<IEnumerable<MenuUsuarioDto>> GetByDenominacionAsync(int denominacionId);
+    Task<IEnumerable<MenuUsuario>> GetByDenominacionAsync(int denominacionId);
 }

@@ -1,3 +1,4 @@
+using ROCA.Emuna360.Domain.Entities.Parameters;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.DTOs.Parameters;
@@ -8,50 +9,49 @@ using System.Threading.Tasks;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.Parameters;
 
-public class ClaseRepository : BaseRepository<ClaseDto>, IClaseRepository
+public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
 {
-    public ClaseRepository(IConfiguration configuration) 
-        : base(configuration, "Clase", "ClaseId") { }
+    public ClaseRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<IEnumerable<ClaseDto>> GetByDenominacionAsync(int denominacionId)
+    public async Task<IEnumerable<Clase>> GetByDenominacionAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<ClaseDto>("SELECT * FROM Clase WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await connection.QueryAsync<Clase>("SELECT * FROM Clase WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
     }
 
-    public override async Task<int> CreateAsync(ClaseDto dto)
+    public async Task<int> CreateAsync(Clase entity)
     {
         using var connection = CreateConnection();
-        var p = new DynamicParameters(dto);
+        var p = new DynamicParameters(entity);
         p.Add("@ClaseId", dbType: DbType.Int32, direction: ParameterDirection.Output);
         
         await connection.ExecuteAsync("usp_Clase_Insertar", p, commandType: CommandType.StoredProcedure);
         return p.Get<int>("@ClaseId");
     }
 
-    public override async Task<bool> UpdateAsync(ClaseDto dto)
+    public async Task<bool> UpdateAsync(Clase entity)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_Clase_Actualizar", dto, commandType: CommandType.StoredProcedure);
+        var rows = await connection.ExecuteAsync("usp_Clase_Actualizar", entity, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public override async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         using var connection = CreateConnection();
         var rows = await connection.ExecuteAsync("usp_Clase_Eliminar", new { ClaseId = id }, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public override async Task<IEnumerable<ClaseDto>> GetAllAsync()
+    public async Task<IEnumerable<Clase>> GetAllAsync()
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<ClaseDto>("usp_Clase_Listar", commandType: CommandType.StoredProcedure);
+        return await connection.QueryAsync<Clase>("usp_Clase_Listar", commandType: CommandType.StoredProcedure);
     }
     
-    public override async Task<ClaseDto?> GetByIdAsync(int id)
+    public async Task<Clase?> GetByIdAsync(int id)
     {
         using var connection = CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<ClaseDto>("usp_Clase_Obtener", new { ClaseId = id }, commandType: CommandType.StoredProcedure);
+        return await connection.QueryFirstOrDefaultAsync<Clase>("usp_Clase_Obtener", new { ClaseId = id }, commandType: CommandType.StoredProcedure);
     }
 }

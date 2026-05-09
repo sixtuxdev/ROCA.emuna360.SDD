@@ -33,4 +33,7 @@
   <Folder Name="/src/Presentation/">
     <Project Path="src/Presentation/ROCA.Emuna360.Presentation.WebUI/ROCA.Emuna360.Presentation.WebUI.csproj" />
   </Folder>
+  <Folder Name="/src/Service/">
+    <Project Path="src/Service/ROCA.Emuna360.API/ROCA.Emuna360.API.csproj" />
+  </Folder>
 </Solution>

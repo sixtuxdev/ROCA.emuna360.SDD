@@ -1,10 +1,11 @@
+using ROCA.Emuna360.Domain.Entities.Security;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ROCA.Emuna360.Application.DTOs.Security;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 
-public interface IUsuarioRepository : IBaseRepository<UsuarioDto>
+public interface IUsuarioRepository : IBaseRepository<Usuario>
 {
-    Task<IEnumerable<UsuarioDto>> GetByDenominacionAsync(int denominacionId);
+    Task<IEnumerable<Usuario>> GetByDenominacionAsync(int denominacionId);
 }

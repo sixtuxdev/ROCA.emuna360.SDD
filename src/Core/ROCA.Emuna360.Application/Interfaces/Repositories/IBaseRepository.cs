@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories;
 
-public interface IBaseRepository<TDto>
+public interface IBaseRepository<TEntity>
 {
-    Task<IEnumerable<TDto>> GetAllAsync();
-    Task<TDto?> GetByIdAsync(int id);
-    Task<int> CreateAsync(TDto dto);
-    Task<bool> UpdateAsync(TDto dto);
+    Task<IEnumerable<TEntity>> GetAllAsync();
+    Task<TEntity?> GetByIdAsync(int id);
+    Task<int> CreateAsync(TEntity entity);
+    Task<bool> UpdateAsync(TEntity entity);
     Task<bool> DeleteAsync(int id);
 }

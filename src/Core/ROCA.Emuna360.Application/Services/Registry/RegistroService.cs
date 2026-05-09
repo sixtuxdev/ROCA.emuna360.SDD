@@ -1,0 +1,18 @@
+using ROCA.Emuna360.Domain.Entities.Registry;
+using AutoMapper;
+using ROCA.Emuna360.Application.DTOs.Registry;
+using ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
+using ROCA.Emuna360.Application.Interfaces.Services.Registry;
+
+namespace ROCA.Emuna360.Application.Services.Registry;
+
+public class RegistroService : BaseService<RegistroDto, Registro>, IRegistroService
+{
+    private readonly IRegistroRepository _specificRepository;
+
+    public RegistroService(IRegistroRepository repository, IMapper mapper) : base(repository, mapper)
+    {
+        _specificRepository = repository;
+    }
+    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<RegistroDto>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return _mapper.Map<IEnumerable<RegistroDto>>(entities); }
+}

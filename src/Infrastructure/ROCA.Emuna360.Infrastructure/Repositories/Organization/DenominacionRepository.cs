@@ -1,3 +1,5 @@
+using ROCA.Emuna360.Domain.Entities.Organization;
+using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.DTOs.Organization;
@@ -6,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.Organization;
 
-public class DenominacionRepository : BaseRepository<DenominacionDto>, IDenominacionRepository
+public class DenominacionRepository : BaseRepository<Denominacion>, IDenominacionRepository
 {
-    public DenominacionRepository(IConfiguration configuration) 
-        : base(configuration, "Denominaciones", "DenominacionId") { }
+    public DenominacionRepository(IConfiguration configuration) : base(configuration) { }
 
-    public override async Task<int> CreateAsync(DenominacionDto dto)
+    public async Task<int> CreateAsync(Denominacion entity)
     {
         const string sql = """
             INSERT INTO Denominaciones (Nombre, Slug, Activa, IglesiaPrincipalId, FechaCreacion)
@@ -19,10 +20,10 @@ public class DenominacionRepository : BaseRepository<DenominacionDto>, IDenomina
             VALUES (@Nombre, @Slug, @Activa, @IglesiaPrincipalId, @FechaCreacion)
         """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, dto);
+        return await connection.ExecuteScalarAsync<int>(sql, entity);
     }
 
-    public override async Task<bool> UpdateAsync(DenominacionDto dto)
+    public async Task<bool> UpdateAsync(Denominacion entity)
     {
         const string sql = """
             UPDATE Denominaciones 
@@ -30,6 +31,30 @@ public class DenominacionRepository : BaseRepository<DenominacionDto>, IDenomina
             WHERE DenominacionId = @DenominacionId
         """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, dto) > 0;
+        return await connection.ExecuteAsync(sql, entity) > 0;
+    }
+
+    public async Task<System.Collections.Generic.IEnumerable<Denominacion>> GetAllAsync()
+    {
+        using var connection = CreateConnection();
+        return await connection.QueryAsync<Denominacion>("usp_Denominacion_Listar", commandType: System.Data.CommandType.StoredProcedure);
+    }
+
+    public async Task<Denominacion?> GetByIdAsync(int id)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", id);
+        return await connection.QueryFirstOrDefaultAsync<Denominacion>("usp_Denominacion_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", id);
+        var rows = await connection.ExecuteAsync("usp_Denominacion_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        return rows > 0;
     }
 }
+

@@ -1,10 +1,11 @@
+using ROCA.Emuna360.Domain.Entities.Structure;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ROCA.Emuna360.Application.DTOs.Structure;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 
-public interface IIglesiaEstructuraRepository : IBaseRepository<IglesiaEstructuraDto>
+public interface IIglesiaEstructuraRepository : IBaseRepository<IglesiaEstructura>
 {
-    Task<IEnumerable<IglesiaEstructuraDto>> GetByIglesiaAsync(int iglesiaId);
+    Task<IEnumerable<IglesiaEstructura>> GetByIglesiaAsync(int iglesiaId);
 }
