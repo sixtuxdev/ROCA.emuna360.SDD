@@ -6,7 +6,9 @@
   <Folder Name="/docs/database/sqlserver/seed/" />
   <Folder Name="/docs/database/sqlserver/stored-procedures/" />
   <Folder Name="/docs/database/sqlserver/tables/" />
-  <Folder Name="/docs/decisions/" />
+  <Folder Name="/docs/decisions/">
+    <File Path="HU-004-Authenticacion.md" />
+  </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
     <File Path="docs/doc/SPEC-001-Documentacion - Validación de Arquitectura Base.md" />
@@ -21,6 +23,7 @@
     <File Path="docs/specs/SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-002 - Modelo Base Multiorganizacional ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-003 - Repositorios CRUD y API REST ROCA.Emuna360.md" />
+    <File Path="docs/specs/SPEC-004 - Login Autenticación y Backend de Seguridad ROCA.Emuna360.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">

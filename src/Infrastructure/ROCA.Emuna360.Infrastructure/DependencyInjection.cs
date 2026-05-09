@@ -10,6 +10,7 @@ using ROCA.Emuna360.Infrastructure.Repositories.Geography;
 
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using ROCA.Emuna360.Infrastructure.Repositories.Security;
+using ROCA.Emuna360.Application.Interfaces.Services.Security;
 
 using ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
 using ROCA.Emuna360.Infrastructure.Repositories.Registry;
@@ -51,6 +52,10 @@ public static class DependencyInjection
         services.AddScoped<IUsuarioRolRepository, UsuarioRolRepository>();
         services.AddScoped<ITokenRefreshRepository, TokenRefreshRepository>();
         services.AddScoped<ITokenVerificacionCorreoRepository, TokenVerificacionCorreoRepository>();
+        services.AddScoped<IAuthRepository, AuthRepository>();
+        services.AddScoped<IJwtTokenService, ROCA.Emuna360.Infrastructure.Security.JwtTokenService>();
+        services.AddScoped<IPasswordHasherService, ROCA.Emuna360.Infrastructure.Security.PasswordHasherService>();
+        services.AddScoped<IEmailSenderService, ROCA.Emuna360.Infrastructure.Services.Email.EmailSenderService>();
 
         // Registry
         services.AddScoped<IRegistroRepository, RegistroRepository>();

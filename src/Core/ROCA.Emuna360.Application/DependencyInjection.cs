@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IUsuarioRolService, UsuarioRolService>();
         services.AddScoped<ITokenRefreshService, TokenRefreshService>();
         services.AddScoped<ITokenVerificacionCorreoService, TokenVerificacionCorreoService>();
+        services.AddScoped<IAuthService, ROCA.Emuna360.Application.Services.Auth.AuthService>();
 
         // Registry
         services.AddScoped<IRegistroService, RegistroService>();

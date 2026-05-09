@@ -1,4 +1,5 @@
 using AutoMapper;
+using ROCA.Emuna360.Application.DTOs.Auth;
 using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.DTOs.Menus;
 using ROCA.Emuna360.Application.DTOs.Organization;
@@ -45,5 +46,11 @@ public class MappingProfile : Profile
         CreateMap<EstructuraOrganizacional, EstructuraOrganizacionalDto>().ReverseMap();
         CreateMap<IglesiaEstructura, IglesiaEstructuraDto>().ReverseMap();
         CreateMap<TipoEstructura, TipoEstructuraDto>().ReverseMap();
+
+        // Auth
+        CreateMap<AuthUser, AuthUserDto>().ReverseMap();
+        CreateMap<AuthRole, AuthRoleDto>().ReverseMap();
+        CreateMap<AuthMenu, AuthMenuDto>().ReverseMap();
+        CreateMap<Registro, AuthRegistroDto>().ReverseMap();
     }
 }
