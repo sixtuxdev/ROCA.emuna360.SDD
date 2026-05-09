@@ -20,7 +20,8 @@ public class TiposEstructuraController : BaseController<TipoEstructuraDto>
     public async Task<IActionResult> GetByDenominacion(int denominacionId)
     {
         var result = await _tipoEstructuraService.GetByDenominacionAsync(denominacionId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 }
 

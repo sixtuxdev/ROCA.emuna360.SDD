@@ -20,7 +20,8 @@ public class EstructuraOrganizacionalController : BaseController<EstructuraOrgan
     public async Task<IActionResult> GetByDenominacion(int denominacionId)
     {
         var result = await _estructuraService.GetByDenominacionAsync(denominacionId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 }
 

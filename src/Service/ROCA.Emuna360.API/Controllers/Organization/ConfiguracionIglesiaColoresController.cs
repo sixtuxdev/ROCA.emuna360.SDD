@@ -20,7 +20,8 @@ public class ConfiguracionIglesiaColoresController : BaseController<Configuracio
     public async Task<IActionResult> GetByDenominacion(int denominacionId)
     {
         var result = await _colorService.GetByDenominacionAsync(denominacionId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 }
 

@@ -14,6 +14,6 @@ public class EstructuraDenominacionService : BaseService<EstructuraDenominacionD
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return _mapper.Map<IEnumerable<EstructuraDenominacionDto>>(entities); }
-    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return _mapper.Map<IEnumerable<EstructuraDenominacionDto>>(entities); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>>.Success(_mapper.Map<IEnumerable<EstructuraDenominacionDto>>(entities)); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraDenominacionDto>>.Success(_mapper.Map<IEnumerable<EstructuraDenominacionDto>>(entities)); }
 }

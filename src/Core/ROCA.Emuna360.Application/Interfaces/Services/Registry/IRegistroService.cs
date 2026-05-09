@@ -4,5 +4,5 @@ namespace ROCA.Emuna360.Application.Interfaces.Services.Registry;
 
 public interface IRegistroService : IBaseService<RegistroDto>
 {
-    System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<RegistroDto>> GetByIglesiaAsync(int iglesiaId);
+    System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<RegistroDto>>> GetByIglesiaAsync(int iglesiaId);
 }

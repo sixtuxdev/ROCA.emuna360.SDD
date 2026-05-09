@@ -14,5 +14,5 @@ public class RegistroService : BaseService<RegistroDto, Registro>, IRegistroServ
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<RegistroDto>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return _mapper.Map<IEnumerable<RegistroDto>>(entities); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<RegistroDto>>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<RegistroDto>>.Success(_mapper.Map<IEnumerable<RegistroDto>>(entities)); }
 }

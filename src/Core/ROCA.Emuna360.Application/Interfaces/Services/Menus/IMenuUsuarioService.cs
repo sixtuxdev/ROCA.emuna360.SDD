@@ -4,5 +4,5 @@ namespace ROCA.Emuna360.Application.Interfaces.Services.Menus;
 
 public interface IMenuUsuarioService : IBaseService<MenuUsuarioDto>
 {
-    System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<MenuUsuarioDto>> GetByDenominacionAsync(int denominacionId);
+    System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<MenuUsuarioDto>>> GetByDenominacionAsync(int denominacionId);
 }

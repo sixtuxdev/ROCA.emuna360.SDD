@@ -14,5 +14,5 @@ public class IglesiaEstructuraService : BaseService<IglesiaEstructuraDto, Iglesi
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return _mapper.Map<IEnumerable<IglesiaEstructuraDto>>(entities); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>.Success(_mapper.Map<IEnumerable<IglesiaEstructuraDto>>(entities)); }
 }

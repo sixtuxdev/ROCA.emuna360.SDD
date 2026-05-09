@@ -20,14 +20,16 @@ public class EstructurasDenominacionController : BaseController<EstructuraDenomi
     public async Task<IActionResult> GetByDenominacion(int denominacionId)
     {
         var result = await _estructuraService.GetByDenominacionAsync(denominacionId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 
     [HttpGet("iglesia/{iglesiaId}")]
     public async Task<IActionResult> GetByIglesia(int iglesiaId)
     {
         var result = await _estructuraService.GetByIglesiaAsync(iglesiaId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 }
 

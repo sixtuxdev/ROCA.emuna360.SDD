@@ -14,5 +14,5 @@ public class ConfiguracionIglesiaColorService : BaseService<ConfiguracionIglesia
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ConfiguracionIglesiaColorDto>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return _mapper.Map<IEnumerable<ConfiguracionIglesiaColorDto>>(entities); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ConfiguracionIglesiaColorDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ConfiguracionIglesiaColorDto>>.Success(_mapper.Map<IEnumerable<ConfiguracionIglesiaColorDto>>(entities)); }
 }

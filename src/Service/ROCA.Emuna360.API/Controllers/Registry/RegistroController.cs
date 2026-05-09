@@ -20,7 +20,8 @@ public class RegistroController : BaseController<RegistroDto>
     public async Task<IActionResult> GetByIglesia(int iglesiaId)
     {
         var result = await _registroService.GetByIglesiaAsync(iglesiaId);
-        return this.ToOk(result);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 }
 
