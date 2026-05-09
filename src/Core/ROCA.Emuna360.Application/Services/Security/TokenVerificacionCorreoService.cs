@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Security;
 
 namespace ROCA.Emuna360.Application.Services.Security;
 
-public class TokenVerificacionCorreoService : BaseService<TokenVerificacionCorreoDto, TokenVerificacionCorreo>, ITokenVerificacionCorreoService
+public class TokenVerificacionCorreoService : MultiOrganizationalBaseService<TokenVerificacionCorreoDto, TokenVerificacionCorreo>, ITokenVerificacionCorreoService
 {
     private readonly ITokenVerificacionCorreoRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class TokenVerificacionCorreoService : BaseService<TokenVerificacionCorre
         _specificRepository = repository;
     }
 }
+

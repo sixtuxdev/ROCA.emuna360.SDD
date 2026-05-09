@@ -14,44 +14,42 @@ public class TokenVerificacionCorreoRepository : BaseRepository<TokenVerificacio
 
     public async Task<int> CreateAsync(TokenVerificacionCorreo entity)
     {
-        const string sql = """
-            INSERT INTO TokensVerificacionCorreo (DenominacionId, UsuarioId, IglesiaId, TokenHash, ExpiraEn, UsadoEn)
-            OUTPUT INSERTED.TokenId
-            VALUES (@DenominacionId, @UsuarioId, @IglesiaId, @TokenHash, @ExpiraEn, @UsadoEn)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_TokenVerificacionCorreo_Insertar", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(TokenVerificacionCorreo entity)
     {
-        const string sql = """
-            UPDATE TokensVerificacionCorreo SET DenominacionId = @DenominacionId, UsuarioId = @UsuarioId, IglesiaId = @IglesiaId, TokenHash = @TokenHash, ExpiraEn = @ExpiraEn, UsadoEn = @UsadoEn
-            WHERE TokenId = @TokenId
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_TokenVerificacionCorreo_Actualizar", parameters, commandType: CommandType.StoredProcedure);
+        return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<TokenVerificacionCorreo>> GetAllAsync()
+    public async Task<System.Collections.Generic.IEnumerable<TokenVerificacionCorreo>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<TokenVerificacionCorreo>("usp_TokenVerificacionCorreo_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<TokenVerificacionCorreo>("usp_TokenVerificacionCorreo_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<TokenVerificacionCorreo?> GetByIdAsync(int id)
+    public async Task<TokenVerificacionCorreo?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@TokenId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryFirstOrDefaultAsync<TokenVerificacionCorreo>("usp_TokenVerificacionCorreo_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@TokenId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_TokenVerificacionCorreo_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }

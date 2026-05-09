@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Security;
 
 namespace ROCA.Emuna360.Application.Services.Security;
 
-public class UsuarioService : BaseService<UsuarioDto, Usuario>, IUsuarioService
+public class UsuarioService : MultiOrganizationalBaseService<UsuarioDto, Usuario>, IUsuarioService
 {
     private readonly IUsuarioRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class UsuarioService : BaseService<UsuarioDto, Usuario>, IUsuarioService
         _specificRepository = repository;
     }
 }
+

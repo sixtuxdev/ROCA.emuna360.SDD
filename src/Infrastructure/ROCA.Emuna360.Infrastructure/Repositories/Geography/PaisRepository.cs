@@ -14,23 +14,17 @@ public class PaisRepository : BaseRepository<Pais>, IPaisRepository
 
     public async Task<int> CreateAsync(Pais entity)
     {
-        const string sql = """
-            INSERT INTO Pais (Pais, Descripcion, Estado, FechaCreacion)
-            OUTPUT INSERTED.PaisId
-            VALUES (@PaisNombre, @Descripcion, @Estado, @FechaCreacion)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_Pais_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Pais entity)
     {
-        const string sql = """
-            UPDATE Pais SET Pais = @PaisNombre, Descripcion = @Descripcion, Estado = @Estado
-            WHERE PaisId = @PaisId
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Pais_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        return rows > 0;
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Pais>> GetAllAsync()

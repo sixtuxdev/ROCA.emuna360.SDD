@@ -7,7 +7,7 @@ using ROCA.Emuna360.API.Common;
 namespace ROCA.Emuna360.API.Controllers.Registry;
 
 [Route("api/v1/registros")]
-public class RegistroController : BaseController<RegistroDto>
+public class RegistroController : MultiOrganizationalBaseController<RegistroDto>
 {
     private readonly IRegistroService _registroService;
 
@@ -16,10 +16,10 @@ public class RegistroController : BaseController<RegistroDto>
         _registroService = service;
     }
 
-    [HttpGet("iglesia/{iglesiaId}")]
-    public async Task<IActionResult> GetByIglesia(int iglesiaId)
+    [HttpGet("iglesia/{iglesiaId}/denominacion/{denominacionId}")]
+    public async Task<IActionResult> GetByIglesia(int iglesiaId, int denominacionId)
     {
-        var result = await _registroService.GetByIglesiaAsync(iglesiaId);
+        var result = await _registroService.GetByIglesiaAsync(iglesiaId, denominacionId);
         if (result.IsFailure) return BadRequest(new { error = result.Error });
         return this.ToOk(result.Value);
     }

@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Security;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 
-public interface IUsuarioRepository : IBaseRepository<Usuario>
+public interface IUsuarioRepository : IMultiOrganizationalRepository<Usuario>
 {
     Task<IEnumerable<Usuario>> GetByDenominacionAsync(int denominacionId);
 }

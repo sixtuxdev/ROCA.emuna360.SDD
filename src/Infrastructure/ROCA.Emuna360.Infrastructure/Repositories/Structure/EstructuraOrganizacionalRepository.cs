@@ -15,43 +15,48 @@ public class EstructuraOrganizacionalRepository : BaseRepository<EstructuraOrgan
 
     public async Task<IEnumerable<EstructuraOrganizacional>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<EstructuraOrganizacional>("SELECT * FROM EstructuraOrganizacional WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await GetAllAsync(denominacionId);
     }
 
     public async Task<int> CreateAsync(EstructuraOrganizacional entity)
     {
         using var connection = CreateConnection();
         var p = new DynamicParameters(entity);
-        p.Add("@EstructuraId", dbType: DbType.Int32, direction: ParameterDirection.Output);
-        
-        await connection.ExecuteAsync("usp_EstructuraOrganizacional_Insertar", p, commandType: CommandType.StoredProcedure);
-        return p.Get<int>("@EstructuraId");
+        return await connection.ExecuteScalarAsync<int>("usp_EstructuraOrganizacional_Insertar", p, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(EstructuraOrganizacional entity)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_EstructuraOrganizacional_Actualizar", entity, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_EstructuraOrganizacional_Actualizar", p, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_EstructuraOrganizacional_Eliminar", new { EstructuraId = id }, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@EstructuraId", id);
+        p.Add("@DenominacionId", denominacionId);
+        var rows = await connection.ExecuteAsync("usp_EstructuraOrganizacional_Eliminar", p, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public async Task<IEnumerable<EstructuraOrganizacional>> GetAllAsync()
+    public async Task<IEnumerable<EstructuraOrganizacional>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<EstructuraOrganizacional>("usp_EstructuraOrganizacional_Listar", commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<EstructuraOrganizacional>("usp_EstructuraOrganizacional_Listar", p, commandType: CommandType.StoredProcedure);
     }
     
-    public async Task<EstructuraOrganizacional?> GetByIdAsync(int id)
+    public async Task<EstructuraOrganizacional?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<EstructuraOrganizacional>("usp_EstructuraOrganizacional_Obtener", new { EstructuraId = id }, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@EstructuraId", id);
+        p.Add("@DenominacionId", denominacionId);
+        return await connection.QueryFirstOrDefaultAsync<EstructuraOrganizacional>("usp_EstructuraOrganizacional_Obtener", p, commandType: CommandType.StoredProcedure);
     }
 }

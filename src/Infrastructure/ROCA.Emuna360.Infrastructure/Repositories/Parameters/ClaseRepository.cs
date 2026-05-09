@@ -15,43 +15,48 @@ public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
 
     public async Task<IEnumerable<Clase>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Clase>("SELECT * FROM Clase WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await GetAllAsync(denominacionId);
     }
 
     public async Task<int> CreateAsync(Clase entity)
     {
         using var connection = CreateConnection();
         var p = new DynamicParameters(entity);
-        p.Add("@ClaseId", dbType: DbType.Int32, direction: ParameterDirection.Output);
-        
-        await connection.ExecuteAsync("usp_Clase_Insertar", p, commandType: CommandType.StoredProcedure);
-        return p.Get<int>("@ClaseId");
+        return await connection.ExecuteScalarAsync<int>("usp_Clase_Insertar", p, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Clase entity)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_Clase_Actualizar", entity, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Clase_Actualizar", p, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_Clase_Eliminar", new { ClaseId = id }, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@ClaseId", id);
+        p.Add("@DenominacionId", denominacionId);
+        var rows = await connection.ExecuteAsync("usp_Clase_Eliminar", p, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public async Task<IEnumerable<Clase>> GetAllAsync()
+    public async Task<IEnumerable<Clase>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Clase>("usp_Clase_Listar", commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Clase>("usp_Clase_Listar", p, commandType: CommandType.StoredProcedure);
     }
     
-    public async Task<Clase?> GetByIdAsync(int id)
+    public async Task<Clase?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<Clase>("usp_Clase_Obtener", new { ClaseId = id }, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@ClaseId", id);
+        p.Add("@DenominacionId", denominacionId);
+        return await connection.QueryFirstOrDefaultAsync<Clase>("usp_Clase_Obtener", p, commandType: CommandType.StoredProcedure);
     }
 }

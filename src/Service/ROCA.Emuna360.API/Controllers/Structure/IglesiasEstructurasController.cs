@@ -7,19 +7,19 @@ using ROCA.Emuna360.API.Common;
 namespace ROCA.Emuna360.API.Controllers.Structure;
 
 [Route("api/v1/iglesias-estructuras")]
-public class IglesiasEstructurasController : BaseController<IglesiaEstructuraDto>
+public class IglesiasEstructurasController : MultiOrganizationalBaseController<IglesiaEstructuraDto>
 {
-    private readonly IIglesiaEstructuraService _iglesiaEstructuraRepository;
+    private readonly IIglesiaEstructuraService _iglesiaEstructuraService;
 
     public IglesiasEstructurasController(IIglesiaEstructuraService service) : base(service) 
     {
-        _iglesiaEstructuraRepository = service;
+        _iglesiaEstructuraService = service;
     }
 
-    [HttpGet("iglesia/{iglesiaId}")]
-    public async Task<IActionResult> GetByIglesia(int iglesiaId)
+    [HttpGet("iglesia/{iglesiaId}/denominacion/{denominacionId}")]
+    public async Task<IActionResult> GetByIglesia(int iglesiaId, int denominacionId)
     {
-        var result = await _iglesiaEstructuraRepository.GetByIglesiaAsync(iglesiaId);
+        var result = await _iglesiaEstructuraService.GetByIglesiaAsync(iglesiaId, denominacionId);
         if (result.IsFailure) return BadRequest(new { error = result.Error });
         return this.ToOk(result.Value);
     }

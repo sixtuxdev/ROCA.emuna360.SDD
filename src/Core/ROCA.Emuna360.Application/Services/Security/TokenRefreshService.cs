@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Security;
 
 namespace ROCA.Emuna360.Application.Services.Security;
 
-public class TokenRefreshService : BaseService<RefreshTokenDto, RefreshToken>, ITokenRefreshService
+public class TokenRefreshService : MultiOrganizationalBaseService<RefreshTokenDto, RefreshToken>, ITokenRefreshService
 {
     private readonly ITokenRefreshRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class TokenRefreshService : BaseService<RefreshTokenDto, RefreshToken>, I
         _specificRepository = repository;
     }
 }
+

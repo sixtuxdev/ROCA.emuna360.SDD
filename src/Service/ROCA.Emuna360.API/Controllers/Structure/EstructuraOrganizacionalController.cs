@@ -7,21 +7,10 @@ using ROCA.Emuna360.API.Common;
 namespace ROCA.Emuna360.API.Controllers.Structure;
 
 [Route("api/v1/estructura-organizacional")]
-public class EstructuraOrganizacionalController : BaseController<EstructuraOrganizacionalDto>
+public class EstructuraOrganizacionalController : MultiOrganizationalBaseController<EstructuraOrganizacionalDto>
 {
-    private readonly IEstructuraOrganizacionalService _estructuraService;
-
     public EstructuraOrganizacionalController(IEstructuraOrganizacionalService service) : base(service) 
     {
-        _estructuraService = service;
-    }
-
-    [HttpGet("denominacion/{denominacionId}")]
-    public async Task<IActionResult> GetByDenominacion(int denominacionId)
-    {
-        var result = await _estructuraService.GetByDenominacionAsync(denominacionId);
-        if (result.IsFailure) return BadRequest(new { error = result.Error });
-        return this.ToOk(result.Value);
     }
 }
 

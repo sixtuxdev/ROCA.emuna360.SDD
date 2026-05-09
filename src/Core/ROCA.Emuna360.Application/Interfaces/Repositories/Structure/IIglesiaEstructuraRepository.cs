@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Structure;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 
-public interface IIglesiaEstructuraRepository : IBaseRepository<IglesiaEstructura>
+public interface IIglesiaEstructuraRepository : IMultiOrganizationalRepository<IglesiaEstructura>
 {
-    Task<IEnumerable<IglesiaEstructura>> GetByIglesiaAsync(int iglesiaId);
+    Task<IEnumerable<IglesiaEstructura>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
 }

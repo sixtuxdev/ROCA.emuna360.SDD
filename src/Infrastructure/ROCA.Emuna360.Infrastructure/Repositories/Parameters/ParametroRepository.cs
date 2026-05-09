@@ -15,50 +15,47 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
 
     public async Task<IEnumerable<Parametro>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Parametro>("usp_Parametro_Listar_por_DenominacionId", new { DenominacionId = denominacionId }, commandType: CommandType.StoredProcedure);
+        return await GetAllAsync(denominacionId);
     }
 
-    public async Task<Parametro?> GetByIdAsync(int id)
-    {
-        using var connection = CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<Parametro>("usp_Parametro_Obtener", new { ParametroId = id }, commandType: CommandType.StoredProcedure);
-    }
-
-    public async Task<int> CreateAsync(Parametro entity)
-    {
-        const string sql = """
-            INSERT INTO Parametro (DenominacionId, ClaseId, PadreParametroId, Nombre, Descripcion, Valor, ValorAuxiliar, Estado, FechaCreacion, Editable)
-            OUTPUT INSERTED.ParametroId
-            VALUES (@DenominacionId, @ClaseId, @PadreParametroId, @Nombre, @Descripcion, @Valor, @ValorAuxiliar, @Estado, @FechaCreacion, @Editable)
-        """;
-        using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
-    }
-
-    public async Task<bool> UpdateAsync(Parametro entity)
-    {
-        const string sql = """
-            UPDATE Parametro SET DenominacionId = @DenominacionId, ClaseId = @ClaseId, PadreParametroId = @PadreParametroId, Nombre = @Nombre, Descripcion = @Descripcion, Valor = @Valor, ValorAuxiliar = @ValorAuxiliar, Estado = @Estado, Editable = @Editable
-            WHERE ParametroId = @ParametroId
-        """;
-        using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
-    }
-
-    public async Task<System.Collections.Generic.IEnumerable<Parametro>> GetAllAsync()
-    {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Parametro>("usp_Parametro_Listar", commandType: System.Data.CommandType.StoredProcedure);
-    }
-
-
-
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<Parametro?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@ParametroId", id);
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryFirstOrDefaultAsync<Parametro>("usp_Parametro_Obtener", parameters, commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<int> CreateAsync(Parametro entity)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_Parametro_Insertar", parameters, commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<bool> UpdateAsync(Parametro entity)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Parametro_Actualizar", parameters, commandType: CommandType.StoredProcedure);
+        return rows > 0;
+    }
+
+    public async Task<System.Collections.Generic.IEnumerable<Parametro>> GetAllAsync(int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Parametro>("usp_Parametro_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@ParametroId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Parametro_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }

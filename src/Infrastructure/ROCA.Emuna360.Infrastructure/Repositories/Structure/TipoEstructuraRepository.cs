@@ -15,50 +15,47 @@ public class TipoEstructuraRepository : BaseRepository<TipoEstructura>, ITipoEst
 
     public async Task<IEnumerable<TipoEstructura>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<TipoEstructura>("SELECT * FROM TiposEstructura WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await GetAllAsync(denominacionId);
     }
 
     public async Task<int> CreateAsync(TipoEstructura entity)
     {
-        const string sql = """
-            INSERT INTO TiposEstructura (DenominacionId, Nombre, Codigo, Nivel, Activo, FechaCreacion)
-            OUTPUT INSERTED.Id
-            VALUES (@DenominacionId, @Nombre, @Codigo, @Nivel, @Activo, @FechaCreacion)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_TipoEstructura_Insertar", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(TipoEstructura entity)
     {
-        const string sql = """
-            UPDATE TiposEstructura SET DenominacionId = @DenominacionId, Nombre = @Nombre, Codigo = @Codigo, Nivel = @Nivel, Activo = @Activo
-            WHERE Id = @Id
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_TipoEstructura_Actualizar", parameters, commandType: CommandType.StoredProcedure);
+        return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<TipoEstructura>> GetAllAsync()
+    public async Task<System.Collections.Generic.IEnumerable<TipoEstructura>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<TipoEstructura>("usp_TipoEstructura_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<TipoEstructura>("usp_TipoEstructura_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<TipoEstructura?> GetByIdAsync(int id)
+    public async Task<TipoEstructura?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@Id", id);
+        parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryFirstOrDefaultAsync<TipoEstructura>("usp_TipoEstructura_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@Id", id);
+        parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_TipoEstructura_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }

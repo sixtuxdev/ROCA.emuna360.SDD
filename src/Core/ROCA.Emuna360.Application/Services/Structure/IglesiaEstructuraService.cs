@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Structure;
 
 namespace ROCA.Emuna360.Application.Services.Structure;
 
-public class IglesiaEstructuraService : BaseService<IglesiaEstructuraDto, IglesiaEstructura>, IIglesiaEstructuraService
+public class IglesiaEstructuraService : MultiOrganizationalBaseService<IglesiaEstructuraDto, IglesiaEstructura>, IIglesiaEstructuraService
 {
     private readonly IIglesiaEstructuraRepository _specificRepository;
 
@@ -14,5 +14,6 @@ public class IglesiaEstructuraService : BaseService<IglesiaEstructuraDto, Iglesi
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>> GetByIglesiaAsync(int iglesiaId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>.Success(_mapper.Map<IEnumerable<IglesiaEstructuraDto>>(entities)); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>> GetByIglesiaAsync(int iglesiaId, int denominacionId) { var entities = await _specificRepository.GetByIglesiaAsync(iglesiaId, denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>.Success(_mapper.Map<IEnumerable<IglesiaEstructuraDto>>(entities)); }
 }
+

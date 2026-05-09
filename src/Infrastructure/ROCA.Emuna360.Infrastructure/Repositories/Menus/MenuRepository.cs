@@ -13,52 +13,44 @@ public class MenuRepository : BaseRepository<Menu>, IMenuRepository
 {
     public MenuRepository(IConfiguration configuration) : base(configuration) { } // The analysis said no PK explicitly visible but assuming MenuId based on common patterns. I'll use "MenuId" for now.
 
-    public async Task<IEnumerable<Menu>> GetByDenominacionAsync(int denominacionId)
-    {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Menu>("SELECT * FROM Menu WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
-    }
-
     public async Task<int> CreateAsync(Menu entity)
     {
-        const string sql = """
-            INSERT INTO Menu (DenominacionId, Titulo, Icono, Ruta, Posicion, Activo, IdPadre)
-            OUTPUT INSERTED.MenuId
-            VALUES (@DenominacionId, @Titulo, @Icono, @Ruta, @Posicion, @Activo, @IdPadre)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_Menu_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Menu entity)
     {
-        const string sql = """
-            UPDATE Menu SET DenominacionId = @DenominacionId, Titulo = @Titulo, Icono = @Icono, Ruta = @Ruta, Posicion = @Posicion, Activo = @Activo, IdPadre = @IdPadre
-            WHERE MenuId = @MenuId
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Menu_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<Menu>> GetAllAsync()
+    public async Task<System.Collections.Generic.IEnumerable<Menu>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Menu>("usp_Menu_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Menu>("usp_Menu_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<Menu?> GetByIdAsync(int id)
+    public async Task<Menu?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@MenuId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryFirstOrDefaultAsync<Menu>("usp_Menu_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@MenuId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Menu_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }

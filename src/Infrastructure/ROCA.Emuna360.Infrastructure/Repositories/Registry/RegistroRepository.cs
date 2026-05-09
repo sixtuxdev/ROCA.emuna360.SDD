@@ -13,50 +13,54 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
 {
     public RegistroRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<IEnumerable<Registro>> GetByIglesiaAsync(int iglesiaId)
+    public async Task<IEnumerable<Registro>> GetByIglesiaAsync(int iglesiaId, int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Registro>("SELECT * FROM Registro WHERE IglesiaId = @IglesiaId", new { IglesiaId = iglesiaId });
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@IglesiaId", iglesiaId);
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Registro>("usp_Registro_ListarPorIglesia", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<int> CreateAsync(Registro entity)
     {
-        const string sql = """
-            INSERT INTO Registro (TipoDocumento, NumeroDocumento, NombreCompleto, Nombres, Apellidos, Sexo, TelefonoCelular, TelefonoResidencia, CorreoElectronico, Direccion, PaisId, DepartamentoId, CiudadId, CorregimientoId, CodigoPostal, Localidad, Barrio, Profesion, Empresa, Ocupacion, Cargo, Edad, FechaNacimiento, NombrePapa, NombreMama, NombreConyugue, TipoPersona, FotoPerfil, IglesiaId, EstructuraOrganizacionalId, FechaActualizacion, Estado)
-            OUTPUT INSERTED.RegistroId
-            VALUES (@TipoDocumento, @NumeroDocumento, @NombreCompleto, @Nombres, @Apellidos, @Sexo, @TelefonoCelular, @TelefonoResidencia, @CorreoElectronico, @Direccion, @PaisId, @DepartamentoId, @CiudadId, @CorregimientoId, @CodigoPostal, @Localidad, @Barrio, @Profesion, @Empresa, @Ocupacion, @Cargo, @Edad, @FechaNacimiento, @NombrePapa, @NombreMama, @NombreConyugue, @TipoPersona, @FotoPerfil, @IglesiaId, @EstructuraOrganizacionalId, @FechaActualizacion, @Estado)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_Registro_Insertar", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Registro entity)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("usp_Registro_Actualizar", entity, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Registro_Actualizar", parameters, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
     
-    public async Task<IEnumerable<Registro>> GetAllAsync()
+    public async Task<IEnumerable<Registro>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Registro>("usp_Registro_Listar", commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Registro>("usp_Registro_Listar", parameters, commandType: CommandType.StoredProcedure);
     }
     
-    public async Task<Registro?> GetByIdAsync(int id)
+    public async Task<Registro?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@RegistroId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryFirstOrDefaultAsync<Registro>("usp_Registro_Obtener", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@RegistroId", id);
-        var rows = await connection.ExecuteAsync("usp_Registro_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        parameters.Add("@DenominacionId", denominacionId);
+        var rows = await connection.ExecuteAsync("usp_Registro_Eliminar", parameters, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 }

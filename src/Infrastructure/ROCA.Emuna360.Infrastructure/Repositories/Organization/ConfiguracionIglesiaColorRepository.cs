@@ -15,51 +15,48 @@ public class ConfiguracionIglesiaColorRepository : BaseRepository<ConfiguracionI
 
     public async Task<IEnumerable<ConfiguracionIglesiaColor>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<ConfiguracionIglesiaColor>("SELECT * FROM ConfiguracionIglesiaColores WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await GetAllAsync(denominacionId);
     }
 
     public async Task<int> CreateAsync(ConfiguracionIglesiaColor entity)
     {
-        const string sql = """
-            INSERT INTO ConfiguracionIglesiaColores (DenominacionId, NombreColor, ValorColor)
-            OUTPUT INSERTED.ConfiguracionIglesiaId
-            VALUES (@DenominacionId, @NombreColor, @ValorColor)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_ConfiguracionIglesiaColor_Insertar", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(ConfiguracionIglesiaColor entity)
     {
-        const string sql = """
-            UPDATE ConfiguracionIglesiaColores SET DenominacionId = @DenominacionId, NombreColor = @NombreColor, ValorColor = @ValorColor
-            WHERE ConfiguracionIglesiaId = @ConfiguracionIglesiaId
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_ConfiguracionIglesiaColor_Actualizar", parameters, commandType: CommandType.StoredProcedure);
+        return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<ConfiguracionIglesiaColor>> GetAllAsync()
+    public async Task<IEnumerable<ConfiguracionIglesiaColor>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<ConfiguracionIglesiaColor>("usp_ConfiguracionIglesiaColor_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<ConfiguracionIglesiaColor>("usp_ConfiguracionIglesiaColor_Listar", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<ConfiguracionIglesiaColor?> GetByIdAsync(int id)
+    public async Task<ConfiguracionIglesiaColor?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@Id", id);
-        return await connection.QueryFirstOrDefaultAsync<ConfiguracionIglesiaColor>("usp_ConfiguracionIglesiaColor_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryFirstOrDefaultAsync<ConfiguracionIglesiaColor>("usp_ConfiguracionIglesiaColor_Obtener", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@Id", id);
-        var rows = await connection.ExecuteAsync("usp_ConfiguracionIglesiaColor_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        parameters.Add("@DenominacionId", denominacionId);
+        var rows = await connection.ExecuteAsync("usp_ConfiguracionIglesiaColor_Eliminar", parameters, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 }

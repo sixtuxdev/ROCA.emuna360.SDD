@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Menus;
 
 namespace ROCA.Emuna360.Application.Services.Menus;
 
-public class MenuService : BaseService<MenuDto, Menu>, IMenuService
+public class MenuService : MultiOrganizationalBaseService<MenuDto, Menu>, IMenuService
 {
     private readonly IMenuRepository _specificRepository;
 
@@ -14,5 +14,5 @@ public class MenuService : BaseService<MenuDto, Menu>, IMenuService
     {
         _specificRepository = repository;
     }
-    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<MenuDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<MenuDto>>.Success(_mapper.Map<IEnumerable<MenuDto>>(entities)); }
 }
+

@@ -15,47 +15,47 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
 
     public async Task<IEnumerable<Usuario>> GetByDenominacionAsync(int denominacionId)
     {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Usuario>("SELECT * FROM Usuarios WHERE DenominacionId = @DenominacionId", new { DenominacionId = denominacionId });
+        return await GetAllAsync(denominacionId);
     }
 
     public async Task<int> CreateAsync(Usuario entity)
     {
         using var connection = CreateConnection();
-        // Uses stored procedure based on SPEC-003
         var p = new DynamicParameters(entity);
-        p.Add("@UsuarioId", dbType: DbType.Int32, direction: ParameterDirection.Output);
-        
-        await connection.ExecuteAsync("sp_Usuarios_Insertar", p, commandType: CommandType.StoredProcedure);
-        return p.Get<int>("@UsuarioId");
+        return await connection.ExecuteScalarAsync<int>("usp_Usuario_Insertar", p, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Usuario entity)
     {
         using var connection = CreateConnection();
-        var rows = await connection.ExecuteAsync("sp_Usuarios_Actualizar", entity, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Usuario_Actualizar", p, commandType: CommandType.StoredProcedure);
         return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<Usuario>> GetAllAsync()
+    public async Task<System.Collections.Generic.IEnumerable<Usuario>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Usuario>("usp_Usuario_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Usuario>("usp_Usuario_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<Usuario?> GetByIdAsync(int id)
+    public async Task<Usuario?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@UsuarioId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryFirstOrDefaultAsync<Usuario>("usp_Usuario_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@UsuarioId", id);
+        parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Usuario_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }

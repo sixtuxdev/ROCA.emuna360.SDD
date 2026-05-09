@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 
 namespace ROCA.Emuna360.Application.Services.Geography;
 
-public class CorregimientoService : BaseService<CorregimientoDto, Corregimiento>, ICorregimientoService
+public class CorregimientoService : GeographyBaseService<CorregimientoDto, Corregimiento>, ICorregimientoService
 {
     private readonly ICorregimientoRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class CorregimientoService : BaseService<CorregimientoDto, Corregimiento>
         _specificRepository = repository;
     }
 }
+

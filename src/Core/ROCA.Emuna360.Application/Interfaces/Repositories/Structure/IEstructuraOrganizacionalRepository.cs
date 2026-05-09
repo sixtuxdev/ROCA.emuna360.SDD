@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Structure;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 
-public interface IEstructuraOrganizacionalRepository : IBaseRepository<EstructuraOrganizacional>
+public interface IEstructuraOrganizacionalRepository : IMultiOrganizationalRepository<EstructuraOrganizacional>
 {
     Task<IEnumerable<EstructuraOrganizacional>> GetByDenominacionAsync(int denominacionId);
 }

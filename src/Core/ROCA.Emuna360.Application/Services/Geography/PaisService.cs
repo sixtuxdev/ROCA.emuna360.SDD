@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 
 namespace ROCA.Emuna360.Application.Services.Geography;
 
-public class PaisService : BaseService<PaisDto, Pais>, IPaisService
+public class PaisService : GeographyBaseService<PaisDto, Pais>, IPaisService
 {
     private readonly IPaisRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class PaisService : BaseService<PaisDto, Pais>, IPaisService
         _specificRepository = repository;
     }
 }
+

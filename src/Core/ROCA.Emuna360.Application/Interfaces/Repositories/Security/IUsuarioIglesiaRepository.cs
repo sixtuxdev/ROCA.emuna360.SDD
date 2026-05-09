@@ -5,8 +5,8 @@ using ROCA.Emuna360.Application.DTOs.Security;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 
-public interface IUsuarioIglesiaRepository : IBaseRepository<UsuarioIglesia>
+public interface IUsuarioIglesiaRepository : IMultiOrganizationalRepository<UsuarioIglesia>
 {
-    Task<IEnumerable<UsuarioIglesia>> GetByIglesiaAsync(int iglesiaId);
+    Task<IEnumerable<UsuarioIglesia>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
     Task<IEnumerable<UsuarioIglesia>> GetByDenominacionAsync(int denominacionId);
 }

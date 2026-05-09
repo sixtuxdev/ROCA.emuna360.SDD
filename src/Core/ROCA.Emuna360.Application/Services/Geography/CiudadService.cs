@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 
 namespace ROCA.Emuna360.Application.Services.Geography;
 
-public class CiudadService : BaseService<CiudadDto, Ciudad>, ICiudadService
+public class CiudadService : GeographyBaseService<CiudadDto, Ciudad>, ICiudadService
 {
     private readonly ICiudadRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class CiudadService : BaseService<CiudadDto, Ciudad>, ICiudadService
         _specificRepository = repository;
     }
 }
+

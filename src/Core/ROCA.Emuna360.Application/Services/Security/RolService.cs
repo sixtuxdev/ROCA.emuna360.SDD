@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Security;
 
 namespace ROCA.Emuna360.Application.Services.Security;
 
-public class RolService : BaseService<RolDto, Rol>, IRolService
+public class RolService : MultiOrganizationalBaseService<RolDto, Rol>, IRolService
 {
     private readonly IRolRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class RolService : BaseService<RolDto, Rol>, IRolService
         _specificRepository = repository;
     }
 }
+

@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Organization;
 
 namespace ROCA.Emuna360.Application.Services.Organization;
 
-public class DenominacionService : BaseService<DenominacionDto, Denominacion>, IDenominacionService
+public class DenominacionService : MultiOrganizationalBaseService<DenominacionDto, Denominacion>, IDenominacionService
 {
     private readonly IDenominacionRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class DenominacionService : BaseService<DenominacionDto, Denominacion>, I
         _specificRepository = repository;
     }
 }
+

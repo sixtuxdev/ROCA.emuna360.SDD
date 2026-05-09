@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Structure;
 
 namespace ROCA.Emuna360.Application.Services.Structure;
 
-public class EstructuraOrganizacionalService : BaseService<EstructuraOrganizacionalDto, EstructuraOrganizacional>, IEstructuraOrganizacionalService
+public class EstructuraOrganizacionalService : MultiOrganizationalBaseService<EstructuraOrganizacionalDto, EstructuraOrganizacional>, IEstructuraOrganizacionalService
 {
     private readonly IEstructuraOrganizacionalRepository _specificRepository;
 
@@ -16,3 +16,4 @@ public class EstructuraOrganizacionalService : BaseService<EstructuraOrganizacio
     }
     public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraOrganizacionalDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<EstructuraOrganizacionalDto>>.Success(_mapper.Map<IEnumerable<EstructuraOrganizacionalDto>>(entities)); }
 }
+

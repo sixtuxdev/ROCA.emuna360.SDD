@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Menus;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Menus;
 
-public interface IMenuRolRepository : IBaseRepository<MenuRol>
+public interface IMenuRolRepository : IMultiOrganizationalRepository<MenuRol>
 {
     Task<IEnumerable<MenuRol>> GetByDenominacionAsync(int denominacionId);
 }

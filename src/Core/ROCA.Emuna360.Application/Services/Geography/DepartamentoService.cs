@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 
 namespace ROCA.Emuna360.Application.Services.Geography;
 
-public class DepartamentoService : BaseService<DepartamentoDto, Departamento>, IDepartamentoService
+public class DepartamentoService : GeographyBaseService<DepartamentoDto, Departamento>, IDepartamentoService
 {
     private readonly IDepartamentoRepository _specificRepository;
 
@@ -15,3 +15,4 @@ public class DepartamentoService : BaseService<DepartamentoDto, Departamento>, I
         _specificRepository = repository;
     }
 }
+

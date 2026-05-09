@@ -14,41 +14,37 @@ public class DenominacionRepository : BaseRepository<Denominacion>, IDenominacio
 
     public async Task<int> CreateAsync(Denominacion entity)
     {
-        const string sql = """
-            INSERT INTO Denominaciones (Nombre, Slug, Activa, IglesiaPrincipalId, FechaCreacion)
-            OUTPUT INSERTED.DenominacionId
-            VALUES (@Nombre, @Slug, @Activa, @IglesiaPrincipalId, @FechaCreacion)
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteScalarAsync<int>(sql, entity);
+        var parameters = new Dapper.DynamicParameters(entity);
+        return await connection.ExecuteScalarAsync<int>("usp_Denominacion_Insertar", parameters, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Denominacion entity)
     {
-        const string sql = """
-            UPDATE Denominaciones 
-            SET Nombre = @Nombre, Slug = @Slug, Activa = @Activa, IglesiaPrincipalId = @IglesiaPrincipalId
-            WHERE DenominacionId = @DenominacionId
-        """;
         using var connection = CreateConnection();
-        return await connection.ExecuteAsync(sql, entity) > 0;
+        var parameters = new Dapper.DynamicParameters(entity);
+        var rows = await connection.ExecuteAsync("usp_Denominacion_Actualizar", parameters, commandType: CommandType.StoredProcedure);
+        return rows > 0;
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<Denominacion>> GetAllAsync()
-    {
-        using var connection = CreateConnection();
-        return await connection.QueryAsync<Denominacion>("usp_Denominacion_Listar", commandType: System.Data.CommandType.StoredProcedure);
-    }
-
-    public async Task<Denominacion?> GetByIdAsync(int id)
+    public async Task<System.Collections.Generic.IEnumerable<Denominacion>> GetAllAsync(int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
-        parameters.Add("@DenominacionId", id);
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<Denominacion>("usp_Denominacion_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+
+    public async Task<Denominacion?> GetByIdAsync(int id, int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", id); // For Denominacion, id IS denominacionId?
+        // Actually, if we are filtering by denominacionId, and the entity is Denominacion, then id must be denominacionId.
         return await connection.QueryFirstOrDefaultAsync<Denominacion>("usp_Denominacion_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();

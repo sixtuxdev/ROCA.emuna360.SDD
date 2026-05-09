@@ -5,6 +5,6 @@ using ROCA.Emuna360.Application.DTOs.Geography;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 
-public interface IDepartamentoRepository : IBaseRepository<Departamento>
+public interface IDepartamentoRepository : IGeographyRepository<Departamento>
 {
 }

@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 namespace ROCA.Emuna360.API.Controllers.Geography;
 
 [Route("api/v1/departamentos")]
-public class DepartamentosController : BaseController<DepartamentoDto>
+public class DepartamentosController : GeographyBaseController<DepartamentoDto>
 {
     public DepartamentosController(IDepartamentoService service) : base(service) { }
 }

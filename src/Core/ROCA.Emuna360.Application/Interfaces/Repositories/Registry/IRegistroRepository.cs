@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Registry;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
 
-public interface IRegistroRepository : IBaseRepository<Registro>
+public interface IRegistroRepository : IMultiOrganizationalRepository<Registro>
 {
-    Task<IEnumerable<Registro>> GetByIglesiaAsync(int iglesiaId);
+    Task<IEnumerable<Registro>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
 }

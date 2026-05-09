@@ -6,7 +6,7 @@ using ROCA.Emuna360.Application.Interfaces.Services.Parameters;
 
 namespace ROCA.Emuna360.Application.Services.Parameters;
 
-public class ParametroService : BaseService<ParametroDto, Parametro>, IParametroService
+public class ParametroService : MultiOrganizationalBaseService<ParametroDto, Parametro>, IParametroService
 {
     private readonly IParametroRepository _specificRepository;
 
@@ -16,3 +16,4 @@ public class ParametroService : BaseService<ParametroDto, Parametro>, IParametro
     }
     public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>.Success(_mapper.Map<IEnumerable<ParametroDto>>(entities)); }
 }
+

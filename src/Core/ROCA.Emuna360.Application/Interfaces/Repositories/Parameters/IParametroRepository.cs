@@ -5,7 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Parameters;
 
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.Parameters;
 
-public interface IParametroRepository : IBaseRepository<Parametro>
+public interface IParametroRepository : IMultiOrganizationalRepository<Parametro>
 {
     Task<IEnumerable<Parametro>> GetByDenominacionAsync(int denominacionId);
 }

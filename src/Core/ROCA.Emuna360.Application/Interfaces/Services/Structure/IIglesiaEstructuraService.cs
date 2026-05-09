@@ -2,7 +2,7 @@ using ROCA.Emuna360.Application.DTOs.Structure;
 
 namespace ROCA.Emuna360.Application.Interfaces.Services.Structure;
 
-public interface IIglesiaEstructuraService : IBaseService<IglesiaEstructuraDto>
+public interface IIglesiaEstructuraService : IMultiOrganizationalService<IglesiaEstructuraDto>
 {
-    System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>> GetByIglesiaAsync(int iglesiaId);
+    System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaEstructuraDto>>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
 }
