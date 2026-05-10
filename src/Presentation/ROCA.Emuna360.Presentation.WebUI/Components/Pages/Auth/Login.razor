@@ -6,6 +6,8 @@
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
 
 <PageTitle>Login - ROCA.Emuna360</PageTitle>
 
@@ -43,14 +45,6 @@
                 <MudLink href="forgot-password" Underline="Underline.None">¿Olvidó su contraseña?</MudLink>
             </div>
 
-            @if (_showRecaptchaPlaceholder)
-            {
-                <div class="mt-4 p-2 border-dashed border-2 mud-border-primary rounded d-flex align-center justify-center" style="height: 78px; background-color: #fafafa;">
-                    <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" />
-                    <MudText Typo="Typo.caption">reCAPTCHA Preparado (Configuración Pendiente)</MudText>
-                </div>
-            }
-
             <MudButton Variant="Variant.Filled" 
                        Color="Color.Primary" 
                        FullWidth="true" 
@@ -83,10 +77,10 @@
     private MudForm _form = null!;
     private bool _success;
     private bool _loading;
-    private bool _showRecaptchaPlaceholder = true;
     private LoginRequestDto _loginRequest = new() { DenominacionId = 1 };
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private bool _recaptchaResolved = false;
 
     private void TogglePasswordVisibility()
     {
@@ -118,6 +112,19 @@
         _loading = true;
         try
         {
+            // Obtener token reCAPTCHA v3
+            var siteKey = Configuration["Recaptcha:SiteKey"];
+            var token = await JSRuntime.InvokeAsync<string>("recaptchaInterop.execute", siteKey);
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Snackbar.Add("Error de validación de seguridad (reCAPTCHA).", Severity.Error);
+                _loading = false;
+                return;
+            }
+
+            _loginRequest.RecaptchaToken = token;
+
             var response = await AuthApiService.LoginAsync(_loginRequest);
 
             if (response != null && !string.IsNullOrEmpty(response.AccessToken))
@@ -129,10 +136,10 @@
             }
             else
             {
-                Snackbar.Add("Credenciales inválidas o cuenta no verificada.", Severity.Error);
+                Snackbar.Add("Credenciales inválidas, error de seguridad o cuenta no verificada.", Severity.Error);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             Snackbar.Add("Ocurrió un error inesperado al intentar iniciar sesión.", Severity.Error);
         }

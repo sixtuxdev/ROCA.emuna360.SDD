@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, ROCA.Emuna360.Infrastructure.Security.JwtTokenService>();
         services.AddScoped<IPasswordHasherService, ROCA.Emuna360.Infrastructure.Security.PasswordHasherService>();
         services.AddScoped<IEmailSenderService, ROCA.Emuna360.Infrastructure.Services.Email.EmailSenderService>();
+        services.AddHttpClient<IRecaptchaService, ROCA.Emuna360.Infrastructure.Security.RecaptchaService>();
 
         // Registry
         services.AddScoped<IRegistroRepository, RegistroRepository>();

@@ -18,6 +18,10 @@ builder.Services.AddInfrastructure();
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.Configure<ROCA.Emuna360.Application.Common.JwtSettings>(jwtSettings);
 
+// Recaptcha Configuration
+var recaptchaSettings = builder.Configuration.GetSection("Recaptcha");
+builder.Services.Configure<ROCA.Emuna360.Application.Common.RecaptchaSettings>(recaptchaSettings);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;

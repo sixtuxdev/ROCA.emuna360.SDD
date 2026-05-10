@@ -7,4 +7,5 @@ public class AuthUser : Usuario
     public Registro? Registro { get; set; }
     public IEnumerable<AuthRole> Roles { get; set; } = new List<AuthRole>();
     public IEnumerable<AuthMenu> Menus { get; set; } = new List<AuthMenu>();
+    public UsuarioIglesia? UsuarioIglesia { get; set; }
 }

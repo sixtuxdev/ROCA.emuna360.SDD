@@ -5,6 +5,7 @@ public class Usuario
     public int UsuarioId { get; set; }
     public int DenominacionId { get; set; }
     public int RegistroId { get; set; }
+    public string Denominacion { get; set; } = string.Empty;
     public string? Correo { get; set; }
     public string? PasswordHash { get; set; }
     public bool EmailVerificado { get; set; }

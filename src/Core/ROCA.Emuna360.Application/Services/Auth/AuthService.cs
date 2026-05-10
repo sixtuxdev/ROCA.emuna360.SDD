@@ -20,6 +20,7 @@ public class AuthService : IAuthService
     private readonly IEmailSenderService _emailSender;
     private readonly IMapper _mapper;
     private readonly JwtSettings _jwtSettings;
+    private readonly IRecaptchaService _recaptchaService;
 
     public AuthService(
         IAuthRepository authRepository,
@@ -27,7 +28,8 @@ public class AuthService : IAuthService
         IJwtTokenService jwtTokenService,
         IEmailSenderService emailSender,
         IMapper mapper,
-        IOptions<JwtSettings> jwtSettings)
+        IOptions<JwtSettings> jwtSettings,
+        IRecaptchaService recaptchaService)
     {
         _authRepository = authRepository;
         _passwordHasher = passwordHasher;
@@ -35,10 +37,17 @@ public class AuthService : IAuthService
         _emailSender = emailSender;
         _mapper = mapper;
         _jwtSettings = jwtSettings.Value;
+        _recaptchaService = recaptchaService;
     }
 
     public async Task<Result<LoginResponseDto>> LoginAsync(LoginRequestDto request)
     {
+        // Validación reCAPTCHA
+        if (!await _recaptchaService.VerifyAsync(request.RecaptchaToken ?? string.Empty))
+        {
+            return Result<LoginResponseDto>.Failure("La validación de seguridad reCAPTCHA no fue aprobada.");
+        }
+
         AuthUser? user = null;
 
         // Búsqueda dual: por correo o por documento

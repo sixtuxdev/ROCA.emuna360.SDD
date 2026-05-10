@@ -6,6 +6,7 @@ public class UsuarioDto : BaseAuditDto
 {
     public int UsuarioId { get; set; }
     public int DenominacionId { get; set; }
+    public string Denominacion { get; set; } = string.Empty;
     public string? Correo { get; set; }
     public bool EmailVerificado { get; set; }
     public bool Bloqueado { get; set; }
