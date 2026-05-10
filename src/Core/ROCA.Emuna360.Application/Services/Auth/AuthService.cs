@@ -88,7 +88,7 @@ public class AuthService : IAuthService
 
         var response = new LoginResponseDto
         {
-            Token = token,
+            AccessToken = token,
             RefreshToken = refreshToken,
             Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenMinutes),
             User = _mapper.Map<AuthUserDto>(user)
@@ -221,7 +221,7 @@ public class AuthService : IAuthService
 
         var response = new RefreshTokenResponseDto
         {
-            Token = newAccessToken,
+            AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
             Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenMinutes)
         };

@@ -6,4 +6,6 @@ public class LoginRequestDto
     public string Login { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public int? IglesiaId { get; set; }
+    public bool RememberMe { get; set; }
+    public string? RecaptchaToken { get; set; }
 }

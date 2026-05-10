@@ -18,7 +18,17 @@ builder.Services.AddInfrastructure();
 
 // Security and Authentication
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddAuthenticationCore();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+    options.AccessDeniedPath = "/access-denied";
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ROCA.Emuna360.Presentation.WebUI.Services.TokenStorageService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, ROCA.Emuna360.Presentation.WebUI.Security.CustomAuthenticationStateProvider>();
@@ -41,7 +51,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
