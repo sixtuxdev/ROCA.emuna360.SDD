@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Geography;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 using System.Threading.Tasks;
 
@@ -12,19 +12,27 @@ public class DepartamentoRepository : BaseRepository<Departamento>, IDepartament
 {
     public DepartamentoRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Departamento entity)
+    public async Task<OperationResult<int>> CreateAsync(Departamento entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Departamento_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@PaisId", entity.PaisId);
+        parameters.Add("@DepartamentoNombre", entity.DepartamentoNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Departamento_Insertar", parameters, "@OutDepartamentoId");
     }
 
-    public async Task<bool> UpdateAsync(Departamento entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Departamento entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Departamento_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DepartamentoId", entity.DepartamentoId);
+        parameters.Add("@PaisId", entity.PaisId);
+        parameters.Add("@DepartamentoNombre", entity.DepartamentoNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Departamento_Actualizar", parameters, "@OutDepartamentoId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Departamento>> GetAllAsync()

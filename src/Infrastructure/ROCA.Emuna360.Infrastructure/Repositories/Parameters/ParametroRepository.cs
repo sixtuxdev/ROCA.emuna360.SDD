@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Parameters;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Parameters;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Parameters;
 using System.Collections.Generic;
 using System.Data;
@@ -27,19 +27,31 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
         return await connection.QueryFirstOrDefaultAsync<Parametro>("usp_Parametro_Obtener", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<int> CreateAsync(Parametro entity)
+    public async Task<OperationResult<int>> CreateAsync(Parametro entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Parametro_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@ClaseId", entity.ClaseId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Observacion", entity.Observacion);
+        parameters.Add("@PadreParametroId", entity.PadreParametroId);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Parametro_Insertar", parameters, "@OutParametroId");
     }
 
-    public async Task<bool> UpdateAsync(Parametro entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Parametro entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Parametro_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@ParametroId", entity.ParametroId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@ClaseId", entity.ClaseId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Observacion", entity.Observacion);
+        parameters.Add("@PadreParametroId", entity.PadreParametroId);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Parametro_Actualizar", parameters, "@OutParametroId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Parametro>> GetAllAsync(int denominacionId)

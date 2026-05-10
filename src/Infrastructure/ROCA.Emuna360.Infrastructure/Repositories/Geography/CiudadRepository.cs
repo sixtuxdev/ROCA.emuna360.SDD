@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Geography;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 using System.Threading.Tasks;
 
@@ -12,21 +12,27 @@ public class CiudadRepository : BaseRepository<Ciudad>, ICiudadRepository
 {
     public CiudadRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Ciudad entity)
+    public async Task<OperationResult<int>> CreateAsync(Ciudad entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        // Note: Dapper will map the entity properties to parameters automatically.
-        // We will pass the entity and let it use its properties.
-        return await connection.ExecuteScalarAsync<int>("usp_Ciudad_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DepartamentoId", entity.DepartamentoId);
+        parameters.Add("@CiudadNombre", entity.CiudadNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Ciudad_Insertar", parameters, "@OutCiudadId");
     }
 
-    public async Task<bool> UpdateAsync(Ciudad entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Ciudad entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Ciudad_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@CiudadId", entity.CiudadId);
+        parameters.Add("@DepartamentoId", entity.DepartamentoId);
+        parameters.Add("@CiudadNombre", entity.CiudadNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Ciudad_Actualizar", parameters, "@OutCiudadId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Ciudad>> GetAllAsync()

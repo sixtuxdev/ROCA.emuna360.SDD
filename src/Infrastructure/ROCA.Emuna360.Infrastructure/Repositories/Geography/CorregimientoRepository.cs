@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Geography;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 using System.Threading.Tasks;
 
@@ -12,19 +12,25 @@ public class CorregimientoRepository : BaseRepository<Corregimiento>, ICorregimi
 {
     public CorregimientoRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Corregimiento entity)
+    public async Task<OperationResult<int>> CreateAsync(Corregimiento entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Corregimiento_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@CorregimientoNombre", entity.CorregimientoNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Corregimiento_Insertar", parameters, "@OutCorregimientoId");
     }
 
-    public async Task<bool> UpdateAsync(Corregimiento entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Corregimiento entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Corregimiento_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@CorregimientoId", entity.CorregimientoId);
+        parameters.Add("@CorregimientoNombre", entity.CorregimientoNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Corregimiento_Actualizar", parameters, "@OutCorregimientoId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Corregimiento>> GetAllAsync()

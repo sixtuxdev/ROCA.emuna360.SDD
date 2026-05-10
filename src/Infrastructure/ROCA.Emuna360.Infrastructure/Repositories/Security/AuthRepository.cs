@@ -1,9 +1,12 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using ROCA.Emuna360.Domain.Entities.Registry;
 using ROCA.Emuna360.Domain.Entities.Security;
 using System.Data;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.Security;
 
@@ -47,68 +50,86 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         return await connection.QueryFirstOrDefaultAsync<Registro>("sp_auth_obtener_registro_por_id", p, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<int> CreateRegistroAsync(Registro entity)
+    public async Task<OperationResult<int>> CreateRegistroAsync(Registro entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("sp_auth_crear_registro", p, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", entity.DenominacionId);
+        p.Add("@IglesiaId", entity.IglesiaId);
+        p.Add("@Nombres", entity.Nombres);
+        p.Add("@Apellidos", entity.Apellidos);
+        p.Add("@ParametroIdTipoDocumento", entity.ParametroIdTipoDocumento);
+        p.Add("@Documento", entity.Documento);
+        p.Add("@PaisId", entity.PaisId);
+        p.Add("@DepartamentoId", entity.DepartamentoId);
+        p.Add("@CiudadId", entity.CiudadId);
+        p.Add("@CorregimientoId", entity.CorregimientoId);
+        p.Add("@Direccion", entity.Direccion);
+        p.Add("@Correo", entity.Correo);
+        p.Add("@Telefono", entity.Telefono);
+        p.Add("@ParametroIdSexo", entity.ParametroIdSexo);
+        return await ExecuteCreateAsync("sp_auth_crear_registro", p, "@OutRegistroId");
     }
 
-    public async Task<int> CreateUserAsync(Usuario entity)
+    public async Task<OperationResult<int>> CreateUserAsync(Usuario entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("sp_auth_crear_usuario", p, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", entity.DenominacionId);
+        p.Add("@RegistroId", entity.RegistroId);
+        p.Add("@Correo", entity.Correo);
+        p.Add("@PasswordHash", entity.PasswordHash);
+        p.Add("@EmailVerificado", entity.EmailVerificado);
+        p.Add("@Bloqueado", entity.Bloqueado);
+        p.Add("@FechaCreacion", entity.FechaCreacion);
+        p.Add("@SecurityStamp", entity.SecurityStamp);
+        p.Add("@RolId", entity.RolId);
+        return await ExecuteCreateAsync("sp_auth_crear_usuario", p, "@OutUsuarioId");
     }
 
-    public async Task<bool> AssignUserRoleAsync(int denominacionId, int usuarioId, int rolId)
+    public async Task<OperationResult<bool>> AssignUserRoleAsync(int denominacionId, int usuarioId, int rolId)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@UsuarioId", usuarioId);
         p.Add("@RolId", rolId);
-        var rows = await connection.ExecuteAsync("sp_auth_asignar_usuario_rol", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_asignar_usuario_rol", p, "@OutId");
     }
 
-    public async Task<bool> AssignUserIglesiaAsync(int denominacionId, int usuarioId, int iglesiaId, bool esAdministrador)
+    public async Task<OperationResult<bool>> AssignUserIglesiaAsync(int denominacionId, int usuarioId, int iglesiaId, bool esAdministrador)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@UsuarioId", usuarioId);
         p.Add("@IglesiaId", iglesiaId);
         p.Add("@EsAdministrador", esAdministrador);
-        var rows = await connection.ExecuteAsync("sp_auth_asignar_usuario_iglesia", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_asignar_usuario_iglesia", p, "@OutId");
     }
 
-    public async Task<bool> UpdateLastLoginAsync(int denominacionId, int usuarioId)
+    public async Task<OperationResult<bool>> UpdateLastLoginAsync(int denominacionId, int usuarioId)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@UsuarioId", usuarioId);
-        var rows = await connection.ExecuteAsync("sp_auth_actualizar_ultimo_login", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_actualizar_ultimo_login", p, "@OutId");
     }
 
-    public async Task<bool> MarkEmailAsVerifiedAsync(int denominacionId, int usuarioId)
+    public async Task<OperationResult<bool>> MarkEmailAsVerifiedAsync(int denominacionId, int usuarioId)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@UsuarioId", usuarioId);
-        var rows = await connection.ExecuteAsync("sp_auth_marcar_email_verificado", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_marcar_email_verificado", p, "@OutId");
     }
 
-    public async Task<int> CreateEmailVerificationTokenAsync(TokenVerificacionCorreo entity)
+    public async Task<OperationResult<int>> CreateEmailVerificationTokenAsync(TokenVerificacionCorreo entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("sp_auth_crear_token_verificacion_correo", p, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", entity.DenominacionId);
+        p.Add("@UsuarioId", entity.UsuarioId);
+        p.Add("@IglesiaId", entity.IglesiaId);
+        p.Add("@TokenHash", entity.TokenHash);
+        p.Add("@ExpiraEn", entity.ExpiraEn);
+        p.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("sp_auth_crear_token_verificacion_correo", p, "@OutTokenId");
     }
 
     public async Task<TokenVerificacionCorreo?> GetEmailVerificationTokenAsync(int denominacionId, string tokenHash)
@@ -120,21 +141,26 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         return await connection.QueryFirstOrDefaultAsync<TokenVerificacionCorreo>("sp_auth_obtener_token_verificacion_correo", p, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<bool> MarkEmailVerificationTokenAsUsedAsync(int denominacionId, int tokenId)
+    public async Task<OperationResult<bool>> MarkEmailVerificationTokenAsUsedAsync(int denominacionId, int tokenId)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@TokenId", tokenId);
-        var rows = await connection.ExecuteAsync("sp_auth_marcar_token_verificacion_usado", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_marcar_token_verificacion_usado", p, "@OutId");
     }
 
-    public async Task<int> CreateRefreshTokenAsync(RefreshToken entity)
+    public async Task<OperationResult<int>> CreateRefreshTokenAsync(RefreshToken entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("sp_auth_crear_refresh_token", p, commandType: CommandType.StoredProcedure);
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", entity.DenominacionId);
+        p.Add("@UsuarioId", entity.UsuarioId);
+        p.Add("@IglesiaId", entity.IglesiaId);
+        p.Add("@TokenHash", entity.TokenHash);
+        p.Add("@ExpiraEn", entity.ExpiraEn);
+        p.Add("@UserAgent", entity.UserAgent);
+        p.Add("@Ip", entity.Ip);
+        p.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("sp_auth_crear_refresh_token", p, "@OutRefreshTokenId");
     }
 
     public async Task<RefreshToken?> GetRefreshTokenAsync(int denominacionId, string tokenHash)
@@ -146,15 +172,13 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         return await connection.QueryFirstOrDefaultAsync<RefreshToken>("sp_auth_obtener_refresh_token", p, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<bool> RevokeRefreshTokenAsync(int denominacionId, int refreshTokenId, int? reemplazadoPor)
+    public async Task<OperationResult<bool>> RevokeRefreshTokenAsync(int denominacionId, int refreshTokenId, int? reemplazadoPor)
     {
-        using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@RefreshTokenId", refreshTokenId);
         p.Add("@ReemplazadoPor", reemplazadoPor);
-        var rows = await connection.ExecuteAsync("sp_auth_revocar_refresh_token", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return await ExecuteUpdateAsync("sp_auth_revocar_refresh_token", p, "@OutId");
     }
 
     public async Task<IEnumerable<AuthRole>> GetUserRolesAsync(int denominacionId, int usuarioId)

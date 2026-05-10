@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Geography;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 using System.Threading.Tasks;
 
@@ -12,19 +12,25 @@ public class PaisRepository : BaseRepository<Pais>, IPaisRepository
 {
     public PaisRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Pais entity)
+    public async Task<OperationResult<int>> CreateAsync(Pais entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Pais_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@PaisNombre", entity.PaisNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Pais_Insertar", parameters, "@OutPaisId");
     }
 
-    public async Task<bool> UpdateAsync(Pais entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Pais entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Pais_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@PaisId", entity.PaisId);
+        parameters.Add("@PaisNombre", entity.PaisNombre);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Pais_Actualizar", parameters, "@OutPaisId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Pais>> GetAllAsync()

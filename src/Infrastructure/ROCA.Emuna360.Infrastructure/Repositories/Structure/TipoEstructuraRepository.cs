@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Structure;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Structure;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,19 +18,23 @@ public class TipoEstructuraRepository : BaseRepository<TipoEstructura>, ITipoEst
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(TipoEstructura entity)
+    public async Task<OperationResult<int>> CreateAsync(TipoEstructura entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_TipoEstructura_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Orden", entity.Orden);
+        return await ExecuteCreateAsync("usp_TipoEstructura_Insertar", parameters, "@OutTipoEstructuraId");
     }
 
-    public async Task<bool> UpdateAsync(TipoEstructura entity)
+    public async Task<OperationResult<bool>> UpdateAsync(TipoEstructura entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_TipoEstructura_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@TipoEstructuraId", entity.TipoEstructuraId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Orden", entity.Orden);
+        return await ExecuteUpdateAsync("usp_TipoEstructura_Actualizar", parameters, "@OutTipoEstructuraId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<TipoEstructura>> GetAllAsync(int denominacionId)

@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Menus;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Menus;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Menus;
 using System.Collections.Generic;
 using System.Data;
@@ -11,21 +11,39 @@ namespace ROCA.Emuna360.Infrastructure.Repositories.Menus;
 
 public class MenuRepository : BaseRepository<Menu>, IMenuRepository
 {
-    public MenuRepository(IConfiguration configuration) : base(configuration) { } // The analysis said no PK explicitly visible but assuming MenuId based on common patterns. I'll use "MenuId" for now.
+    public MenuRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Menu entity)
+    public async Task<OperationResult<int>> CreateAsync(Menu entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Menu_Insertar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@IdGrupo", entity.IdGrupo);
+        parameters.Add("@Tipo", entity.Tipo);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@Url", entity.Url);
+        parameters.Add("@Imagen", entity.Imagen);
+        parameters.Add("@Fecha", entity.Fecha);
+        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@NuevaVentana", entity.NuevaVentana);
+        return await ExecuteCreateAsync("usp_Menu_Insertar", parameters, "@OutMenuId");
     }
 
-    public async Task<bool> UpdateAsync(Menu entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Menu entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Menu_Actualizar", parameters, commandType: System.Data.CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@MenuId", entity.MenuId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@IdGrupo", entity.IdGrupo);
+        parameters.Add("@Tipo", entity.Tipo);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@Url", entity.Url);
+        parameters.Add("@Imagen", entity.Imagen);
+        parameters.Add("@Fecha", entity.Fecha);
+        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@NuevaVentana", entity.NuevaVentana);
+        return await ExecuteUpdateAsync("usp_Menu_Actualizar", parameters, "@OutMenuId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Menu>> GetAllAsync(int denominacionId)

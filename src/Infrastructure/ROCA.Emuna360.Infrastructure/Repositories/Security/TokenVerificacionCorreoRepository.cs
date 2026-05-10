@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Security;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using System.Threading.Tasks;
 
@@ -12,19 +12,31 @@ public class TokenVerificacionCorreoRepository : BaseRepository<TokenVerificacio
 {
     public TokenVerificacionCorreoRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(TokenVerificacionCorreo entity)
+    public async Task<OperationResult<int>> CreateAsync(TokenVerificacionCorreo entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_TokenVerificacionCorreo_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TokenHash", entity.TokenHash);
+        parameters.Add("@ExpiraEn", entity.ExpiraEn);
+        parameters.Add("@UsadoEn", entity.UsadoEn);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_TokenVerificacionCorreo_Insertar", parameters, "@OutTokenId");
     }
 
-    public async Task<bool> UpdateAsync(TokenVerificacionCorreo entity)
+    public async Task<OperationResult<bool>> UpdateAsync(TokenVerificacionCorreo entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_TokenVerificacionCorreo_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@TokenId", entity.TokenId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TokenHash", entity.TokenHash);
+        parameters.Add("@ExpiraEn", entity.ExpiraEn);
+        parameters.Add("@UsadoEn", entity.UsadoEn);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_TokenVerificacionCorreo_Actualizar", parameters, "@OutTokenId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<TokenVerificacionCorreo>> GetAllAsync(int denominacionId)

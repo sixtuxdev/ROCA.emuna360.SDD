@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Security;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using System.Threading.Tasks;
 
@@ -12,19 +12,37 @@ public class TokenRefreshRepository : BaseRepository<RefreshToken>, ITokenRefres
 {
     public TokenRefreshRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(RefreshToken entity)
+    public async Task<OperationResult<int>> CreateAsync(RefreshToken entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_TokenRefresh_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TokenHash", entity.TokenHash);
+        parameters.Add("@ExpiraEn", entity.ExpiraEn);
+        parameters.Add("@RevocadoEn", entity.RevocadoEn);
+        parameters.Add("@ReemplazadoPor", entity.ReemplazadoPor);
+        parameters.Add("@UserAgent", entity.UserAgent);
+        parameters.Add("@Ip", entity.Ip);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_TokenRefresh_Insertar", parameters, "@OutRefreshTokenId");
     }
 
-    public async Task<bool> UpdateAsync(RefreshToken entity)
+    public async Task<OperationResult<bool>> UpdateAsync(RefreshToken entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_TokenRefresh_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@RefreshTokenId", entity.RefreshTokenId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TokenHash", entity.TokenHash);
+        parameters.Add("@ExpiraEn", entity.ExpiraEn);
+        parameters.Add("@RevocadoEn", entity.RevocadoEn);
+        parameters.Add("@ReemplazadoPor", entity.ReemplazadoPor);
+        parameters.Add("@UserAgent", entity.UserAgent);
+        parameters.Add("@Ip", entity.Ip);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_TokenRefresh_Actualizar", parameters, "@OutRefreshTokenId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<RefreshToken>> GetAllAsync(int denominacionId)

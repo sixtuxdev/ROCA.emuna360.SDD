@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Menus;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Menus;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Menus;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,19 +18,23 @@ public class MenuUsuarioRepository : BaseRepository<MenuUsuario>, IMenuUsuarioRe
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(MenuUsuario entity)
+    public async Task<OperationResult<int>> CreateAsync(MenuUsuario entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_MenuUsuario_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@MenuId", entity.MenuId);
+        return await ExecuteCreateAsync("usp_MenuUsuario_Insertar", parameters, "@OutId");
     }
 
-    public async Task<bool> UpdateAsync(MenuUsuario entity)
+    public async Task<OperationResult<bool>> UpdateAsync(MenuUsuario entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_MenuUsuario_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@OpcUsuId", entity.OpcUsuId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@MenuId", entity.MenuId);
+        return await ExecuteUpdateAsync("usp_MenuUsuario_Actualizar", parameters, "@OutId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<MenuUsuario>> GetAllAsync(int denominacionId)

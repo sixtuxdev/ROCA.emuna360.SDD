@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Structure;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Structure;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 using System.Collections.Generic;
 using System.Data;
@@ -18,19 +18,31 @@ public class EstructuraOrganizacionalRepository : BaseRepository<EstructuraOrgan
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(EstructuraOrganizacional entity)
+    public async Task<OperationResult<int>> CreateAsync(EstructuraOrganizacional entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_EstructuraOrganizacional_Insertar", p, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);
+        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@Responsable", entity.Responsable);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_EstructuraOrganizacional_Insertar", parameters, "@OutEstructuraOrganizacionalId");
     }
 
-    public async Task<bool> UpdateAsync(EstructuraOrganizacional entity)
+    public async Task<OperationResult<bool>> UpdateAsync(EstructuraOrganizacional entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_EstructuraOrganizacional_Actualizar", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@EstructuraOrganizacionalId", entity.EstructuraOrganizacionalId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);
+        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@Responsable", entity.Responsable);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_EstructuraOrganizacional_Actualizar", parameters, "@OutEstructuraOrganizacionalId");
     }
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)

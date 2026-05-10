@@ -21,14 +21,22 @@ public abstract class BaseService<TDto, TEntity> : IBaseService<TDto>
     public virtual async Task<Result<int>> CreateAsync(TDto dto)
     {
         var entity = _mapper.Map<TEntity>(dto);
-        var id = await _repository.CreateAsync(entity);
-        return Result<int>.Success(id);
+        var result = await _repository.CreateAsync(entity);
+        
+        if (!result.Success)
+            return Result<int>.Failure(result.Message);
+
+        return Result<int>.Success(result.Data);
     }
 
     public virtual async Task<Result<bool>> UpdateAsync(TDto dto)
     {
         var entity = _mapper.Map<TEntity>(dto);
-        var success = await _repository.UpdateAsync(entity);
-        return success ? Result<bool>.Success(true) : Result<bool>.Failure("No se pudo actualizar el registro.");
+        var result = await _repository.UpdateAsync(entity);
+
+        if (!result.Success)
+            return Result<bool>.Failure(result.Message);
+
+        return Result<bool>.Success(result.Data);
     }
 }

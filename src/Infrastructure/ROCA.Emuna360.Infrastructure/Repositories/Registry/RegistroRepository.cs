@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Registry;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Registry;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
 using System.Collections.Generic;
 using System.Data;
@@ -22,19 +22,45 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         return await connection.QueryAsync<Registro>("usp_Registro_ListarPorIglesia", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<int> CreateAsync(Registro entity)
+    public async Task<OperationResult<int>> CreateAsync(Registro entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Registro_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@Nombres", entity.Nombres);
+        parameters.Add("@Apellidos", entity.Apellidos);
+        parameters.Add("@ParametroIdTipoDocumento", entity.ParametroIdTipoDocumento);
+        parameters.Add("@Documento", entity.Documento);
+        parameters.Add("@PaisId", entity.PaisId);
+        parameters.Add("@DepartamentoId", entity.DepartamentoId);
+        parameters.Add("@CiudadId", entity.CiudadId);
+        parameters.Add("@CorregimientoId", entity.CorregimientoId);
+        parameters.Add("@Direccion", entity.Direccion);
+        parameters.Add("@Correo", entity.Correo);
+        parameters.Add("@Telefono", entity.Telefono);
+        parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
+        return await ExecuteCreateAsync("usp_Registro_Insertar", parameters, "@OutRegistroId");
     }
 
-    public async Task<bool> UpdateAsync(Registro entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Registro entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Registro_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@RegistroId", entity.RegistroId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@Nombres", entity.Nombres);
+        parameters.Add("@Apellidos", entity.Apellidos);
+        parameters.Add("@ParametroIdTipoDocumento", entity.ParametroIdTipoDocumento);
+        parameters.Add("@Documento", entity.Documento);
+        parameters.Add("@PaisId", entity.PaisId);
+        parameters.Add("@DepartamentoId", entity.DepartamentoId);
+        parameters.Add("@CiudadId", entity.CiudadId);
+        parameters.Add("@CorregimientoId", entity.CorregimientoId);
+        parameters.Add("@Direccion", entity.Direccion);
+        parameters.Add("@Correo", entity.Correo);
+        parameters.Add("@Telefono", entity.Telefono);
+        parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
+        return await ExecuteUpdateAsync("usp_Registro_Actualizar", parameters, "@OutRegistroId");
     }
     
     public async Task<IEnumerable<Registro>> GetAllAsync(int denominacionId)

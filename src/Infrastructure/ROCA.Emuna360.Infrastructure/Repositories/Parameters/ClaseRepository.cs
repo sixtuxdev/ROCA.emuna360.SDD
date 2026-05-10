@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Parameters;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Parameters;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Parameters;
 using System.Collections.Generic;
 using System.Data;
@@ -18,19 +18,25 @@ public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(Clase entity)
+    public async Task<OperationResult<int>> CreateAsync(Clase entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Clase_Insertar", p, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Clase_Insertar", parameters, "@OutId");
     }
 
-    public async Task<bool> UpdateAsync(Clase entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Clase entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Clase_Actualizar", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@ClaseId", entity.ClaseId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Descripcion", entity.Descripcion);
+        parameters.Add("@Estado", entity.Estado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Clase_Actualizar", parameters, "@OutId");
     }
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)

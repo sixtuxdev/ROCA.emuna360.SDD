@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Organization;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Organization;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Organization;
 using System.Threading.Tasks;
 
@@ -12,19 +12,27 @@ public class DenominacionRepository : BaseRepository<Denominacion>, IDenominacio
 {
     public DenominacionRepository(IConfiguration configuration) : base(configuration) { }
 
-    public async Task<int> CreateAsync(Denominacion entity)
+    public async Task<OperationResult<int>> CreateAsync(Denominacion entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Denominacion_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Slug", entity.Slug);
+        parameters.Add("@Activa", entity.Activa);
+        parameters.Add("@IglesiaPrincipalId", entity.IglesiaPrincipalId);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_Denominacion_Insertar", parameters, "@OutDenominacionId");
     }
 
-    public async Task<bool> UpdateAsync(Denominacion entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Denominacion entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Denominacion_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Slug", entity.Slug);
+        parameters.Add("@Activa", entity.Activa);
+        parameters.Add("@IglesiaPrincipalId", entity.IglesiaPrincipalId);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_Denominacion_Actualizar", parameters, "@OutDenominacionId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Denominacion>> GetAllAsync(int denominacionId)

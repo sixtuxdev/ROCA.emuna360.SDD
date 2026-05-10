@@ -1,7 +1,7 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Security;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using System.Collections.Generic;
 using System.Data;
@@ -18,19 +18,35 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(Usuario entity)
+    public async Task<OperationResult<int>> CreateAsync(Usuario entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_Usuario_Insertar", p, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@RegistroId", entity.RegistroId);
+        parameters.Add("@Correo", entity.Correo);
+        parameters.Add("@PasswordHash", entity.PasswordHash);
+        parameters.Add("@EmailVerificado", entity.EmailVerificado);
+        parameters.Add("@Bloqueado", entity.Bloqueado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        parameters.Add("@SecurityStamp", entity.SecurityStamp);
+        parameters.Add("@RolId", entity.RolId);
+        return await ExecuteCreateAsync("usp_Usuario_Insertar", parameters, "@OutUsuarioId");
     }
 
-    public async Task<bool> UpdateAsync(Usuario entity)
+    public async Task<OperationResult<bool>> UpdateAsync(Usuario entity)
     {
-        using var connection = CreateConnection();
-        var p = new DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_Usuario_Actualizar", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@UsuarioId", entity.UsuarioId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@RegistroId", entity.RegistroId);
+        parameters.Add("@Correo", entity.Correo);
+        parameters.Add("@PasswordHash", entity.PasswordHash);
+        parameters.Add("@EmailVerificado", entity.EmailVerificado);
+        parameters.Add("@Bloqueado", entity.Bloqueado);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        parameters.Add("@SecurityStamp", entity.SecurityStamp);
+        parameters.Add("@RolId", entity.RolId);
+        return await ExecuteUpdateAsync("usp_Usuario_Actualizar", parameters, "@OutUsuarioId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Usuario>> GetAllAsync(int denominacionId)

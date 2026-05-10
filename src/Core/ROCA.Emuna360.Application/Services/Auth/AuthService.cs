@@ -92,8 +92,13 @@ public class AuthService : IAuthService
             FechaCreacion = DateTime.UtcNow
         };
 
-        await _authRepository.CreateRefreshTokenAsync(refreshTokenEntity);
-        await _authRepository.UpdateLastLoginAsync(request.DenominacionId, user.UsuarioId);
+        var refreshTokenResult = await _authRepository.CreateRefreshTokenAsync(refreshTokenEntity);
+        if (!refreshTokenResult.Success)
+            return Result<LoginResponseDto>.Failure(refreshTokenResult.Message);
+
+        var loginUpdateResult = await _authRepository.UpdateLastLoginAsync(request.DenominacionId, user.UsuarioId);
+        if (!loginUpdateResult.Success)
+            return Result<LoginResponseDto>.Failure(loginUpdateResult.Message);
 
         var response = new LoginResponseDto
         {
@@ -136,13 +141,15 @@ public class AuthService : IAuthService
             ParametroIdSexo = request.ParametroIdSexo
         };
 
-        var registroId = await _authRepository.CreateRegistroAsync(registro);
+        var registroResult = await _authRepository.CreateRegistroAsync(registro);
+        if (!registroResult.Success)
+            return Result<RegisterUserResponseDto>.Failure(registroResult.Message);
 
         // Crear Usuario
         var usuario = new Usuario
         {
             DenominacionId = request.DenominacionId,
-            RegistroId = registroId,
+            RegistroId = registroResult.Data,
             Correo = request.Correo,
             PasswordHash = _passwordHasher.HashPassword(request.Password),
             EmailVerificado = false,
@@ -152,30 +159,39 @@ public class AuthService : IAuthService
             RolId = request.RolId
         };
 
-        var usuarioId = await _authRepository.CreateUserAsync(usuario);
+        var usuarioResult = await _authRepository.CreateUserAsync(usuario);
+        if (!usuarioResult.Success)
+            return Result<RegisterUserResponseDto>.Failure(usuarioResult.Message);
 
         // Asignaciones
-        await _authRepository.AssignUserRoleAsync(request.DenominacionId, usuarioId, request.RolId);
-        await _authRepository.AssignUserIglesiaAsync(request.DenominacionId, usuarioId, request.IglesiaId, false);
+        var roleResult = await _authRepository.AssignUserRoleAsync(request.DenominacionId, usuarioResult.Data, request.RolId);
+        if (!roleResult.Success)
+            return Result<RegisterUserResponseDto>.Failure(roleResult.Message);
+
+        var iglesiaResult = await _authRepository.AssignUserIglesiaAsync(request.DenominacionId, usuarioResult.Data, request.IglesiaId, false);
+        if (!iglesiaResult.Success)
+            return Result<RegisterUserResponseDto>.Failure(iglesiaResult.Message);
 
         // Token de verificación
         var verificationToken = Guid.NewGuid().ToString();
         var tokenEntity = new TokenVerificacionCorreo
         {
             DenominacionId = request.DenominacionId,
-            UsuarioId = usuarioId,
+            UsuarioId = usuarioResult.Data,
             IglesiaId = request.IglesiaId,
             TokenHash = HashToken(verificationToken),
             ExpiraEn = DateTime.UtcNow.AddHours(24),
             FechaCreacion = DateTime.UtcNow
         };
 
-        await _authRepository.CreateEmailVerificationTokenAsync(tokenEntity);
+        var tokenResult = await _authRepository.CreateEmailVerificationTokenAsync(tokenEntity);
+        if (!tokenResult.Success)
+            return Result<RegisterUserResponseDto>.Failure(tokenResult.Message);
 
         // Enviar Correo (Async)
         await _emailSender.SendEmailConfirmationAsync(request.Correo, $"{request.Nombres} {request.Apellidos}", verificationToken);
 
-        return Result<RegisterUserResponseDto>.Success(new RegisterUserResponseDto { UsuarioId = usuarioId, Correo = request.Correo });
+        return Result<RegisterUserResponseDto>.Success(new RegisterUserResponseDto { UsuarioId = usuarioResult.Data, Correo = request.Correo });
     }
 
     public async Task<Result<bool>> ConfirmEmailAsync(ConfirmEmailRequestDto request)
@@ -186,8 +202,13 @@ public class AuthService : IAuthService
         if (token == null || token.UsadoEn != null || token.ExpiraEn < DateTime.UtcNow)
             return Result<bool>.Failure("Token inválido o expirado.");
 
-        await _authRepository.MarkEmailVerificationTokenAsUsedAsync(request.DenominacionId, token.TokenId);
-        await _authRepository.MarkEmailAsVerifiedAsync(request.DenominacionId, token.UsuarioId ?? 0);
+        var tokenUsedResult = await _authRepository.MarkEmailVerificationTokenAsUsedAsync(request.DenominacionId, token.TokenId);
+        if (!tokenUsedResult.Success)
+            return Result<bool>.Failure(tokenUsedResult.Message);
+
+        var emailVerifiedResult = await _authRepository.MarkEmailAsVerifiedAsync(request.DenominacionId, token.UsuarioId ?? 0);
+        if (!emailVerifiedResult.Success)
+            return Result<bool>.Failure(emailVerifiedResult.Message);
 
         return Result<bool>.Success(true);
     }
@@ -214,7 +235,9 @@ public class AuthService : IAuthService
         var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
 
         // Rotar tokens: Revocar el anterior y crear el nuevo
-        await _authRepository.RevokeRefreshTokenAsync(request.DenominacionId, token.RefreshTokenId, null); // Debería guardar el nuevo ID si se desea trackear reemplazo
+        var revokeResult = await _authRepository.RevokeRefreshTokenAsync(request.DenominacionId, token.RefreshTokenId, null);
+        if (!revokeResult.Success)
+            return Result<RefreshTokenResponseDto>.Failure(revokeResult.Message);
 
         var newRefreshTokenEntity = new RefreshToken
         {
@@ -226,7 +249,9 @@ public class AuthService : IAuthService
             FechaCreacion = DateTime.UtcNow
         };
 
-        await _authRepository.CreateRefreshTokenAsync(newRefreshTokenEntity);
+        var refreshTokenResult = await _authRepository.CreateRefreshTokenAsync(newRefreshTokenEntity);
+        if (!refreshTokenResult.Success)
+            return Result<RefreshTokenResponseDto>.Failure(refreshTokenResult.Message);
 
         var response = new RefreshTokenResponseDto
         {
@@ -245,7 +270,9 @@ public class AuthService : IAuthService
 
         if (token != null)
         {
-            await _authRepository.RevokeRefreshTokenAsync(request.DenominacionId, token.RefreshTokenId, null);
+            var logoutResult = await _authRepository.RevokeRefreshTokenAsync(request.DenominacionId, token.RefreshTokenId, null);
+            if (!logoutResult.Success)
+                return Result<bool>.Failure(logoutResult.Message);
         }
 
         return Result<bool>.Success(true);

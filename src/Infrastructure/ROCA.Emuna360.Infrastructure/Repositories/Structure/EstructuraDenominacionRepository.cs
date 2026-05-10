@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Structure;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Structure;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Structure;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -27,19 +27,33 @@ public class EstructuraDenominacionRepository : BaseRepository<EstructuraDenomin
         return await connection.QueryAsync<EstructuraDenominacion>("usp_EstructuraDenominacion_ListarPorIglesia", parameters, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<int> CreateAsync(EstructuraDenominacion entity)
+    public async Task<OperationResult<int>> CreateAsync(EstructuraDenominacion entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_EstructuraDenominacion_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TipoEstructuraId", entity.TipoEstructuraId);
+        parameters.Add("@PadreId", entity.PadreId);
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Codigo", entity.Codigo);
+        parameters.Add("@Activa", entity.Activa);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteCreateAsync("usp_EstructuraDenominacion_Insertar", parameters, "@OutEstructuraId");
     }
 
-    public async Task<bool> UpdateAsync(EstructuraDenominacion entity)
+    public async Task<OperationResult<bool>> UpdateAsync(EstructuraDenominacion entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_EstructuraDenominacion_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@EstructuraId", entity.EstructuraId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@TipoEstructuraId", entity.TipoEstructuraId);
+        parameters.Add("@PadreId", entity.PadreId);
+        parameters.Add("@Nombre", entity.Nombre);
+        parameters.Add("@Codigo", entity.Codigo);
+        parameters.Add("@Activa", entity.Activa);
+        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        return await ExecuteUpdateAsync("usp_EstructuraDenominacion_Actualizar", parameters, "@OutEstructuraId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<EstructuraDenominacion>> GetAllAsync(int denominacionId)

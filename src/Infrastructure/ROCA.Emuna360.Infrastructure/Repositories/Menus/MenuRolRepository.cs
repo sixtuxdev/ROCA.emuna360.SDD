@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Menus;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Menus;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Menus;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,26 +11,32 @@ namespace ROCA.Emuna360.Infrastructure.Repositories.Menus;
 
 public class MenuRolRepository : BaseRepository<MenuRol>, IMenuRolRepository
 {
-    public MenuRolRepository(IConfiguration configuration) : base(configuration) { } // Assuming "Id" as PK
+    public MenuRolRepository(IConfiguration configuration) : base(configuration) { }
 
     public async Task<IEnumerable<MenuRol>> GetByDenominacionAsync(int denominacionId)
     {
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(MenuRol entity)
+    public async Task<OperationResult<int>> CreateAsync(MenuRol entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_MenuRol_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@RolId", entity.RolId);
+        parameters.Add("@MenuId", entity.MenuId);
+        parameters.Add("@Estado", entity.Estado);
+        return await ExecuteCreateAsync("usp_MenuRol_Insertar", parameters, "@OutId");
     }
 
-    public async Task<bool> UpdateAsync(MenuRol entity)
+    public async Task<OperationResult<bool>> UpdateAsync(MenuRol entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_MenuRol_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@Menu_Rol", entity.Menu_Rol);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@RolId", entity.RolId);
+        parameters.Add("@MenuId", entity.MenuId);
+        parameters.Add("@Estado", entity.Estado);
+        return await ExecuteUpdateAsync("usp_MenuRol_Actualizar", parameters, "@OutId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<MenuRol>> GetAllAsync(int denominacionId)

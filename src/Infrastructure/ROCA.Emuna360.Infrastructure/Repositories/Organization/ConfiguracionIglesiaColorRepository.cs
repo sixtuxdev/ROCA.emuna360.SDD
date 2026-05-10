@@ -1,8 +1,8 @@
+using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Organization;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using ROCA.Emuna360.Application.DTOs.Organization;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Organization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,19 +18,24 @@ public class ConfiguracionIglesiaColorRepository : BaseRepository<ConfiguracionI
         return await GetAllAsync(denominacionId);
     }
 
-    public async Task<int> CreateAsync(ConfiguracionIglesiaColor entity)
+    public async Task<OperationResult<int>> CreateAsync(ConfiguracionIglesiaColor entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        return await connection.ExecuteScalarAsync<int>("usp_ConfiguracionIglesiaColor_Insertar", parameters, commandType: CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@ConfiguracionIglesiaId", entity.ConfiguracionIglesiaId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@NombreColor", entity.NombreColor);
+        parameters.Add("@ValorColor", entity.ValorColor);
+        return await ExecuteCreateAsync("usp_ConfiguracionIglesiaColor_Insertar", parameters, "@OutId");
     }
 
-    public async Task<bool> UpdateAsync(ConfiguracionIglesiaColor entity)
+    public async Task<OperationResult<bool>> UpdateAsync(ConfiguracionIglesiaColor entity)
     {
-        using var connection = CreateConnection();
-        var parameters = new Dapper.DynamicParameters(entity);
-        var rows = await connection.ExecuteAsync("usp_ConfiguracionIglesiaColor_Actualizar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@ConfiguracionIglesiaId", entity.ConfiguracionIglesiaId);
+        parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@NombreColor", entity.NombreColor);
+        parameters.Add("@ValorColor", entity.ValorColor);
+        return await ExecuteUpdateAsync("usp_ConfiguracionIglesiaColor_Actualizar", parameters, "@OutId");
     }
 
     public async Task<IEnumerable<ConfiguracionIglesiaColor>> GetAllAsync(int denominacionId)
