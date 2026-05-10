@@ -16,7 +16,18 @@ builder.Services.AddRazorComponents()
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
+// Security and Authentication
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthenticationCore();
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<ROCA.Emuna360.Presentation.WebUI.Services.TokenStorageService>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, ROCA.Emuna360.Presentation.WebUI.Security.CustomAuthenticationStateProvider>();
+builder.Services.AddScoped(sp => (ROCA.Emuna360.Presentation.WebUI.Security.CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
+
+// API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+builder.Services.AddScoped<ROCA.Emuna360.Presentation.WebUI.Services.AuthApiService>();
 
 var app = builder.Build();
 
