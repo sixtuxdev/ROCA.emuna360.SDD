@@ -95,6 +95,82 @@ Ruta esperada:
 
 ---
 
+## Logo institucional en Login
+
+La pantalla de Login debe mostrar el logo oficial de la aplicación de forma elegante, profesional y responsive.
+
+Ruta oficial del logo:
+
+```txt
+wwwroot/image/logo.png
+```
+
+Reglas obligatorias:
+
+1. El logo debe mostrarse en la pantalla Login.
+2. El logo debe integrarse visualmente con el diseño institucional.
+3. El logo debe verse correctamente en:
+   - Desktop
+   - Tablet
+   - Mobile
+4. El logo no debe deformarse.
+5. Debe respetar proporciones originales.
+6. Debe tener buena resolución visual.
+7. Debe tener espaciado elegante respecto a:
+   - Título
+   - Formulario
+   - Fondo
+8. Debe integrarse correctamente con los colores:
+   - Primary: #002142
+   - Secondary: #A7762A
+   - Tertiary: #FEFEFE
+9. El diseño debe verse moderno y corporativo.
+10. El logo debe cargarse desde:
+
+```txt
+wwwroot/image/logo.png
+```
+
+11. No quemar imágenes base64.
+12. No duplicar el logo en otras rutas.
+13. Validar que el logo exista correctamente.
+14. Si el logo es transparente, respetar transparencia.
+15. Debe tener tamaño adaptable usando MudBlazor.
+
+Implementación esperada:
+
+- Mostrar el logo en la parte superior del Card Login.
+- Centrado horizontalmente.
+- Con separación elegante.
+- Debe usar componentes MudBlazor.
+- Debe soportar responsive.
+
+Ejemplo esperado:
+
+```txt
+Logo
+ROCA.Emuna360
+Subtítulo institucional
+Formulario Login
+```
+
+Validar:
+
+- Si la imagen carga correctamente.
+- Si el path funciona en Blazor.
+- Si funciona correctamente en producción.
+- Si funciona correctamente en IIS.
+- Si funciona correctamente al publicar.
+
+Al finalizar:
+
+Debes mostrar:
+1. Cómo quedó integrado el logo.
+2. Archivo donde fue implementado.
+3. Responsive aplicado.
+4. Resultado visual esperado.
+
+
 # Campos requeridos
 
 ## Usuario
