@@ -27,8 +27,7 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
         parameters.Add("@PasswordHash", entity.PasswordHash);
         parameters.Add("@EmailVerificado", entity.EmailVerificado);
         parameters.Add("@Bloqueado", entity.Bloqueado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        parameters.Add("@SecurityStamp", entity.SecurityStamp);
+        parameters.Add("@SecurityStamp", entity.SecurityStamp);        
         parameters.Add("@RolId", entity.RolId);
         return await ExecuteCreateAsync("usp_Usuario_Insertar", parameters, "@OutUsuarioId");
     }
@@ -43,7 +42,6 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
         parameters.Add("@PasswordHash", entity.PasswordHash);
         parameters.Add("@EmailVerificado", entity.EmailVerificado);
         parameters.Add("@Bloqueado", entity.Bloqueado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
         parameters.Add("@SecurityStamp", entity.SecurityStamp);
         parameters.Add("@RolId", entity.RolId);
         return await ExecuteUpdateAsync("usp_Usuario_Actualizar", parameters, "@OutUsuarioId");
