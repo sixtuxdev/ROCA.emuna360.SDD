@@ -1,4 +1,4 @@
-# SPEC-006 - Implementación Correcta del Login, Manejo de Tokens y Protección de Sesiones
+# SPEC-006 - Implementación Completa de Login, Manejo de Tokens, Persistencia de Sesión y Protección de APIs
 
 ## Información General
 
@@ -9,7 +9,7 @@
 | Tipo | Seguridad / Autenticación |
 | Prioridad | Alta |
 | Estado | Pendiente |
-| Autor | Sixto José Romero Martínez |
+| Solicitante | Sixto José Romero Martínez |
 | Rol | Desarrollador FullStack |
 | Arquitectura | Onion Architecture |
 | Frontend | Blazor .NET 9 + MudBlazor |
@@ -20,16 +20,20 @@
 
 # 1. Objetivo
 
-Implementar correctamente el flujo completo de autenticación y autorización de la aplicación ROCA.Emuna360 utilizando las APIs existentes, garantizando:
+Implementar correctamente todo el flujo de autenticación y autorización de la solución ROCA.Emuna360 utilizando las APIs existentes, garantizando:
 
-- Inicio de sesión funcional
-- Manejo correcto de AccessToken y RefreshToken
-- Protección de endpoints y controladores
+- Login funcional
 - Persistencia segura de sesión
-- Redirección automática
-- Cierre de sesión seguro
+- Manejo correcto de JWT
+- Manejo correcto de RefreshToken
+- Protección de APIs
+- Protección de navegación
+- Persistencia de información del usuario
+- Manejo de LocalStorage
+- Logout seguro
+- Renovación automática de sesión
 - Validaciones reactivas del formulario Login
-- Respeto por la arquitectura actual y mejores prácticas
+- Respeto total por la arquitectura actual
 
 ---
 
@@ -45,9 +49,11 @@ Implementar correctamente el flujo completo de autenticación y autorización de
 
 # 3. Criterios de Aceptación
 
+---
+
 ## CA-001 - Consumo API Login
 
-Debe utilizarse la API ya implementada en:
+Debe utilizarse obligatoriamente la API ya implementada en:
 
 ```csharp
 ROCA.Emuna360.Presentation.WebUI
@@ -64,56 +70,212 @@ Este método será el único autorizado para realizar el proceso de autenticaci�
 
 ---
 
-## CA-002 - Redirección después del Login
+## CA-002 - Estructura de Respuesta Login
+
+La API de Login retorna la siguiente estructura:
+
+```json
+{
+  "accessToken": "",
+  "refreshToken": "",
+  "expiration": "",
+  "user": {
+    "usuarioId": 0,
+    "denominacionId": 0,
+    "correo": "",
+    "emailVerificado": true,
+    "rolId": 0,
+    "registro": {},
+    "roles": [],
+    "menus": []
+  }
+}
+```
+
+La aplicación deberá mapear completamente toda la estructura devuelta.
+
+---
+
+## CA-003 - Persistencia Completa en LocalStorage
+
+Debe almacenarse toda la información devuelta por Login en LocalStorage separando correctamente cada estructura.
+
+---
+
+### Key: AccessToken
+
+```json
+{
+  "accessToken": "JWT_TOKEN"
+}
+```
+
+---
+
+### Key: RefreshToken
+
+```json
+{
+  "refreshToken": "REFRESH_TOKEN"
+}
+```
+
+---
+
+### Key: TokenExpiration
+
+```json
+{
+  "expiration": "2026-05-13T00:07:48.9030487Z"
+}
+```
+
+---
+
+### Key: InfoUser
+
+```json
+{
+  "usuarioId": 4,
+  "denominacionId": 1,
+  "correo": "calyjuan@gmail",
+  "emailVerificado": true,
+  "rolId": 2
+}
+```
+
+---
+
+### Key: InfoRegister
+
+```json
+{
+  "registroId": 1,
+  "nombres": "Juan Bautista",
+  "apellidos": "Caly Madariaga",
+  "documento": "8265482",
+  "nombreCompleto": "Juan Bautista Caly Madariaga"
+}
+```
+
+---
+
+### Key: Roles
+
+```json
+[
+  {
+    "rolId": 2,
+    "nombre": "Administrador",
+    "codigo": "ADMIN"
+  }
+]
+```
+
+---
+
+### Key: Menus
+
+```json
+[
+  {
+    "menuId": 1,
+    "descripcion": "Administrar Iglesias",
+    "idGrupo": 4,
+    "tipo": "S",
+    "url": "/config-iglesias",
+    "imagen": "AddHomeWork",
+    "orden": 0
+  }
+]
+```
+
+---
+
+## CA-004 - Persistencia de Sesión
+
+La sesión deberá mantenerse activa utilizando:
+
+- AccessToken
+- RefreshToken
+- Claims
+- LocalStorage
+- AuthenticationStateProvider
+
+---
+
+## CA-005 - Redirección después del Login
 
 Cuando el usuario inicie sesión correctamente:
 
 - Debe redireccionarse automáticamente:
   - Dashboard
   - Main Layout
-  - Página principal definida por la aplicación
+  - Página principal de la aplicación
 
 ---
 
-## CA-003 - Manejo Correcto de Tokens
+## CA-006 - Manejo Correcto de JWT
 
 La aplicación debe:
 
-- Almacenar correctamente:
-  - AccessToken
-  - RefreshToken
-
 - Aplicar automáticamente el AccessToken en cada petición HTTP protegida.
-
-- Renovar automáticamente el token cuando expire utilizando el RefreshToken.
-
-- Evitar que el usuario pierda sesión mientras el RefreshToken sea válido.
+- Manejar expiración de tokens.
+- Detectar expiración automáticamente.
+- Renovar sesión usando RefreshToken.
+- Reintentar solicitudes después de renovar token.
 
 ---
 
-## CA-004 - Protección de Endpoints y Controladores
+## CA-007 - Manejo Correcto de RefreshToken
 
-Todos los controladores y endpoints protegidos deben:
+Debe existir un flujo automático de renovación de sesión.
 
-- Requerir autenticación mediante JWT Bearer Token.
-- Validar correctamente:
-  - expiración
-  - firma
+### Flujo esperado
+
+```text
+Token expirado
+        ↓
+Interceptor detecta 401
+        ↓
+Consume endpoint RefreshToken
+        ↓
+Obtiene nuevo JWT
+        ↓
+Actualiza LocalStorage
+        ↓
+Reintenta petición original
+```
+
+---
+
+## CA-008 - Protección de APIs
+
+Todos los controladores y endpoints protegidos deberán:
+
+- Requerir autenticación JWT
+- Validar:
   - issuer
   - audience
+  - expiration
+  - signing key
 
-Solo usuarios autenticados podrán acceder a módulos protegidos.
+Debe utilizarse:
+
+```csharp
+[Authorize]
+```
 
 ---
 
-## CA-005 - Exclusión de Endpoints Públicos
+## CA-009 - Endpoints Públicos
 
-Algunos endpoints NO deberán requerir autenticación.
+Algunos endpoints NO requerirán autenticación.
 
 Ejemplos:
 
-- Registro de usuarios
-- Recuperación de contraseña
+- Registro
+- Recuperación contraseña
 - Validaciones públicas
 - Confirmaciones externas
 
@@ -123,11 +285,21 @@ Debe utilizarse:
 [AllowAnonymous]
 ```
 
-En endpoints específicos que deban ser públicos.
+---
+
+## CA-010 - Protección de Navegación
+
+Las páginas protegidas de Blazor no deberán permitir acceso si:
+
+- el usuario no está autenticado
+- el token expiró
+- la sesión fue eliminada
+
+La navegación deberá redireccionar automáticamente al Login.
 
 ---
 
-## CA-006 - Validación Reactiva del Formulario Login
+## CA-011 - Validación Reactiva del Login
 
 El botón:
 
@@ -138,103 +310,56 @@ INICIAR SESIÓN
 Debe habilitarse automáticamente cuando:
 
 - El usuario ingrese:
-  - correo electrónico válido o documento
+  - correo/documento válido
   - contraseña válida
 
-- Las validaciones mínimas se cumplan en tiempo real.
+- Las validaciones mínimas se cumplan.
 
 NO debe requerirse pérdida de foco (`blur`) para habilitar el botón.
 
-La validación debe reaccionar mientras el usuario escribe.
+La validación debe ejecutarse en tiempo real mientras el usuario escribe.
 
 ---
 
-## CA-007 - Cierre Seguro de Sesión
+## CA-012 - Logout Seguro
 
 Cuando el usuario cierre sesión:
 
-Debe:
+Debe eliminar:
 
-- Eliminar:
-  - AccessToken
-  - RefreshToken
-  - Claims
-  - Estado de autenticación
-  - Caché de sesión
+- AccessToken
+- RefreshToken
+- Expiration
+- Claims
+- Estado autenticación
+- LocalStorage
+- Caché de sesión
+
+Luego:
 
 - Redireccionar al Login
-
-- Impedir navegación hacia páginas protegidas usando el botón atrás del navegador.
+- Bloquear navegación protegida
+- Impedir volver atrás usando historial del navegador
 
 ---
 
-## CA-008 - Buenas Prácticas
+## CA-013 - Buenas Prácticas
 
 La implementación debe:
 
 - Respetar Onion Architecture
-- Separar responsabilidades
+- Mantener separación de responsabilidades
 - Usar Dependency Injection
-- Mantener código limpio y desacoplado
-- Evitar duplicación de lógica
-- Centralizar autenticación y autorización
+- Evitar código duplicado
 - Mantener tipado fuerte
+- Centralizar autenticación
+- Centralizar autorización
 - Manejar errores correctamente
+- Mantener código desacoplado
 
 ---
 
-# 4. Alcance
-
-## Incluye
-
-- Integración completa del Login
-- Manejo JWT
-- Manejo RefreshToken
-- Protección de APIs
-- Protección de rutas UI
-- Logout seguro
-- Validación reactiva formulario
-- Persistencia de sesión
-- Renovación automática de tokens
-
-## No Incluye
-
-- Registro de usuarios
-- Recuperación de contraseña
-- MFA
-- Login social
-- OAuth externo
-
----
-
-# 5. Arquitectura Objetivo
-
-## Frontend
-
-### Responsabilidades
-
-- Consumir LoginAsync
-- Gestionar estado autenticación
-- Persistencia segura sesión
-- Manejar redirecciones
-- Aplicar AuthorizationView
-- Interceptar HTTP Requests
-
----
-
-## Backend
-
-### Responsabilidades
-
-- Emitir JWT
-- Emitir RefreshToken
-- Validar tokens
-- Renovar tokens
-- Proteger endpoints
-
----
-
-# 6. Componentes Afectados
+# 4. Componentes Afectados
 
 ## Frontend
 
@@ -248,26 +373,32 @@ ROCA.Emuna360.Presentation.WebUI
 
 - Login.razor
 - AuthApiService.cs
-- AuthenticationStateProvider
-- HttpClient Handlers
+- CustomAuthenticationStateProvider
+- LocalStorageService
+- JwtInterceptorHandler
 - MainLayout
 - App.razor
 - Protected Routes
+- NavigationMenu
+- SessionManager
 
 ---
 
 ## Backend
 
-### Proyecto API
+### API
 
+- AuthController
+- RefreshToken endpoint
+- JWT Middleware
+- Authorization configuration
 - Controladores protegidos
-- Middleware JWT
-- Configuración Authentication
-- RefreshToken endpoints
 
 ---
 
-# 7. Requerimientos Técnicos
+# 5. Requerimientos Técnicos
+
+---
 
 ## RT-001 - JWT Authentication
 
@@ -291,73 +422,77 @@ builder.Services.AddAuthorization();
 
 ---
 
-## RT-003 - Protección Global
+## RT-003 - Http Interceptor
 
-Los controladores protegidos deberán usar:
+Debe existir un Handler HTTP encargado de:
 
-```csharp
-[Authorize]
-```
-
----
-
-## RT-004 - Endpoints Públicos
-
-Los endpoints públicos deberán usar:
-
-```csharp
-[AllowAnonymous]
-```
-
----
-
-## RT-005 - Refresh Token
-
-Debe existir un flujo de renovación automática.
-
-### Flujo
-
-1. Detectar expiración del AccessToken
-2. Consumir endpoint Refresh
-3. Obtener nuevos tokens
-4. Reintentar solicitud original
-
----
-
-## RT-006 - Http Interceptor
-
-Debe existir un Handler o Interceptor HTTP que:
-
-- Agregue automáticamente:
+- Agregar automáticamente:
 
 ```http
 Authorization: Bearer {token}
 ```
 
-- Detecte respuestas:
+- Detectar:
   - 401
   - 403
 
----
-
-## RT-007 - Persistencia Segura
-
-Los tokens deben almacenarse utilizando mecanismos seguros definidos actualmente por la aplicación.
+- Renovar tokens automáticamente
 
 ---
 
-## RT-008 - Estado Global de Autenticación
+## RT-004 - AuthenticationStateProvider
 
-Debe existir sincronización entre:
+Debe implementarse correctamente:
 
-- UI
-- Claims
-- Session State
-- AuthenticationStateProvider
+- ClaimsPrincipal
+- Estado autenticación
+- Persistencia sesión
+- Actualización automática UI
 
 ---
 
-# 8. Flujo Funcional
+## RT-005 - Manejo LocalStorage
+
+Debe existir una capa centralizada para:
+
+- Guardar sesión
+- Leer sesión
+- Eliminar sesión
+- Renovar sesión
+
+---
+
+## RT-006 - Claims JWT
+
+El sistema deberá manejar correctamente claims como:
+
+```text
+UsuarioId
+RegistroId
+DenominacionId
+RolId
+Roles
+Documento
+NombreCompleto
+Email
+```
+
+---
+
+## RT-007 - Seguridad
+
+La aplicación deberá:
+
+- Validar expiración JWT
+- Invalidar sesión correctamente
+- Evitar reutilización sesión
+- Evitar navegación protegida después logout
+
+---
+
+# 6. Flujo Funcional
+
+---
 
 ## Flujo Login
 
@@ -370,11 +505,11 @@ Botón habilitado automáticamente
         ↓
 Consume LoginAsync()
         ↓
-API valida credenciales
+API valida usuario
         ↓
-Retorna JWT + RefreshToken
+Retorna JWT + RefreshToken + UserInfo
         ↓
-Guardar sesión
+Guardar información en LocalStorage
         ↓
 Actualizar AuthenticationState
         ↓
@@ -386,15 +521,17 @@ Redireccionar Dashboard
 ## Flujo RefreshToken
 
 ```text
-Token expirado
+JWT expirado
         ↓
 Interceptor detecta 401
         ↓
-Consume RefreshToken API
+Consume endpoint Refresh
         ↓
-Obtiene nuevo AccessToken
+Obtiene nuevo JWT
         ↓
-Reintenta request original
+Actualiza LocalStorage
+        ↓
+Reintenta petición original
 ```
 
 ---
@@ -404,11 +541,11 @@ Reintenta request original
 ```text
 Usuario cierra sesión
         ↓
-Eliminar tokens
+Eliminar LocalStorage
         ↓
-Eliminar claims
+Eliminar Claims
         ↓
-Limpiar estado autenticación
+Limpiar AuthenticationState
         ↓
 Redireccionar Login
         ↓
@@ -417,56 +554,65 @@ Bloquear navegación protegida
 
 ---
 
-# 9. Validaciones Funcionales
+# 7. Validaciones Funcionales
 
 | Código | Validación |
 |---|---|
-| VF-001 | Usuario no puede acceder al dashboard sin login |
+| VF-001 | Usuario no autenticado no puede acceder módulos privados |
 | VF-002 | Usuario autenticado puede consumir APIs protegidas |
-| VF-003 | Usuario anónimo no puede consumir APIs privadas |
-| VF-004 | Botón login responde en tiempo real |
-| VF-005 | Logout elimina completamente la sesión |
-| VF-006 | RefreshToken renueva sesión automáticamente |
-| VF-007 | Navegación protegida funciona correctamente |
+| VF-003 | JWT se aplica automáticamente |
+| VF-004 | RefreshToken renueva sesión |
+| VF-005 | Logout elimina completamente sesión |
+| VF-006 | Validación Login funciona en tiempo real |
+| VF-007 | Navegación protegida funciona |
+| VF-008 | LocalStorage almacena correctamente toda la información |
+| VF-009 | Menús quedan disponibles después Login |
+| VF-010 | Roles quedan disponibles globalmente |
 
 ---
 
-# 10. Riesgos
+# 8. Riesgos
 
 | Riesgo | Impacto |
 |---|---|
-| Mal manejo de tokens | Accesos inválidos |
-| Tokens persistentes después logout | Riesgo de seguridad |
-| RefreshToken incorrecto | Pérdida de sesión |
-| Validaciones incorrectas UI | Mala experiencia usuario |
+| Tokens mal gestionados | Vulnerabilidad seguridad |
+| Sesión persistente incorrectamente | Accesos inválidos |
+| RefreshToken incorrecto | Pérdida sesión |
+| Claims inconsistentes | Fallos autorización |
+| Logout incompleto | Riesgo seguridad |
 
 ---
 
-# 11. Definición de Terminado (DoD)
+# 9. Definición de Terminado (DoD)
 
 La SPEC se considerará completada cuando:
 
 - Login funcione correctamente
-- Logout funcione correctamente
-- Tokens funcionen correctamente
+- JWT funcione correctamente
 - RefreshToken funcione correctamente
 - APIs protegidas funcionen
-- Endpoints públicos funcionen
-- Validación reactiva implementada
-- Navegación protegida validada
+- LocalStorage almacene correctamente toda la información
+- Logout elimine completamente la sesión
+- Navegación protegida funcione
+- Validaciones reactivas funcionen
+- Menús dinámicos funcionen
+- Claims funcionen correctamente
 - No existan errores de autenticación
-- Código cumpla arquitectura definida
+- Código respete Onion Architecture
 
 ---
 
-# 12. Resultado Esperado
+# 10. Resultado Esperado
 
 El sistema debe permitir:
 
 - Inicio de sesión seguro
-- Persistencia correcta de autenticación
-- Protección completa de módulos privados
-- Renovación automática de sesión
-- Cierre de sesión seguro
-- Experiencia fluida para el usuario
+- Persistencia correcta de sesión
+- Renovación automática de tokens
+- Protección de módulos privados
+- Navegación segura
+- Menús dinámicos por rol
+- Manejo centralizado autenticación
+- Logout seguro
 - Arquitectura mantenible y escalable
+- Excelente experiencia de usuario

@@ -9,7 +9,7 @@
   <Folder Name="/docs/decisions/">
     <File Path="docs/decisions/HU-004-Authenticacion.md" />
     <File Path="docs/decisions/HU-005-Authenticacion-UI.md" />
-    <File Path="HU-006-Authenticacion-UI.md" />
+    <File Path="docs/decisions/HU-006-Authenticacion-UI.md" />
   </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
@@ -27,7 +27,7 @@
     <File Path="docs/specs/SPEC-003 - Repositorios CRUD y API REST ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-004 - Login Autenticación y Backend de Seguridad ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-005-Authenticacion-UI ROCA.Emuna360.md" />
-    <File Path="SPEC-006-Authenticacion-UI-Funcional-ROCA.Emuna360.md" />
+    <File Path="docs/specs/SPEC-006-Authenticacion-UI-Funcional-ROCA.Emuna360.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">

@@ -14,13 +14,46 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
 {
     public AuthRepository(IConfiguration configuration) : base(configuration) { }
 
+    //public async Task<AuthUser?> GetUserByEmailAsync(int denominacionId, string correo)
+    //{
+    //    using var connection = CreateConnection();
+    //    var p = new DynamicParameters();
+    //    p.Add("@DenominacionId", denominacionId);
+    //    p.Add("@Correo", correo);
+    //    return await connection.QueryMultipleAsync<AuthUser>("sp_auth_obtener_usuario_por_correo", p, commandType: CommandType.StoredProcedure);
+    //}
+
     public async Task<AuthUser?> GetUserByEmailAsync(int denominacionId, string correo)
     {
         using var connection = CreateConnection();
+
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@Correo", correo);
-        return await connection.QueryFirstOrDefaultAsync<AuthUser>("sp_auth_obtener_usuario_por_correo", p, commandType: CommandType.StoredProcedure);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_auth_obtener_usuario_por_correo",
+            p,
+            commandType: CommandType.StoredProcedure);
+
+        // Usuario principal
+        var user = await multi.ReadFirstOrDefaultAsync<AuthUser>();
+
+        if (user is null)
+            return null;
+        
+        user.Registro = await multi.ReadFirstOrDefaultAsync<Registro>();
+
+        // Roles
+        user.Roles = (await multi.ReadAsync<AuthRole>()).ToList();
+
+        // Menús
+        user.Menus = (await multi.ReadAsync<AuthMenu>()).ToList();
+
+        // Iglesias
+        user.UsuarioIglesia = await multi.ReadFirstOrDefaultAsync<UsuarioIglesia>(); //(await multi.ReadAsync<UsuarioIglesia>()).FirstOrDefault();
+
+        return user;
     }
 
     public async Task<AuthUser?> GetUserByDocumentAsync(int denominacionId, string documento)
@@ -41,12 +74,13 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         return await connection.QueryFirstOrDefaultAsync<Registro>("sp_auth_obtener_registro_por_documento", p, commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<Registro?> GetRegistroByIdAsync(int denominacionId, int registroId)
+    public async Task<Registro?> GetRegistroByIdAsync(int denominacionId, int registroId, int? IglesiaId)
     {
         using var connection = CreateConnection();
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@RegistroId", registroId);
+        p.Add("@IglesiaId", IglesiaId);
         return await connection.QueryFirstOrDefaultAsync<Registro>("sp_auth_obtener_registro_por_id", p, commandType: CommandType.StoredProcedure);
     }
 
@@ -109,7 +143,7 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@UsuarioId", usuarioId);
-        return await ExecuteUpdateAsync("sp_auth_actualizar_ultimo_login", p, "@OutId");
+        return await ExecuteUpdateAsync("sp_auth_actualizar_ultimo_login", p, "@OutUsuarioId");
     }
 
     public async Task<OperationResult<bool>> MarkEmailAsVerifiedAsync(int denominacionId, int usuarioId)
@@ -156,10 +190,9 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         p.Add("@UsuarioId", entity.UsuarioId);
         p.Add("@IglesiaId", entity.IglesiaId);
         p.Add("@TokenHash", entity.TokenHash);
-        p.Add("@ExpiraEn", entity.ExpiraEn);
+        //p.Add("@ExpiraEn", entity.ExpiraEn);
         p.Add("@UserAgent", entity.UserAgent);
         p.Add("@Ip", entity.Ip);
-        p.Add("@FechaCreacion", entity.FechaCreacion);
         return await ExecuteCreateAsync("sp_auth_crear_refresh_token", p, "@OutRefreshTokenId");
     }
 

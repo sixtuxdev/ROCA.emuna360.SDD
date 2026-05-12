@@ -73,9 +73,9 @@ public class AuthService : IAuthService
             return Result<LoginResponseDto>.Failure("Credenciales incorrectas.");
 
         // Cargar detalles adicionales
-        user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId);
-        user.Roles = await _authRepository.GetUserRolesAsync(request.DenominacionId, user.UsuarioId);
-        user.Menus = await _authRepository.GetUserMenusAsync(request.DenominacionId, user.UsuarioId);
+        //user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId, request.IglesiaId);
+        //user.Roles = await _authRepository.GetUserRolesAsync(request.DenominacionId, user.UsuarioId);
+        //user.Menus = await _authRepository.GetUserMenusAsync(request.DenominacionId, user.UsuarioId);
 
         // Generar tokens
         var token = _jwtTokenService.GenerateToken(user);
@@ -226,7 +226,7 @@ public class AuthService : IAuthService
             return Result<RefreshTokenResponseDto>.Failure("Usuario no encontrado.");
 
         // Cargar detalles para el nuevo JWT
-        user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId);
+        user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId, user.UsuarioIglesia.IglesiaId);
         user.Roles = await _authRepository.GetUserRolesAsync(request.DenominacionId, user.UsuarioId);
         user.Menus = await _authRepository.GetUserMenusAsync(request.DenominacionId, user.UsuarioId);
 

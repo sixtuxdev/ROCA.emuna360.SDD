@@ -11,7 +11,7 @@ public interface IAuthRepository
     Task<AuthUser?> GetUserByEmailAsync(int denominacionId, string correo);
     Task<AuthUser?> GetUserByDocumentAsync(int denominacionId, string documento);
     Task<Registro?> GetRegistroByDocumentoAsync(int denominacionId, string documento);
-    Task<Registro?> GetRegistroByIdAsync(int denominacionId, int registroId);
+    Task<Registro?> GetRegistroByIdAsync(int denominacionId, int registroId, int? IglesiaId);
     Task<OperationResult<int>> CreateRegistroAsync(Registro entity);
     Task<OperationResult<int>> CreateUserAsync(Usuario entity);
     Task<OperationResult<bool>> AssignUserRoleAsync(int denominacionId, int usuarioId, int rolId);
