@@ -23,8 +23,8 @@ public class UsuarioRolRepository : BaseRepository<UsuarioRol>, IUsuarioRolRepos
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@UsuarioId", entity.UsuarioId);
         parameters.Add("@DenominacionId", entity.DenominacionId);
-        parameters.Add("@RolId", entity.RolId);
-        parameters.Add("@FechaAsignacion", entity.FechaAsignacion);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
+        parameters.Add("@RolId", entity.RolId);        
         return await ExecuteCreateAsync("usp_UsuarioRol_Insertar", parameters, "@OutUsuarioRolId");
     }
 
@@ -34,8 +34,9 @@ public class UsuarioRolRepository : BaseRepository<UsuarioRol>, IUsuarioRolRepos
         parameters.Add("@UsuarioRolId", entity.UsuarioRolId);
         parameters.Add("@UsuarioId", entity.UsuarioId);
         parameters.Add("@DenominacionId", entity.DenominacionId);
+        parameters.Add("@IglesiaId", entity.IglesiaId);
         parameters.Add("@RolId", entity.RolId);
-        parameters.Add("@FechaAsignacion", entity.FechaAsignacion);
+        parameters.Add("@FechaAsignacion", entity.FechaCreacion);
         return await ExecuteUpdateAsync("usp_UsuarioRol_Actualizar", parameters, "@OutUsuarioRolId");
     }
 

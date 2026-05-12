@@ -34,8 +34,7 @@ public class UsuarioIglesiaRepository : BaseRepository<UsuarioIglesia>, IUsuario
         parameters.Add("@UsuarioId", entity.UsuarioId);
         parameters.Add("@IglesiaId", entity.IglesiaId);
         parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@EsAdministrador", entity.EsAdministrador);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        parameters.Add("@EsAdministrador", entity.EsAdministrador);        
         return await ExecuteCreateAsync("usp_UsuarioIglesia_Insertar", parameters, "@OutUsuarioIglesiaId");
     }
 
@@ -48,7 +47,6 @@ public class UsuarioIglesiaRepository : BaseRepository<UsuarioIglesia>, IUsuario
         parameters.Add("@IglesiaId", entity.IglesiaId);
         parameters.Add("@Estado", entity.Estado);
         parameters.Add("@EsAdministrador", entity.EsAdministrador);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
         return await ExecuteUpdateAsync("usp_UsuarioIglesia_Actualizar", parameters, "@OutUsuarioIglesiaId");
     }
 

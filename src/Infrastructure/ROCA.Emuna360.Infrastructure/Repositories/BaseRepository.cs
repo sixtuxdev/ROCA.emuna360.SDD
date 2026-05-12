@@ -42,7 +42,7 @@ public abstract class BaseRepository<TEntity>
 
         return new OperationResult<int>
         {
-            Success = resultado == "Ok",
+            Success = resultado?.Trim().Equals("Ok", System.StringComparison.OrdinalIgnoreCase) ?? false,
             Data = id,
             Result = resultado ?? string.Empty,
             Message = mensaje ?? string.Empty
@@ -68,8 +68,8 @@ public abstract class BaseRepository<TEntity>
 
         return new OperationResult<bool>
         {
-            Success = resultado == "Ok",
-            Data = resultado == "Ok",
+            Success = resultado?.Trim().Equals("Ok", System.StringComparison.OrdinalIgnoreCase) ?? false,
+            Data = resultado?.Trim().Equals("Ok", System.StringComparison.OrdinalIgnoreCase) ?? false,
             Result = resultado ?? string.Empty,
             Message = mensaje ?? string.Empty
         };

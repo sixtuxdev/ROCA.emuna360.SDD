@@ -6,7 +6,7 @@ public class UsuarioIglesia
     public int DenominacionId { get; set; }
     public int UsuarioId { get; set; }
     public int IglesiaId { get; set; }
-    public byte Estado { get; set; }
+    public bool Estado { get; set; }
     public bool EsAdministrador { get; set; }
     public DateTime FechaCreacion { get; set; }
 }

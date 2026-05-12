@@ -24,7 +24,7 @@ public class MenuUsuarioRepository : BaseRepository<MenuUsuario>, IMenuUsuarioRe
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@UsuarioId", entity.UsuarioId);
         parameters.Add("@MenuId", entity.MenuId);
-        return await ExecuteCreateAsync("usp_MenuUsuario_Insertar", parameters, "@OutId");
+        return await ExecuteCreateAsync("usp_MenuUsuario_Insertar", parameters, "@OutOpcUsuId");
     }
 
     public async Task<OperationResult<bool>> UpdateAsync(MenuUsuario entity)
