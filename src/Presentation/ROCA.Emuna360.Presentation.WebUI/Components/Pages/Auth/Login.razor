@@ -1,13 +1,6 @@
 @page "/login"
 @layout Layout.AuthLayout
-@using ROCA.Emuna360.Presentation.WebUI.Security
-@inject AuthApiService AuthApiService
-@inject TokenStorageService TokenStorage
-@inject CustomAuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
-@inject IJSRuntime JSRuntime
-@inject IConfiguration Configuration
+@inject LoginViewModel ViewModel
 
 <PageTitle>Login - ROCA.Emuna360</PageTitle>
 
@@ -21,40 +14,49 @@
             </div>
         </CardHeaderContent>
     </MudCardHeader>
+
     <MudCardContent>
         <MudForm @ref="_form" @bind-IsValid="@_success">
-            <MudTextField T="string" Label="Correo electrónico o documento" 
-                          Required="true" RequiredError="El usuario es requerido."
-                          @bind-Value="_loginRequest.Login"
+            <MudTextField T="string"
+                          Label="Correo electrónico o documento"
+                          Required="true"
+                          RequiredError="El usuario es requerido."
+                          @bind-Value="ViewModel.LoginRequest.Login"
                           Immediate="true"
-                          Variant="Variant.Outlined" Margin="Margin.Normal"
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
                           Placeholder="usuario@dominio.com" />
 
-            <MudTextField T="string" Label="Contraseña" 
-                          Required="true" RequiredError="La contraseña es requerida."
-                          @bind-Value="_loginRequest.Password"
+            <MudTextField T="string"
+                          Label="Contraseña"
+                          Required="true"
+                          RequiredError="La contraseña es requerida."
+                          @bind-Value="ViewModel.LoginRequest.Password"
                           Immediate="true"
-                          Variant="Variant.Outlined" Margin="Margin.Normal"
-                          InputType="@_passwordInput"
-                          Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
-                          OnAdornmentClick="@TogglePasswordVisibility"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal"
+                          InputType="@ViewModel.PasswordInput"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@ViewModel.PasswordInputIcon"
+                          OnAdornmentClick="@ViewModel.TogglePasswordVisibility"
                           HelperText="Entre 7 y 15 caracteres"
-                          Validation="@(new Func<string, string?>(ValidatePassword))" />
+                          Validation="@(new Func<string, string?>(ViewModel.ValidatePassword))" />
 
             <div class="d-flex align-center justify-space-between mt-2">
-                <MudCheckBox T="bool" @bind-Value="_loginRequest.RememberMe" Label="Recordarme" Color="Color.Primary" />
+                <MudCheckBox T="bool" @bind-Value="ViewModel.LoginRequest.RememberMe" Label="Recordarme" Color="Color.Primary" />
                 <MudLink href="forgot-password" Underline="Underline.None">¿Olvidó su contraseña?</MudLink>
             </div>
 
-            <MudButton Variant="Variant.Filled" 
-                       Color="Color.Primary" 
-                       FullWidth="true" 
-                       Size="Size.Large" 
-                       Class="mt-6 py-3" 
-                       Disabled="@(_loading || !CanSubmit)"
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Class="mt-6 py-3"
+                       Disabled="@(ViewModel.IsLoading || !ViewModel.CanSubmit)"
                        OnClick="HandleLogin">
-                @if (_loading)
+                @if (ViewModel.IsLoading)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
                     <MudText Class="ms-2">Iniciando sesión...</MudText>
@@ -66,6 +68,7 @@
             </MudButton>
         </MudForm>
     </MudCardContent>
+
     <MudCardActions Class="d-flex justify-center mt-4">
         <MudText Typo="Typo.body2">¿No tiene una cuenta? <MudLink href="register">Registrarse aquí</MudLink></MudText>
     </MudCardActions>
@@ -78,91 +81,21 @@
 @code {
     private MudForm _form = null!;
     private bool _success;
-    private bool _loading;
-    private LoginRequestDto _loginRequest = new() { DenominacionId = 1 };
-    private InputType _passwordInput = InputType.Password;
-    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
-    private bool CanSubmit =>
-        !string.IsNullOrWhiteSpace(_loginRequest.Login) &&
-        !string.IsNullOrWhiteSpace(_loginRequest.Password) &&
-        _loginRequest.Password.Length >= 7 &&
-        _loginRequest.Password.Length <= 15;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        if (await TokenStorage.HasActiveSessionAsync())
-        {
-            Navigation.NavigateTo("/", replace: true);
-        }
-    }
-
-    private void TogglePasswordVisibility()
-    {
-        if (_passwordInput == InputType.Password)
-        {
-            _passwordInput = InputType.Text;
-            _passwordInputIcon = Icons.Material.Filled.Visibility;
-        }
-        else
-        {
-            _passwordInput = InputType.Password;
-            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
-        }
-    }
-
-    private string? ValidatePassword(string pw)
-    {
-        if (string.IsNullOrEmpty(pw)) return null;
-        if (pw.Length < 7) return "La contraseña debe tener al menos 7 caracteres.";
-        if (pw.Length > 15) return "La contraseña no debe exceder los 15 caracteres.";
-        return null;
+        await ViewModel.RedirectIfSessionActiveAsync();
     }
 
     private async Task HandleLogin()
     {
         await _form.Validate();
-        if (!_form.IsValid) return;
+        if (!_form.IsValid)
+            return;
 
-        _loading = true;
-        try
-        {
-            // Obtener token reCAPTCHA v3
-            var siteKey = Configuration["Recaptcha:SiteKey"];
-            var token = await JSRuntime.InvokeAsync<string>("recaptchaInterop.execute", siteKey);
-
-            if (string.IsNullOrEmpty(token))
-            {
-                Snackbar.Add("Error de validación de seguridad (reCAPTCHA).", Severity.Error);
-                _loading = false;
-                return;
-            }
-
-            _loginRequest.RecaptchaToken = token;
-
-            var response = await AuthApiService.LoginAsync(_loginRequest);
-
-            if (response != null && !string.IsNullOrEmpty(response.AccessToken))
-            {
-                await TokenStorage.SetLoginSessionAsync(response);
-                await AuthStateProvider.NotifyUserAuthenticationAsync(response.AccessToken);
-                Snackbar.Add("Bienvenido a ROCA.Emuna360", Severity.Success);
-                Navigation.NavigateTo("/", replace: true);
-            }
-            else
-            {
-                Snackbar.Add("Credenciales inválidas, error de seguridad o cuenta no verificada.", Severity.Error);
-            }
-        }
-        catch
-        {
-            Snackbar.Add("Ocurrió un error inesperado al intentar iniciar sesión.", Severity.Error);
-        }
-        finally
-        {
-            _loading = false;
-        }
+        await ViewModel.LoginAsync();
     }
 }

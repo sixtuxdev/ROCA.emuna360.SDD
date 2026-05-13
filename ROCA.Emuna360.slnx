@@ -11,6 +11,7 @@
     <File Path="docs/decisions/HU-005-Authenticacion-UI.md" />
     <File Path="docs/decisions/HU-006-Authenticacion-UI.md" />
     <File Path="docs/decisions/HU-007-Menu-UI.md" />
+    <File Path="docs/decisions/HU-008-Aplicar-Patron-MVVM-UI.md" />
   </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
@@ -23,6 +24,7 @@
     <File Path="4_promtp_spec_002.txt" />
   </Folder>
   <Folder Name="/docs/specs/">
+    <File Path="docs/specs/HU-008-Aplicar-Patron-MVVM-UI.md" />
     <File Path="docs/specs/SPEC-001 - Creación de Arquitectura Base ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-002 - Modelo Base Multiorganizacional ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-003 - Repositorios CRUD y API REST ROCA.Emuna360.md" />

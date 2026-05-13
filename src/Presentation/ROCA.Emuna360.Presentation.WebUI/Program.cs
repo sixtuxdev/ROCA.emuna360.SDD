@@ -4,6 +4,9 @@ using MudBlazor.Services;
 using ROCA.Emuna360.Presentation.WebUI.Components;
 using ROCA.Emuna360.Presentation.WebUI.Security;
 using ROCA.Emuna360.Presentation.WebUI.Services;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Auth;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +39,9 @@ builder.Services.AddScoped<TokenStorageService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped(sp => (CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
 builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
+builder.Services.AddScoped<LoginViewModel>();
+builder.Services.AddScoped<MenuViewModel>();
+builder.Services.AddScoped<DashboardViewModel>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";

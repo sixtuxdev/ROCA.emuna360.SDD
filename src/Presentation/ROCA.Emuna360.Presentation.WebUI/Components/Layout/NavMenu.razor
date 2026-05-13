@@ -1,4 +1,4 @@
-@inject TokenStorageService TokenStorage
+@inject MenuViewModel ViewModel
 
 <MudNavMenu Class="mud-width-full roca-nav-menu" Color="Color.Primary">
     <MudText Typo="Typo.h6" Class="px-4 pt-4 roca-nav-title">
@@ -19,33 +19,30 @@
         Dashboard
     </MudNavLink>
 
-    @if (_isLoading)
+    @if (ViewModel.IsLoading)
     {
         <MudText Typo="Typo.body2"
                  Class="px-4 py-2 mud-text-secondary">
             Cargando menús...
         </MudText>
     }
-    else if (_menus.Any())
+    else if (ViewModel.Menus.Any())
     {
-        @foreach (var grupo in _menus.Where(m => NormalizarTipo(m.Tipo) == "G"))
+        @foreach (var grupo in ViewModel.Groups)
         {
-            var hijos = _menus.Where(m =>
-                NormalizarTipo(m.Tipo) == "S" &&
-                m.IdGrupo.HasValue &&
-                m.IdGrupo.Value == grupo.MenuId).ToList();
+            var hijos = ViewModel.GetChildren(grupo);
 
             @if (hijos.Any())
             {
                 <MudNavGroup Title="@grupo.Descripcion"
-                             Icon="@GetIcon(grupo.Imagen)"
+                             Icon="@MenuViewModel.GetIcon(grupo.Imagen)"
                              IconColor="Color.Tertiary"
-                             Expanded="_expandedGroups.TryGetValue(grupo.MenuId, out var expanded) && expanded"
+                             Expanded="ViewModel.ExpandedGroups.TryGetValue(grupo.MenuId, out var expanded) && expanded"
                              Class="roca-nav-group">
                     @foreach (var subMenu in hijos)
                     {
-                        <MudNavLink Href="@NormalizeUrl(subMenu.Url)"
-                                    Icon="@GetIcon(subMenu.Imagen)"
+                        <MudNavLink Href="@MenuViewModel.NormalizeUrl(subMenu.Url)"
+                                    Icon="@MenuViewModel.GetIcon(subMenu.Imagen)"
                                     IconColor="Color.Tertiary"
                                     Match="NavLinkMatch.Prefix"
                                     Class="roca-nav-link">
@@ -56,8 +53,8 @@
             }
             else
             {
-                <MudNavLink Href="@NormalizeUrl(grupo.Url)"
-                            Icon="@GetIcon(grupo.Imagen)"
+                <MudNavLink Href="@MenuViewModel.NormalizeUrl(grupo.Url)"
+                            Icon="@MenuViewModel.GetIcon(grupo.Imagen)"
                             IconColor="Color.Tertiary"
                             Match="NavLinkMatch.Prefix"
                             Class="roca-nav-link">
@@ -66,7 +63,7 @@
             }
         }
     }
-    else if (!_isLoading)
+    else if (!ViewModel.IsLoading)
     {
         <MudText Typo="Typo.body2"
                  Class="px-4 py-2 mud-text-secondary">
@@ -109,169 +106,12 @@
 </style>
 
 @code {
-    private List<AuthMenuDto> _menus = new();
-    private readonly Dictionary<int, bool> _expandedGroups = new();
-    private bool _isLoading = true;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        try
-        {
-            _menus = (await TokenStorage.GetMenusAsync())
-                .OrderBy(menu => menu.Orden)
-                .ToList();
-
-            foreach (var grupo in _menus.Where(menu => NormalizarTipo(menu.Tipo) == "G"))
-            {
-                _expandedGroups.TryAdd(grupo.MenuId, false);
-            }
-        }
-        finally
-        {
-            _isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private static string NormalizeUrl(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            return string.Empty;
-
-        return url.TrimStart('/');
-    }
-
-    private static string GetIcon(string? iconName)
-    {
-        if (string.IsNullOrWhiteSpace(iconName))
-            return Icons.Material.Filled.Circle;
-
-        var normalizedName = iconName.Trim().ToUpperInvariant();
-
-        return normalizedName switch
-        {
-            "SETTINGS" => Icons.Material.Filled.Settings,
-            "DASHBOARD" => Icons.Material.Filled.Dashboard,
-            "HOME" => Icons.Material.Filled.Home,
-            "PEOPLE" => Icons.Material.Filled.People,
-            "PERSON" => Icons.Material.Filled.Person,
-            "ADMINPANELSETTINGS" => Icons.Material.Filled.AdminPanelSettings,
-            "SECURITY" => Icons.Material.Filled.Security,
-            "LOCK" => Icons.Material.Filled.Lock,
-            "BUILD" => Icons.Material.Filled.Build,
-            "CHURCH" or "CHURCHJESUS" => Icons.Material.Filled.Home,
-            "ACCOUNTTREE" => Icons.Material.Filled.AccountTree,
-            "SETTINGSUGGEST" => Icons.Material.Filled.SettingsSuggest,
-            "ASSESSMENT" => Icons.Material.Filled.Assessment,
-            "INFO" => Icons.Material.Filled.Info,
-            "CODE" => Icons.Material.Filled.Code,
-            "WIDGETS" => Icons.Material.Filled.Widgets,
-            "ADDCIRCLE" => Icons.Material.Filled.AddCircle,
-            "CLOUD" => Icons.Material.Filled.Cloud,
-            "FOLDER" => Icons.Material.Filled.Folder,
-            "DESCRIPTION" => Icons.Material.Filled.Description,
-            "LIST" => Icons.Material.Filled.List,
-            "MENU" => Icons.Material.Filled.Menu,
-            "NOTIFICATIONS" => Icons.Material.Filled.Notifications,
-            "SEARCH" => Icons.Material.Filled.Search,
-            "STAR" => Icons.Material.Filled.Star,
-            "ADDHOMEWORK" => Icons.Material.Filled.AddHomeWork,
-            "FAVORITE" => Icons.Material.Filled.Favorite,
-            "BOOKMARK" => Icons.Material.Filled.Bookmark,
-            "EDIT" => Icons.Material.Filled.Edit,
-            "DELETE" => Icons.Material.Filled.Delete,
-            "SAVE" => Icons.Material.Filled.Save,
-            "CANCEL" => Icons.Material.Filled.Cancel,
-            "CHECK" => Icons.Material.Filled.Check,
-            "CLOSE" => Icons.Material.Filled.Close,
-            "ADD" => Icons.Material.Filled.Add,
-            "REMOVE" => Icons.Material.Filled.Remove,
-            "ARROWBACK" => Icons.Material.Filled.ArrowBack,
-            "ARROWFORWARD" => Icons.Material.Filled.ArrowForward,
-            "REFRESH" => Icons.Material.Filled.Refresh,
-            "DOWNLOAD" => Icons.Material.Filled.Download,
-            "UPLOAD" => Icons.Material.Filled.Upload,
-            "PRINT" => Icons.Material.Filled.Print,
-            "SHARE" => Icons.Material.Filled.Share,
-            "EMAIL" => Icons.Material.Filled.Email,
-            "PHONE" => Icons.Material.Filled.Phone,
-            "LOCATIONON" => Icons.Material.Filled.LocationOn,
-            "CALENDARTODAY" => Icons.Material.Filled.CalendarToday,
-            "SCHEDULE" => Icons.Material.Filled.Schedule,
-            "ACCESS.TIME" => Icons.Material.Filled.AccessTime,
-            "EVENT" => Icons.Material.Filled.Event,
-            "IMAGE" => Icons.Material.Filled.Image,
-            "VIDEOCAM" => Icons.Material.Filled.Videocam,
-            "AUDIOTRACK" => Icons.Material.Filled.Audiotrack,
-            "ATTACHMENT" => Icons.Material.Filled.Attachment,
-            "INSERTDRIVEFILE" => Icons.Material.Filled.InsertDriveFile,
-            "PICTUREASPDF" => Icons.Material.Filled.PictureAsPdf,
-            "TABLECHART" => Icons.Material.Filled.TableChart,
-            "BARCHART" => Icons.Material.Filled.BarChart,
-            "PIECHART" => Icons.Material.Filled.PieChart,
-            "SHOWCHART" => Icons.Material.Filled.ShowChart,
-            "TRENDINGUP" => Icons.Material.Filled.TrendingUp,
-            "TRENDINGDOWN" => Icons.Material.Filled.TrendingDown,
-            "WARNING" => Icons.Material.Filled.Warning,
-            "ERROR" => Icons.Material.Filled.Error,
-            "REPORTPROBLEM" => Icons.Material.Filled.ReportProblem,
-            "HELP" => Icons.Material.Filled.Help,
-            "HELP OUTLINE" or "HELPOUTLINE" => Icons.Material.Filled.HelpOutline,
-            "QUESTIONMARK" => Icons.Material.Filled.QuestionMark,
-            "LIGHTBULB" => Icons.Material.Filled.Lightbulb,
-            "TIPSANDUPDATES" => Icons.Material.Filled.TipsAndUpdates,
-            "LOGOUT" => Icons.Material.Filled.Logout,
-            "LOGIN" => Icons.Material.Filled.Login,
-            "APPREGISTRATION" => Icons.Material.Filled.AppRegistration,
-            "APPS" => Icons.Material.Filled.Apps,
-            "MANAGEACCOUNTS" => Icons.Material.Filled.ManageAccounts,
-            "VERIFIEDUSER" => Icons.Material.Filled.VerifiedUser,
-            "HOWTOREG" => Icons.Material.Filled.HowToReg,
-            "PERSONADD" => Icons.Material.Filled.PersonAdd,
-            "GROUPADD" => Icons.Material.Filled.GroupAdd,
-            "GROUP" => Icons.Material.Filled.Group,
-            "GROUPS" => Icons.Material.Filled.Groups,
-            "TEAMS" => Icons.Material.Filled.Groups,
-            "CORPORATEFARE" => Icons.Material.Filled.CorporateFare,
-            "BUSINESS" => Icons.Material.Filled.Business,
-            "DOMAIN" => Icons.Material.Filled.Domain,
-            "STORE" => Icons.Material.Filled.Store,
-            "SHOPPINGCART" => Icons.Material.Filled.ShoppingCart,
-            "POINTOFSALE" => Icons.Material.Filled.PointOfSale,
-            "PAYMENTS" => Icons.Material.Filled.Payments,
-            "CREDITCARD" => Icons.Material.Filled.CreditCard,
-            "ACCOUNTBALANCEWALLET" => Icons.Material.Filled.AccountBalanceWallet,
-            "ACCOUNTBALANCE" => Icons.Material.Filled.AccountBalance,
-            "SAVINGS" => Icons.Material.Filled.Savings,
-            "MONETIZATIONON" => Icons.Material.Filled.MonetizationOn,
-            "PAID" => Icons.Material.Filled.Paid,
-            "RECEIPT" => Icons.Material.Filled.Receipt,
-            "REDEEM" => Icons.Material.Filled.Redeem,
-            "LOCALOFFER" => Icons.Material.Filled.LocalOffer,
-            "SELL" => Icons.Material.Filled.Sell,
-            "LAN" => Icons.Material.Filled.Lan,
-            "PERCENT" => Icons.Material.Filled.Percent,
-            "DECK" => Icons.Material.Filled.Deck,
-            _ => Icons.Material.Filled.Circle
-        };
-    }
-
-    private static string NormalizarTipo(string? tipo)
-    {
-        if (string.IsNullOrWhiteSpace(tipo))
-            return string.Empty;
-
-        var normalized = tipo.Trim().ToUpperInvariant();
-
-        return normalized switch
-        {
-            "G" => "G",
-            "S" => "S",
-            "O" => "S",
-            _ => string.Empty
-        };
+        await ViewModel.InitializeAsync();
+        StateHasChanged();
     }
 }

@@ -1,0 +1,156 @@
+@page "/dashboard"
+@attribute [Authorize]
+@inject DashboardViewModel ViewModel
+
+<PageTitle>Dashboard - ROCA.Emuna360</PageTitle>
+
+<section class="dashboard-shell">
+    <div class="dashboard-header">
+        <div>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="dashboard-title">Dashboard</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Resumen institucional de la denominación</MudText>
+        </div>
+        <MudChip T="string" Color="Color.Secondary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Verified">
+            Datos temporales
+        </MudChip>
+    </div>
+
+    @if (ViewModel.IsLoading)
+    {
+        <MudProgressLinear Color="Color.Secondary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var stat in ViewModel.Stats)
+            {
+                <MudItem xs="12" sm="6" lg="4">
+                    <MudPaper Elevation="1" Class="dashboard-stat pa-4">
+                        <div class="dashboard-stat-icon">
+                            <MudIcon Icon="@stat.Icon" Color="Color.Secondary" Size="Size.Large" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@stat.Title</MudText>
+                            <MudText Typo="Typo.h5" Color="Color.Primary" Class="dashboard-stat-value">@stat.Value</MudText>
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@stat.Detail</MudText>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudGrid Spacing="3" Class="mt-2">
+            @foreach (var chart in ViewModel.Charts)
+            {
+                <MudItem xs="12" md="4">
+                    <MudPaper Elevation="1" Class="dashboard-panel pa-4">
+                        <MudText Typo="Typo.h6" Color="Color.Primary">@chart.Title</MudText>
+                        <MudChart ChartType="ChartType.Pie"
+                                  InputData="@chart.Values"
+                                  InputLabels="@chart.Labels"
+                                  Width="100%"
+                                  Height="260px" />
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudPaper Elevation="1" Class="dashboard-panel pa-4 mt-4">
+            <div class="dashboard-section-title">
+                <MudText Typo="Typo.h6" Color="Color.Primary">Iglesias asociadas</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Información temporal para validar la experiencia inicial</MudText>
+            </div>
+
+            <MudTable Items="@ViewModel.Churches" Dense="true" Hover="true" Elevation="0" Class="mt-3">
+                <HeaderContent>
+                    <MudTh>Iglesia</MudTh>
+                    <MudTh>Pastor</MudTh>
+                    <MudTh>Ciudad</MudTh>
+                    <MudTh>Miembros</MudTh>
+                    <MudTh>Estado</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Iglesia">@context.Name</MudTd>
+                    <MudTd DataLabel="Pastor">@context.Pastor</MudTd>
+                    <MudTd DataLabel="Ciudad">@context.City</MudTd>
+                    <MudTd DataLabel="Miembros">@context.Members</MudTd>
+                    <MudTd DataLabel="Estado">
+                        <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</section>
+
+<style>
+    .dashboard-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: .25rem;
+    }
+
+    .dashboard-title {
+        font-weight: 700;
+    }
+
+    .dashboard-stat,
+    .dashboard-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+    .dashboard-stat {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-height: 112px;
+    }
+
+    .dashboard-stat-icon {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--mud-default-borderradius);
+        background-color: color-mix(in srgb, var(--mud-palette-secondary) 14%, transparent);
+        flex: 0 0 auto;
+    }
+
+    .dashboard-stat-value {
+        font-weight: 700;
+    }
+
+    .dashboard-section-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    @@media (max-width: 600px) {
+        .dashboard-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeAsync();
+    }
+}
