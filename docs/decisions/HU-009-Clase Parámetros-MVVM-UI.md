@@ -1,355 +1,510 @@
-yo: Sixto José Romero Martínez
-Como: Desarrollador FullStack
-Necito: Necesito crear el componente de Clase Parámetros, el cual debe estar todo en un mismo componente, donde en el lado izquierdo tenga una Lista con las Clases y las opciones para crear una clase, y a la derecha tenga los Parámetros donde se carguen según la clase seleccionada que está en la parte izquierda. Importante usar MVVM para este módulo
+# SPEC-009 - Configuración de Clases y Parámetros con MVVM
 
+## Historia de Usuario
 
-Criterios de Aceptación:
+**Yo:** Sixto José Romero Martínez  
+**Como:** Desarrollador FullStack  
+**Necesito:** Crear el componente de Clase Parámetros en el proyecto `ROCA.Emuna360.Presentation.WebUI`, el cual debe permitir administrar Clases y Parámetros desde una sola pantalla, aplicando el patrón MVVM y respetando la arquitectura actual de la solución.
 
-Necesito aplicar el componente con el estilo que te recomiendo a continuación
-Este código es para que lo tomes como base, pero debes aplicar y respetar la arquitectura y el patrón MVVM, junto con los colores institucionales.
+---
 
-Nombre del Componente:
+# Objetivo
+
+Implementar el componente:
+
+```text
 Components/Pages/Clases/ConfigClases.razor
+```
 
+El módulo debe permitir:
 
-<MudPaper Class="pa-4" Elevation="2">
-    <MudGrid>
-        <!-- Columna Izquierda: Lista de Clases -->
-        <MudItem xs="12" sm="6" md="6">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Clases Registradas</MudText>
-                        <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                            Gestione las clases del sistema
-                        </MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
+- Visualizar las Clases registradas.
+- Seleccionar una Clase.
+- Visualizar los Parámetros asociados a la Clase seleccionada.
+- Crear, editar y eliminar Clases.
+- Crear, editar y eliminar Parámetros.
+- Asignar Parámetros Padre.
+- Aplicar el patrón MVVM.
+- Mantener compatibilidad con MudBlazor y el sistema de temas dinámicos institucionales.
 
-                <MudCardContent Class="pa-0">
-                    @if (_isLoadingClases)
-                    {
-                        @* Estado de carga *@
-                        <div class="d-flex flex-column align-center justify-center py-8">
-                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary mt-4">
-                                Cargando clases...
-                            </MudText>
-                        </div>
-                    }
-                    else if (_clases != null && _clases.Any())
-                    {
-                        @* Estado con datos *@
-                        <MudList T="ClaseDTO" Dense="true" Style="padding: 0;">
-                            @foreach (var clase in _clases)
-                            {
-                                var isSelected = _claseSeleccionada?.ClaseId == clase.ClaseId;
-                                var itemStyle = GetClaseItemStyle(isSelected);
+---
 
-                                <MudListItem @key="@clase.ClaseId"
-                                             OnClick="() => SeleccionarClase(clase)"
-                                             Class="@(isSelected ? "mud-selected-item" : "")"
-                                             Style="@itemStyle">
+# Alcance
 
-                                    <ItemContent>
-                                        <MudGrid Class="pa-3 align-center">
-                                            @* Icono + Título + Subtítulo *@
-                                            <MudItem xs="12" sm="12" md="12" Class="d-flex align-center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Category"
-                                                         Color="@(isSelected ? Color.Primary : Color.Secondary)"
-                                                         Size="Size.Medium"
-                                                         Class="mr-3" />
+El desarrollo debe incluir:
 
-                                                <div class="flex-grow-1">
-                                                    <MudText Typo="Typo.body1" Class="mud-typography-fontWeightMedium">
-                                                        @GetClaseTitulo(clase)
-                                                    </MudText>
-                                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                                                        @GetClaseSubtitulo(clase)
-                                                    </MudText>
-                                                </div>
+- Componente `ConfigClases.razor`.
+- ViewModel del módulo.
+- Servicios API necesarios.
+- Integración completa con APIs existentes.
+- Manejo de estados visuales.
+- Formularios para CRUD.
+- Gestión de Parámetros Padre.
+- Integración con autenticación actual.
+- Uso correcto del `denominacionId`.
 
-                                                @* Chip de estado *@
-                                                @if (clase.Estado)
-                                                {
-                                                    <MudChip Color="Color.Success"
-                                                             Variant="Variant.Outlined"
-                                                             Size="Size.Small"
-                                                             Class="ml-2">
-                                                        Activa
-                                                    </MudChip>
-                                                }
-                                                else
-                                                {
-                                                    <MudChip Color="Color.Default"
-                                                             Variant="Variant.Outlined"
-                                                             Size="Size.Small"
-                                                             Class="ml-2">
-                                                        Inactiva
-                                                    </MudChip>
-                                                }
+---
 
-                                                @* Botón Editar *@
-                                                <MudTooltip Text="Editar clase">
-                                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                                   Color="Color.Primary"
-                                                                   Size="Size.Small"
-                                                                   Class="ml-2"
-                                                                   OnClick="() => EditarClase(clase)"
-                                                                   OnClickStopPropagation="true" />
-                                                </MudTooltip>
+# Arquitectura Obligatoria
 
-                                                @* Botón Eliminar *@
-                                                <MudTooltip Text="Eliminar clase">
-                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                                   Color="Color.Error"
-                                                                   Size="Size.Small"
-                                                                   Class="ml-2"
-                                                                   OnClick="() => EliminarClase(clase)"
-                                                                   OnClickStopPropagation="true" />
-                                                </MudTooltip>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </ItemContent>
-                                </MudListItem>
-                            }
-                        </MudList>
-                    }
-                    else
-                    {
-                        @* Estado vacío *@
-                        <MudPaper Class="pa-8 ma-4 d-flex flex-column align-center justify-center"
-                                  Elevation="0"
-                                  Style="background-color: var(--mud-palette-action-disabled-background); border-radius: 8px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Category"
-                                     Size="Size.Large"
-                                     Color="Color.Default"
-                                     Class="mb-3" />
-                            <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
-                                No hay clases registradas
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                                Comience agregando una nueva clase al sistema
-                            </MudText>
-                        </MudPaper>
-                    }
-                </MudCardContent>
+## Aplicación del patrón MVVM
 
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="NuevaClase">
-                        Nueva Clase
-                    </MudButton>
-                    <MudSpacer />
-                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="CargarClases">
-                        Recargar
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+El módulo debe seguir estrictamente el patrón MVVM aplicado en el proyecto `ROCA.Emuna360.Presentation.WebUI`.
 
-        <!-- Columna Derecha: Lista de Parámetros -->
-        <MudItem xs="12" sm="6" md="6">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Parámetros</MudText>
-                        <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                            @(_claseSeleccionada != null ? $"Parámetros de {_claseSeleccionada.Descripcion}" : "Seleccione una clase para ver sus parámetros")
-                        </MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
+### Reglas obligatorias
 
-                <MudCardContent Class="pa-0">
-                    @if (_claseSeleccionada == null)
-                    {
-                        @* Estado sin clase seleccionada *@
-                        <MudPaper Class="pa-8 ma-4 d-flex flex-column align-center justify-center"
-                                  Elevation="0"
-                                  Style="background-color: var(--mud-palette-action-disabled-background); border-radius: 8px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Info"
-                                     Size="Size.Large"
-                                     Color="Color.Default"
-                                     Class="mb-3" />
-                            <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
-                                Seleccione una clase
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                                Para ver y gestionar los parámetros, primero seleccione una clase de la lista
-                            </MudText>
-                        </MudPaper>
-                    }
-                    else if (_isLoadingParametros)
-                    {
-                        @* Estado de carga *@
-                        <div class="d-flex flex-column align-center justify-center py-8">
-                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary mt-4">
-                                Cargando parámetros...
-                            </MudText>
-                        </div>
-                    }
-                    else if (_parametros != null && _parametros.Any())
-                    {
-                        @* Estado con datos *@
-                        <MudList T="ParametroDTO" Dense="true" Style="padding: 0;">
-                            @foreach (var parametro in _parametros)
-                            {
-                                var isSelected = _parametroSeleccionado?.ParametroId == parametro.ParametroId;
-                                var itemStyle = GetParametroItemStyle(isSelected);
+- El `.razor` debe contener únicamente:
+  - UI.
+  - Binding.
+  - Eventos mínimos.
+- Toda la lógica debe ir en el ViewModel.
+- No implementar lógica pesada en el componente Razor.
+- Debe respetarse la estructura actual del proyecto.
+- Deben reutilizarse servicios existentes.
+- No romper Login.
+- No romper Menú.
+- No modificar arquitectura fuera de lo necesario.
 
-                                <MudListItem @key="@parametro.ParametroId"
-                                             OnClick="() => SeleccionarParametro(parametro)"
-                                             Class="@(isSelected ? "mud-selected-item" : "")"
-                                             Style="@itemStyle">
+---
 
-                                    <ItemContent>
-                                        <MudGrid Class="pa-3 align-center">
-                                            @* Icono + Título + Subtítulo *@
-                                            <MudItem xs="12" sm="12" md="12" Class="d-flex align-center">
-                                                <MudIcon Icon="@Icons.Material.Filled.Settings"
-                                                         Color="@(isSelected ? Color.Primary : Color.Secondary)"
-                                                         Size="Size.Medium"
-                                                         Class="mr-3" />
+# Nombre del Componente
 
-                                                <div class="flex-grow-1">
-                                                    <MudText Typo="Typo.body1" Class="mud-typography-fontWeightMedium">
-                                                        @GetParametroTitulo(parametro)
-                                                    </MudText>
-                                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                                                        @GetParametroSubtitulo(parametro)
-                                                    </MudText>
-                                                </div>
+```text
+Components/Pages/Clases/ConfigClases.razor
+```
 
-                                                @* Chip de estado *@
-                                                @if (parametro.Estado)
-                                                {
-                                                    <MudChip Color="Color.Success"
-                                                             Variant="Variant.Outlined"
-                                                             Size="Size.Small"
-                                                             Class="ml-2">
-                                                        Activo
-                                                    </MudChip>
-                                                }
-                                                else
-                                                {
-                                                    <MudChip Color="Color.Default"
-                                                             Variant="Variant.Outlined"
-                                                             Size="Size.Small"
-                                                             Class="ml-2">
-                                                        Inactivo
-                                                    </MudChip>
-                                                }
+---
 
-                                                @* Botón Editar *@
-                                                <MudTooltip Text="Editar parámetro">
-                                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                                   Color="Color.Primary"
-                                                                   Size="Size.Small"
-                                                                   Class="ml-2"
-                                                                   OnClick="() => EditarParametro(parametro)"
-                                                                   OnClickStopPropagation="true" />
-                                                </MudTooltip>
+# Diseño del Componente
 
-                                                @* Botón Eliminar *@
-                                                <MudTooltip Text="Eliminar parámetro">
-                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                                   Color="Color.Error"
-                                                                   Size="Size.Small"
-                                                                   Class="ml-2"
-                                                                   OnClick="() => EliminarParametro(parametro)"
-                                                                   OnClickStopPropagation="true" />
-                                                </MudTooltip>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </ItemContent>
-                                </MudListItem>
-                            }
-                        </MudList>
-                    }
-                    else
-                    {
-                        @* Estado vacío *@
-                        <MudPaper Class="pa-8 ma-4 d-flex flex-column align-center justify-center"
-                                  Elevation="0"
-                                  Style="background-color: var(--mud-palette-action-disabled-background); border-radius: 8px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Settings"
-                                     Size="Size.Large"
-                                     Color="Color.Default"
-                                     Class="mb-3" />
-                            <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
-                                No hay parámetros registrados
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                                Esta clase aún no tiene parámetros. Agregue uno nuevo.
-                            </MudText>
-                        </MudPaper>
-                    }
-                </MudCardContent>
+La pantalla debe dividirse en dos columnas:
 
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="NuevoParametro"
-                               Disabled="@(_claseSeleccionada == null)">
-                        Nuevo Parámetro
-                    </MudButton>
-                    <MudSpacer />
-                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="CargarParametros"
-                               Disabled="@(_claseSeleccionada == null)">
-                        Recargar
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
+| Columna | Contenido |
+|---|---|
+| Izquierda | Clases |
+| Derecha | Parámetros |
 
-            @if (_parametroSeleccionado != null)
-            {
-                <MudCard Class="mt-4">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Asignar Parámetro Padre</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                                Establezca la jerarquía para @_parametroSeleccionado.Descripcion
-                            </MudText>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudAutocomplete T="ParametroDTO"
-                                         Label="Seleccionar Padre"
-                                         @bind-Value="_padreSeleccionado"
-                                         SearchFunc="@BuscarPadre"
-                                         ToStringFunc="@(p => p == null ? "Sin padre" : $"{p.Descripcion} ({(p.ClaseId == _claseSeleccionada?.ClaseId ? "Misma Clase" : "Otra Clase")})")"
-                                         Clearable="true"
-                                         Placeholder="Escriba para buscar..."
-                                         ResetValueOnEmptyText="true"
-                                         AdornmentIcon="@Icons.Material.Filled.Search"
-                                         AdornmentColor="Color.Primary" />
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
-                                   OnClick="GuardarAsociacionPadreAsync"
-                                   Disabled="@_isSavingPadre">
-                            @(_isSavingPadre ? "Guardando..." : "Guardar Asociación")
-                        </MudButton>
-                        <MudSpacer />
-                        <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Clear"
-                                   OnClick="QuitarAsociacionPadreAsync"
-                                   Disabled="@(_parametroSeleccionado.PadreParametroId == null || _isSavingPadre)">
-                            Quitar Padre
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
-            }
-        </MudItem>
-    </MudGrid>
-</MudPaper>
+Debe utilizar MudBlazor y mantener diseño responsive.
 
-La información debes obtenerla de la API que corresponde para Clases y Parametros las cuales son:
-API de Clases:
+---
+
+# Columna Izquierda - Clases
+
+Debe incluir:
+
+- Título:
+  - `Clases Registradas`
+- Subtítulo:
+  - `Gestione las clases del sistema`
+- Listado de Clases.
+- Estado de carga.
+- Estado vacío.
+- Botón:
+  - `Nueva Clase`
+- Botón:
+  - `Recargar`
+- Botón editar.
+- Botón eliminar.
+- Chip visual:
+  - `Activa`
+  - `Inactiva`
+
+---
+
+# Selección de Clase
+
+Cuando una Clase sea seleccionada:
+
+- Debe resaltarse visualmente.
+- Debe cargarse automáticamente el listado de Parámetros.
+- Debe actualizarse el subtítulo del panel derecho.
+- Debe mantenerse el estilo institucional.
+
+La selección no debe interferir con:
+
+- Botón editar.
+- Botón eliminar.
+
+---
+
+# Columna Derecha - Parámetros
+
+Debe incluir:
+
+- Título:
+  - `Parámetros`
+- Subtítulo dinámico:
+  - `Parámetros de {ClaseSeleccionada}`
+- Estado sin Clase seleccionada.
+- Estado de carga.
+- Estado vacío.
+- Listado de Parámetros.
+- Botón:
+  - `Nuevo Parámetro`
+- Botón:
+  - `Recargar`
+- Botón editar.
+- Botón eliminar.
+- Chip visual:
+  - `Activo`
+  - `Inactivo`
+
+---
+
+# Selección de Parámetro
+
+Cuando un Parámetro sea seleccionado:
+
+- Debe resaltarse visualmente.
+- Debe mostrarse el panel de asignación de Padre.
+- Debe mantenerse el diseño institucional.
+
+La selección no debe interferir con:
+
+- Botón editar.
+- Botón eliminar.
+
+---
+
+# Asignación de Parámetro Padre
+
+Cuando exista un Parámetro seleccionado, debe mostrarse una tarjeta adicional con:
+
+- Título:
+  - `Asignar Parámetro Padre`
+- Subtítulo dinámico.
+- Campo `MudAutocomplete`.
+- Botón:
+  - `Guardar Asociación`
+- Botón:
+  - `Quitar Padre`
+
+---
+
+# Comportamiento del Autocomplete
+
+El autocomplete debe permitir:
+
+- Buscar parámetros.
+- Mostrar si pertenece:
+  - A la misma clase.
+  - A otra clase.
+- Limpiar selección.
+- Evitar asociaciones inválidas.
+
+---
+
+# API de Clases
+
+La información de Clases debe consumirse desde:
+
+```text
 Controllers/Parameters/ClaseController.cs
-API de Parámetros:
+```
+
+Debe validarse que la API responda correctamente.
+
+---
+
+# Response esperado de Clases
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "claseId": 2,
+      "denominacionId": 1,
+      "descripcion": "Sexo",
+      "estado": true,
+      "fechaCreacion": "0001-01-01T00:00:00",
+      "fechaActualizacion": null
+    },
+    {
+      "claseId": 1,
+      "denominacionId": 1,
+      "descripcion": "Tipos de Documentos",
+      "estado": true,
+      "fechaCreacion": "0001-01-01T00:00:00",
+      "fechaActualizacion": null
+    }
+  ]
+}
+```
+
+---
+
+# Crear Clase
+
+Request esperado:
+
+```json
+{
+  "fechaCreacion": "2026-05-13T22:25:36.062Z",
+  "fechaActualizacion": "2026-05-13T22:25:36.062Z",
+  "claseId": 0,
+  "denominacionId": 0,
+  "descripcion": "string",
+  "estado": true
+}
+```
+
+---
+
+# Reglas para Crear Clase
+
+- `claseId` no debe enviarse como valor real.
+- Es autonumérico.
+- `denominacionId` debe obtenerse del usuario autenticado.
+- `descripcion` es obligatoria.
+- Debe recargarse el listado después de insertar.
+
+---
+
+# Actualizar Clase
+
+- Debe usar el mismo request.
+- Debe enviarse el `claseId`.
+- Debe mantenerse la selección actual después de actualizar.
+
+---
+
+# API de Parámetros
+
+La información de Parámetros debe obtenerse desde:
+
+```text
 Controllers/Parameters/ParametroController.cs
+```
 
-Valida que las api devuelvan correctamente la información y aplicalas en el componente
+---
 
+# Endpoint de Consulta de Parámetros
+
+El componente debe consumir el endpoint:
+
+```text
+parametros/clase/{claseId}/denominacion/{denominacionId}
+```
+
+Ejemplo:
+
+```text
+parametros/clase/1/denominacion/1
+```
+
+---
+
+# Response esperado de Parámetros
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "parametroId": 3,
+      "denominacionId": 1,
+      "claseId": 1,
+      "descripcion": "Cédula de Ciudadanía",
+      "observacion": "",
+      "padreParametroId": null,
+      "estado": true,
+      "fechaCreacion": null,
+      "fechaActualizacion": null
+    }
+  ]
+}
+```
+
+---
+
+# Crear Parámetro
+
+Request esperado:
+
+```json
+{
+  "fechaCreacion": "2026-05-13T22:29:34.100Z",
+  "fechaActualizacion": "2026-05-13T22:29:34.100Z",
+  "parametroId": 0,
+  "denominacionId": 0,
+  "claseId": 0,
+  "descripcion": "string",
+  "observacion": "string",
+  "padreParametroId": 0,
+  "estado": true
+}
+```
+
+---
+
+# Reglas para Crear Parámetro
+
+- `parametroId` es autonumérico.
+- No debe enviarse como valor real al insertar.
+- `denominacionId` debe obtenerse del usuario autenticado.
+- `claseId` debe corresponder a la Clase seleccionada.
+- `descripcion` es obligatoria.
+- `observacion` es opcional.
+- `padreParametroId` debe permitir null.
+- Debe recargarse el listado después de insertar.
+
+---
+
+# Actualizar Parámetro
+
+- Debe utilizar el mismo request.
+- Debe enviarse el `parametroId`.
+- Debe mantenerse el `claseId`.
+- Debe mantenerse la selección después de actualizar.
+
+---
+
+# Eliminación de Clases
+
+Debe existir:
+
+- Confirmación antes de eliminar.
+- Validación de dependencias.
+- Recarga automática del listado.
+- Limpieza de selección si la Clase eliminada estaba activa.
+
+---
+
+# Eliminación de Parámetros
+
+Debe existir:
+
+- Confirmación antes de eliminar.
+- Validación de hijos asociados.
+- Recarga automática.
+- Limpieza de selección.
+
+---
+
+# Validaciones Visuales
+
+El módulo debe mostrar:
+
+- Estado cargando Clases.
+- Estado cargando Parámetros.
+- Estado vacío de Clases.
+- Estado vacío de Parámetros.
+- Estado sin Clase seleccionada.
+- Mensajes de error.
+- Mensajes de éxito.
+
+---
+
+# Diseño y Temas
+
+El componente debe:
+
+- Usar MudBlazor.
+- Respetar colores institucionales.
+- Respetar el tema dinámico.
+- Mantener contraste visual correcto.
+- Tener diseño moderno.
+- Ser responsive.
+
+---
+
+# Servicios API
+
+Deben existir servicios para:
+
+- Obtener Clases.
+- Crear Clase.
+- Actualizar Clase.
+- Eliminar Clase.
+- Obtener Parámetros por Clase y Denominación.
+- Crear Parámetro.
+- Actualizar Parámetro.
+- Eliminar Parámetro.
+- Buscar Parámetros Padre.
+- Asociar Padre.
+- Quitar Padre.
+
+---
+
+# Manejo del DenominacionId
+
+El `denominacionId`:
+
+- Debe obtenerse desde el usuario autenticado.
+- No debe quedar quemado.
+- Debe reutilizar el mecanismo actual del proyecto.
+- Puede obtenerse desde:
+  - LocalStorage.
+  - AuthStateProvider.
+  - SessionService existente.
+
+---
+
+# Restricciones Técnicas
+
+- No usar Entity Framework si la solución trabaja con API/Dapper.
+- No inventar endpoints.
+- No romper Login.
+- No romper Menú.
+- No romper navegación.
+- No modificar arquitectura fuera del alcance.
+- Respetar MVVM.
+- Respetar la estructura actual del proyecto.
+
+---
+
+# Resultado Esperado
+
+Al finalizar:
+
+- El usuario podrá administrar Clases y Parámetros desde una sola pantalla.
+- El módulo funcionará usando MVVM.
+- Las APIs estarán integradas correctamente.
+- El diseño será responsive.
+- El sistema respetará MudBlazor y los colores institucionales.
+- Las asociaciones Padre/Hijo funcionarán correctamente.
+
+---
+
+# Definition of Done
+
+- Existe `ConfigClases.razor`.
+- Existe el ViewModel del módulo.
+- El módulo compila correctamente.
+- Las APIs responden correctamente.
+- Las Clases cargan correctamente.
+- Los Parámetros cargan correctamente.
+- CRUD de Clases funcionando.
+- CRUD de Parámetros funcionando.
+- Asociación de Padre funcionando.
+- Eliminación funcionando.
+- Responsive funcionando.
+- Login intacto.
+- Menú intacto.
+- Arquitectura MVVM respetada.
+- Tema institucional funcionando correctamente.
+
+---
+
+# Referencia Base del Diseño
+
+El diseño debe basarse en el código MudBlazor entregado como referencia en el requerimiento original y adaptarse respetando la arquitectura MVVM actual del proyecto.
+
+---
+
+# Nota Importante
+
+Antes de implementar:
+
+- Analiza cómo está construido actualmente el proyecto `ROCA.Emuna360.Presentation.WebUI`.
+- Analiza cómo están construidos:
+  - Los servicios API.
+  - Los ViewModels.
+  - La navegación.
+  - Los temas.
+  - Los componentes MudBlazor.
+- Reutiliza patrones existentes.
+- No inventes nuevas estructuras si ya existen implementaciones equivalentes.

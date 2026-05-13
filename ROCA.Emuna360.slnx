@@ -33,6 +33,7 @@
     <File Path="docs/specs/SPEC-005-Authenticacion-UI ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-006-Authenticacion-UI-Funcional-ROCA.Emuna360.md" />
     <File Path="docs/specs/SPEC-007-Menu-UI-ROCA.Emuna360.md.md" />
+    <File Path="docs/specs/SPEC-009-Clase Parámetros-MVVM-UI.md.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">

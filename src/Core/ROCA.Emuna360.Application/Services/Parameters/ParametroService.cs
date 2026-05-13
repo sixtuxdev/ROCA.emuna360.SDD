@@ -15,5 +15,5 @@ public class ParametroService : MultiOrganizationalBaseService<ParametroDto, Par
         _specificRepository = repository;
     }
     public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>> GetByDenominacionAsync(int denominacionId) { var entities = await _specificRepository.GetByDenominacionAsync(denominacionId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>.Success(_mapper.Map<IEnumerable<ParametroDto>>(entities)); }
+    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>> GetByClaseAsync(int denominacionId, int claseId) { var entities = await _specificRepository.GetByClaseAsync(denominacionId, claseId); return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<ParametroDto>>.Success(_mapper.Map<IEnumerable<ParametroDto>>(entities)); }
 }
-

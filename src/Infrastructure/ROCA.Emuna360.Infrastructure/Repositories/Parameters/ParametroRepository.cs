@@ -27,6 +27,15 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
         return await connection.QueryFirstOrDefaultAsync<Parametro>("usp_Parametro_Obtener", parameters, commandType: CommandType.StoredProcedure);
     }
 
+    public async Task<IEnumerable<Parametro>> GetByClaseAsync(int denominacionId, int claseId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        parameters.Add("@ClaseId", claseId);
+        return await connection.QueryAsync<Parametro>("usp_Parametro_Listar", parameters, commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<OperationResult<int>> CreateAsync(Parametro entity)
     {
         var parameters = new Dapper.DynamicParameters();
