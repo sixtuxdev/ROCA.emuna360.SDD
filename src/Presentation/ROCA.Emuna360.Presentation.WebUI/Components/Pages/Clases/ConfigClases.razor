@@ -1,0 +1,399 @@
+@page "/clases/configuracion"
+@attribute [Authorize]
+@inject ConfigClasesViewModel ViewModel
+
+<PageTitle>Clases y Parámetros - ROCA.Emuna360</PageTitle>
+
+<section class="config-clases-shell">
+    <div class="config-clases-header">
+        <div>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="config-clases-title">Clases y Parámetros</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Configure clases del sistema y sus parámetros asociados</MudText>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+    }
+
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <div class="panel-toolbar">
+                    <div>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">Clases Registradas</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">Gestione las clases del sistema</MudText>
+                    </div>
+                    <div class="toolbar-actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Secondary"
+                                       Disabled="@ViewModel.IsLoadingClases"
+                                       OnClick="ViewModel.LoadClasesAsync" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="ViewModel.StartNewClase">
+                            Nueva Clase
+                        </MudButton>
+                    </div>
+                </div>
+
+                @if (ViewModel.ShowClaseForm)
+                {
+                    <MudPaper Elevation="0" Class="form-panel pa-3 my-3">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary">
+                            @(ViewModel.IsEditingClase ? "Editar Clase" : "Nueva Clase")
+                        </MudText>
+                        <MudTextField T="string"
+                                      Label="Descripción"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Required="true"
+                                      @bind-Value="ViewModel.ClaseForm.Descripcion" />
+                        <MudSwitch T="bool"
+                                   Label="Activa"
+                                   Color="Color.Primary"
+                                   @bind-Value="ViewModel.ClaseForm.Estado" />
+                        <div class="form-actions">
+                            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="ViewModel.CancelClaseForm">Cancelar</MudButton>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(!ViewModel.CanSaveClase)"
+                                       OnClick="ViewModel.SaveClaseAsync">
+                                Guardar
+                            </MudButton>
+                        </div>
+                    </MudPaper>
+                }
+
+                @if (ViewModel.IsLoadingClases)
+                {
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
+                }
+                else if (!ViewModel.Clases.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No hay clases registradas.
+                    </MudAlert>
+                }
+                else
+                {
+                    <div class="item-list">
+                        @foreach (var clase in ViewModel.Clases)
+                        {
+                            var selected = ViewModel.SelectedClase?.ClaseId == clase.ClaseId;
+
+                            <MudPaper Elevation="0"
+                                      Class="@($"config-list-item pa-3 {(selected ? "selected" : string.Empty)}")"
+                                      @onclick="@(() => ViewModel.SelectClaseAsync(clase))">
+                                <div class="item-main">
+                                    <MudIcon Icon="@Icons.Material.Filled.Category" Color="@(selected ? Color.Tertiary : Color.Secondary)" />
+                                    <div>
+                                        <MudText Typo="Typo.subtitle2">@clase.Descripcion</MudText>
+                                        <MudChip T="string"
+                                                 Size="Size.Small"
+                                                 Color="@(clase.Estado ? Color.Success : Color.Default)"
+                                                 Variant="Variant.Outlined">
+                                            @(clase.Estado ? "Activa" : "Inactiva")
+                                        </MudChip>
+                                    </div>
+                                </div>
+                                <div class="item-actions" @onclick:stopPropagation>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Color="@(selected ? Color.Tertiary : Color.Primary)"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => ViewModel.StartEditClase(clase))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="@(selected ? Color.Tertiary : Color.Error)"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => ViewModel.DeleteClaseAsync(clase))" />
+                                </div>
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <div class="panel-toolbar">
+                    <div>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">Parámetros</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@ViewModel.ParametrosSubtitle</MudText>
+                    </div>
+                    <div class="toolbar-actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Secondary"
+                                       Disabled="@(ViewModel.SelectedClase is null || ViewModel.IsLoadingParametros)"
+                                       OnClick="ViewModel.LoadParametrosAsync" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Disabled="@(ViewModel.SelectedClase is null)"
+                                   OnClick="ViewModel.StartNewParametro">
+                            Nuevo Parámetro
+                        </MudButton>
+                    </div>
+                </div>
+
+                @if (ViewModel.SelectedClase is null)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        Seleccione una clase para gestionar sus parámetros.
+                    </MudAlert>
+                }
+                else
+                {
+                    @if (ViewModel.ShowParametroForm)
+                    {
+                        <MudPaper Elevation="0" Class="form-panel pa-3 my-3">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">
+                                @(ViewModel.IsEditingParametro ? "Editar Parámetro" : "Nuevo Parámetro")
+                            </MudText>
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="7">
+                                    <MudTextField T="string"
+                                                  Label="Descripción"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Immediate="true"
+                                                  Required="true"
+                                                  @bind-Value="ViewModel.ParametroForm.Descripcion" />
+                                </MudItem>
+                                <MudItem xs="12" sm="5">
+                                    <MudSwitch T="bool"
+                                               Label="Activo"
+                                               Color="Color.Primary"
+                                               @bind-Value="ViewModel.ParametroForm.Estado" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField T="string"
+                                                  Label="Observación"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Lines="2"
+                                                  @bind-Value="ViewModel.ParametroForm.Observacion" />
+                                </MudItem>
+                            </MudGrid>
+                            <div class="form-actions">
+                                <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="ViewModel.CancelParametroForm">Cancelar</MudButton>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="@(!ViewModel.CanSaveParametro)"
+                                           OnClick="ViewModel.SaveParametroAsync">
+                                    Guardar
+                                </MudButton>
+                            </div>
+                        </MudPaper>
+                    }
+
+                    @if (ViewModel.IsLoadingParametros)
+                    {
+                        <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
+                    }
+                    else if (!ViewModel.Parametros.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                            No hay parámetros registrados para esta clase.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <div class="item-list">
+                            @foreach (var parametro in ViewModel.Parametros)
+                            {
+                                var selected = ViewModel.SelectedParametro?.ParametroId == parametro.ParametroId;
+
+                                <MudPaper Elevation="0"
+                                          Class="@($"config-list-item pa-3 {(selected ? "selected" : string.Empty)}")"
+                                          @onclick="@(() => ViewModel.SelectParametroAsync(parametro))">
+                                    <div class="item-main">
+                                        <MudIcon Icon="@Icons.Material.Filled.Tune" Color="@(selected ? Color.Tertiary : Color.Secondary)" />
+                                        <div>
+                                            <MudText Typo="Typo.subtitle2">@parametro.Descripcion</MudText>
+                                            @if (!string.IsNullOrWhiteSpace(parametro.Observacion))
+                                            {
+                                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@parametro.Observacion</MudText>
+                                            }
+                                            <div class="chip-row">
+                                                <MudChip T="string"
+                                                         Size="Size.Small"
+                                                         Color="@(parametro.Estado ? Color.Success : Color.Default)"
+                                                         Variant="Variant.Outlined">
+                                                    @(parametro.Estado ? "Activo" : "Inactivo")
+                                                </MudChip>
+                                                @if (parametro.PadreParametroId is not null)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">
+                                                        Tiene padre
+                                                    </MudChip>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item-actions" @onclick:stopPropagation>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Color="@(selected ? Color.Tertiary : Color.Primary)"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ViewModel.StartEditParametro(parametro))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="@(selected ? Color.Tertiary : Color.Error)"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ViewModel.DeleteParametroAsync(parametro))" />
+                                    </div>
+                                </MudPaper>
+                            }
+                        </div>
+                    }
+                }
+            </MudPaper>
+
+            @if (ViewModel.SelectedParametro is not null)
+            {
+                <MudPaper Elevation="1" Class="config-panel parent-panel pa-4 mt-3">
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Asignar Parámetro Padre</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                        Padre para @ViewModel.SelectedParametro.Descripcion
+                    </MudText>
+
+                    <MudAutocomplete T="ParametroDto"
+                                     Label="Parámetro Padre"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     Class="mt-3"
+                                     Clearable="true"
+                                     ToStringFunc="@(parametro => parametro is null ? string.Empty : $"{parametro.Descripcion} ({ViewModel.GetParentContext(parametro)})")"
+                                     SearchFunc="ViewModel.SearchParentParametrosAsync"
+                                     @bind-Value="ViewModel.SelectedPadreParametro" />
+
+                    <div class="form-actions">
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Secondary"
+                                   Disabled="@(!ViewModel.CanRemoveParent)"
+                                   OnClick="ViewModel.RemoveParentAsync">
+                            Quitar Padre
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Disabled="@(!ViewModel.CanSaveParent)"
+                                   OnClick="ViewModel.SaveParentAsync">
+                            Guardar Asociación
+                        </MudButton>
+                    </div>
+                </MudPaper>
+            }
+        </MudItem>
+    </MudGrid>
+</section>
+
+<style>
+    .config-clases-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .config-clases-header,
+    .panel-toolbar,
+    .form-actions,
+    .item-main,
+    .item-actions,
+    .toolbar-actions,
+    .chip-row {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+
+    .config-clases-header,
+    .panel-toolbar,
+    .form-actions {
+        justify-content: space-between;
+    }
+
+    .config-clases-title {
+        font-weight: 700;
+    }
+
+    .config-panel,
+    .form-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+    .form-panel {
+        background-color: color-mix(in srgb, var(--mud-palette-primary) 4%, var(--mud-palette-surface));
+    }
+
+    .item-list {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        margin-top: 1rem;
+    }
+
+    .config-list-item {
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        cursor: pointer;
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+    }
+
+    .config-list-item:hover {
+        background-color: color-mix(in srgb, var(--mud-palette-primary) 7%, var(--mud-palette-surface));
+    }
+
+    .config-list-item.selected {
+        background-color: var(--mud-palette-secondary);
+        border-color: var(--mud-palette-secondary);
+        color: var(--mud-palette-tertiary);
+    }
+
+    .config-list-item.selected .mud-typography,
+    .config-list-item.selected .mud-text-secondary {
+        color: var(--mud-palette-tertiary) !important;
+    }
+
+    .item-main {
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+    .item-actions,
+    .toolbar-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .parent-panel {
+        background-color: color-mix(in srgb, var(--mud-palette-secondary) 6%, var(--mud-palette-surface));
+    }
+
+    @@media (max-width: 600px) {
+        .panel-toolbar,
+        .form-actions,
+        .config-list-item {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .toolbar-actions,
+        .item-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeAsync();
+    }
+}

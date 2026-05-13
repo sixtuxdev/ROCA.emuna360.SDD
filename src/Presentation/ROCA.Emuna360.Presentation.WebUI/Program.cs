@@ -7,6 +7,7 @@ using ROCA.Emuna360.Presentation.WebUI.Services;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Auth;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Parameters;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,7 @@ builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
 builder.Services.AddScoped<LoginViewModel>();
 builder.Services.AddScoped<MenuViewModel>();
 builder.Services.AddScoped<DashboardViewModel>();
+builder.Services.AddScoped<ConfigClasesViewModel>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
@@ -55,6 +57,7 @@ builder.Services.AddHttpClient("AuthenticatedApi", client =>
 }).AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"));
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
+builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 
 var app = builder.Build();
 
