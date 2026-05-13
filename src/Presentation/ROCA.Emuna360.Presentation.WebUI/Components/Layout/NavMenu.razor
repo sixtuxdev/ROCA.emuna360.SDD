@@ -13,7 +13,7 @@
 
     <MudNavLink Href="/dashboard"
                 Icon="@Icons.Material.Filled.Dashboard"
-                IconColor="Color.Secondary"
+                IconColor="Color.Tertiary"
                 Match="NavLinkMatch.All"
                 Class="roca-nav-link">
         Dashboard
@@ -39,14 +39,14 @@
             {
                 <MudNavGroup Title="@grupo.Descripcion"
                              Icon="@GetIcon(grupo.Imagen)"
-                             IconColor="Color.Secondary"
+                             IconColor="Color.Tertiary"
                              Expanded="_expandedGroups.TryGetValue(grupo.MenuId, out var expanded) && expanded"
                              Class="roca-nav-group">
                     @foreach (var subMenu in hijos)
                     {
                         <MudNavLink Href="@NormalizeUrl(subMenu.Url)"
                                     Icon="@GetIcon(subMenu.Imagen)"
-                                    IconColor="Color.Secondary"
+                                    IconColor="Color.Tertiary"
                                     Match="NavLinkMatch.Prefix"
                                     Class="roca-nav-link">
                             @subMenu.Descripcion
@@ -58,7 +58,7 @@
             {
                 <MudNavLink Href="@NormalizeUrl(grupo.Url)"
                             Icon="@GetIcon(grupo.Imagen)"
-                            IconColor="Color.Secondary"
+                            IconColor="Color.Tertiary"
                             Match="NavLinkMatch.Prefix"
                             Class="roca-nav-link">
                     @grupo.Descripcion
@@ -78,29 +78,33 @@
 <style>
     .roca-nav-menu {
         background-color: var(--mud-palette-primary);
-        color: var(--mud-palette-surface);
+        color: var(--mud-palette-tertiary);
         height: 100%;
     }
 
     .roca-nav-menu .mud-divider {
-        border-color: color-mix(in srgb, var(--mud-palette-surface) 24%, transparent);
+        border-color: color-mix(in srgb, var(--mud-palette-tertiary) 24%, transparent);
     }
 
     .roca-nav-title,
     .roca-nav-menu .mud-typography,
     .roca-nav-menu .mud-text-secondary {
-        color: var(--mud-palette-surface) !important;
+        color: var(--mud-palette-tertiary) !important;
     }
 
     .roca-nav-link,
     .roca-nav-group .mud-nav-link {
-        color: var(--mud-palette-surface);
+        color: var(--mud-palette-tertiary);
+    }
+
+    .roca-nav-menu .mud-icon-root {
+        color: var(--mud-palette-tertiary) !important;
     }
 
     .roca-nav-link.active,
     .roca-nav-menu .mud-nav-link.active {
         background-color: var(--mud-palette-secondary);
-        color: var(--mud-palette-surface);
+        color: var(--mud-palette-tertiary);
     }
 </style>
 
