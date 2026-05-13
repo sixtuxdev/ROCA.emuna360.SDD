@@ -98,10 +98,22 @@
         color: var(--mud-palette-tertiary) !important;
     }
 
-    .roca-nav-link.active,
-    .roca-nav-menu .mud-nav-link.active {
-        background-color: var(--mud-palette-secondary);
-        color: var(--mud-palette-tertiary);
+    .roca-nav-menu .mud-nav-link.active,
+    .roca-nav-menu .mud-nav-link.active:hover,
+    .roca-nav-menu .mud-nav-link[aria-current="page"],
+    .roca-nav-menu .mud-nav-link[aria-current="page"]:hover {
+        background-color: var(--mud-palette-secondary) !important;
+        color: var(--mud-palette-tertiary) !important;
+    }
+
+    .roca-nav-menu .mud-nav-link.active .mud-nav-link-text,
+    .roca-nav-menu .mud-nav-link.active .mud-nav-link-icon,
+    .roca-nav-menu .mud-nav-link.active .mud-icon-root,
+    .roca-nav-menu .mud-nav-link[aria-current="page"] .mud-nav-link-text,
+    .roca-nav-menu .mud-nav-link[aria-current="page"] .mud-nav-link-icon,
+    .roca-nav-menu .mud-nav-link[aria-current="page"] .mud-icon-root {
+        color: var(--mud-palette-tertiary) !important;
+        fill: var(--mud-palette-tertiary) !important;
     }
 </style>
 
