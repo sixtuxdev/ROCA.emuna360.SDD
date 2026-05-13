@@ -9,7 +9,7 @@ public static class CustomMudTheme
         PaletteLight = new PaletteLight()
         {
             Primary = "#002142",      // Azul Profundo Institucional
-            Secondary = "#A7762A",    // Dorado/Bronce Institucional
+            Secondary = "#FF9100",    // Naranja/Bronce Institucional
             Tertiary = "#FEFEFE",     // Blanco
             AppbarBackground = "#002142",
             AppbarText = "#FEFEFE",
@@ -24,7 +24,7 @@ public static class CustomMudTheme
         PaletteDark = new PaletteDark()
         {
             Primary = "#002142",
-            Secondary = "#A7762A",
+            Secondary = "#FF9100",
             Tertiary = "#FEFEFE",
             Background = "#1A1A1A",
             Surface = "#262626",

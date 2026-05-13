@@ -12,6 +12,7 @@
     <File Path="docs/decisions/HU-006-Authenticacion-UI.md" />
     <File Path="docs/decisions/HU-007-Menu-UI.md" />
     <File Path="docs/decisions/HU-008-Aplicar-Patron-MVVM-UI.md" />
+    <File Path="docs/decisions/HU-009-Clase Parámetros-MVVM-UI.md" />
   </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
