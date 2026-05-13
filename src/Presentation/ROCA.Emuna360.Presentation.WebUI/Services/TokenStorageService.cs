@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using ROCA.Emuna360.Application.DTOs.Auth;
 
 namespace ROCA.Emuna360.Presentation.WebUI.Services;
 
@@ -6,8 +7,13 @@ public class TokenStorageService
 {
     private readonly ProtectedLocalStorage _localStorage;
     private readonly ProtectedSessionStorage _sessionStorage;
-    private const string TokenKey = "authToken";
-    private const string RefreshTokenKey = "refreshToken";
+    private const string AccessTokenKey = "AccessToken";
+    private const string RefreshTokenKey = "RefreshToken";
+    private const string TokenExpirationKey = "TokenExpiration";
+    private const string InfoUserKey = "InfoUser";
+    private const string InfoRegisterKey = "InfoRegister";
+    private const string RolesKey = "Roles";
+    private const string MenusKey = "Menus";
 
     public TokenStorageService(ProtectedLocalStorage localStorage, ProtectedSessionStorage sessionStorage)
     {
@@ -17,24 +23,49 @@ public class TokenStorageService
 
     public async Task SetTokenAsync(string token, bool rememberMe)
     {
-        if (rememberMe)
+        await _localStorage.SetAsync(AccessTokenKey, token);
+    }
+
+    public async Task SetLoginSessionAsync(LoginResponseDto response)
+    {
+        await _localStorage.SetAsync(AccessTokenKey, response.AccessToken);
+        await _localStorage.SetAsync(RefreshTokenKey, response.RefreshToken);
+        await _localStorage.SetAsync(TokenExpirationKey, response.Expiration);
+
+        if (response.User is null)
+            return;
+
+        await _localStorage.SetAsync(InfoUserKey, new StoredUserInfo(
+            response.User.UsuarioId,
+            response.User.DenominacionId,
+            response.User.Correo,
+            response.User.EmailVerificado,
+            response.User.RolId));
+
+        if (response.User.Registro is not null)
         {
-            await _localStorage.SetAsync(TokenKey, token);
+            await _localStorage.SetAsync(InfoRegisterKey, response.User.Registro);
         }
-        else
-        {
-            await _sessionStorage.SetAsync(TokenKey, token);
-        }
+
+        await _localStorage.SetAsync(RolesKey, response.User.Roles);
+        await _localStorage.SetAsync(MenusKey, response.User.Menus);
+    }
+
+    public async Task UpdateTokensAsync(RefreshTokenResponseDto response)
+    {
+        await _localStorage.SetAsync(AccessTokenKey, response.AccessToken);
+        await _localStorage.SetAsync(RefreshTokenKey, response.RefreshToken);
+        await _localStorage.SetAsync(TokenExpirationKey, response.Expiration);
     }
 
     public async Task<string?> GetTokenAsync()
     {
         try
         {
-            var result = await _localStorage.GetAsync<string>(TokenKey);
+            var result = await _localStorage.GetAsync<string>(AccessTokenKey);
             if (result.Success) return result.Value;
 
-            result = await _sessionStorage.GetAsync<string>(TokenKey);
+            result = await _sessionStorage.GetAsync<string>(AccessTokenKey);
             if (result.Success) return result.Value;
         }
         catch
@@ -44,9 +75,122 @@ public class TokenStorageService
         return null;
     }
 
+    public async Task<string?> GetRefreshTokenAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<string>(RefreshTokenKey);
+            if (result.Success) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return null;
+    }
+
+    public async Task<DateTime?> GetTokenExpirationAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<DateTime>(TokenExpirationKey);
+            if (result.Success) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return null;
+    }
+
+    public async Task<StoredUserInfo?> GetUserInfoAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<StoredUserInfo>(InfoUserKey);
+            if (result.Success) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return null;
+    }
+
+    public async Task<AuthRegistroDto?> GetRegisterInfoAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<AuthRegistroDto>(InfoRegisterKey);
+            if (result.Success) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return null;
+    }
+
+    public async Task<List<AuthRoleDto>> GetRolesAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<List<AuthRoleDto>>(RolesKey);
+            if (result.Success && result.Value is not null) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return new List<AuthRoleDto>();
+    }
+
+    public async Task<List<AuthMenuDto>> GetMenusAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<List<AuthMenuDto>>(MenusKey);
+            if (result.Success && result.Value is not null) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return new List<AuthMenuDto>();
+    }
+
+    public async Task<bool> HasActiveSessionAsync()
+    {
+        var token = await GetTokenAsync();
+        var expiration = await GetTokenExpirationAsync();
+
+        return !string.IsNullOrWhiteSpace(token) &&
+            expiration.HasValue &&
+            expiration.Value > DateTime.UtcNow;
+    }
+
     public async Task RemoveTokenAsync()
     {
-        await _localStorage.DeleteAsync(TokenKey);
-        await _sessionStorage.DeleteAsync(TokenKey);
+        await _localStorage.DeleteAsync(AccessTokenKey);
+        await _localStorage.DeleteAsync(RefreshTokenKey);
+        await _localStorage.DeleteAsync(TokenExpirationKey);
+        await _localStorage.DeleteAsync(InfoUserKey);
+        await _localStorage.DeleteAsync(InfoRegisterKey);
+        await _localStorage.DeleteAsync(RolesKey);
+        await _localStorage.DeleteAsync(MenusKey);
+        await _sessionStorage.DeleteAsync(AccessTokenKey);
     }
 }
+
+public sealed record StoredUserInfo(
+    int UsuarioId,
+    int DenominacionId,
+    string Correo,
+    bool EmailVerificado,
+    int RolId);

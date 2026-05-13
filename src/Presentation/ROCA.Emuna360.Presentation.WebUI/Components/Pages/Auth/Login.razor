@@ -26,6 +26,7 @@
             <MudTextField T="string" Label="Correo electrónico o documento" 
                           Required="true" RequiredError="El usuario es requerido."
                           @bind-Value="_loginRequest.Login"
+                          Immediate="true"
                           Variant="Variant.Outlined" Margin="Margin.Normal"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
                           Placeholder="usuario@dominio.com" />
@@ -33,11 +34,12 @@
             <MudTextField T="string" Label="Contraseña" 
                           Required="true" RequiredError="La contraseña es requerida."
                           @bind-Value="_loginRequest.Password"
+                          Immediate="true"
                           Variant="Variant.Outlined" Margin="Margin.Normal"
                           InputType="@_passwordInput"
                           Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
                           OnAdornmentClick="@TogglePasswordVisibility"
-                          HelperText="Entre 8 y 15 caracteres"
+                          HelperText="Entre 7 y 15 caracteres"
                           Validation="@(new Func<string, string?>(ValidatePassword))" />
 
             <div class="d-flex align-center justify-space-between mt-2">
@@ -50,7 +52,7 @@
                        FullWidth="true" 
                        Size="Size.Large" 
                        Class="mt-6 py-3" 
-                       Disabled="@(_loading || !_success)"
+                       Disabled="@(_loading || !CanSubmit)"
                        OnClick="HandleLogin">
                 @if (_loading)
                 {
@@ -80,7 +82,22 @@
     private LoginRequestDto _loginRequest = new() { DenominacionId = 1 };
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
-    private bool _recaptchaResolved = false;
+    private bool CanSubmit =>
+        !string.IsNullOrWhiteSpace(_loginRequest.Login) &&
+        !string.IsNullOrWhiteSpace(_loginRequest.Password) &&
+        _loginRequest.Password.Length >= 7 &&
+        _loginRequest.Password.Length <= 15;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        if (await TokenStorage.HasActiveSessionAsync())
+        {
+            Navigation.NavigateTo("/", replace: true);
+        }
+    }
 
     private void TogglePasswordVisibility()
     {
@@ -99,7 +116,7 @@
     private string? ValidatePassword(string pw)
     {
         if (string.IsNullOrEmpty(pw)) return null;
-        if (pw.Length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+        if (pw.Length < 7) return "La contraseña debe tener al menos 7 caracteres.";
         if (pw.Length > 15) return "La contraseña no debe exceder los 15 caracteres.";
         return null;
     }
@@ -129,17 +146,17 @@
 
             if (response != null && !string.IsNullOrEmpty(response.AccessToken))
             {
-                await TokenStorage.SetTokenAsync(response.AccessToken, _loginRequest.RememberMe);
-                AuthStateProvider.NotifyUserAuthentication(response.AccessToken);
+                await TokenStorage.SetLoginSessionAsync(response);
+                await AuthStateProvider.NotifyUserAuthenticationAsync(response.AccessToken);
                 Snackbar.Add("Bienvenido a ROCA.Emuna360", Severity.Success);
-                Navigation.NavigateTo("/");
+                Navigation.NavigateTo("/", replace: true);
             }
             else
             {
                 Snackbar.Add("Credenciales inválidas, error de seguridad o cuenta no verificada.", Severity.Error);
             }
         }
-        catch (Exception ex)
+        catch
         {
             Snackbar.Add("Ocurrió un error inesperado al intentar iniciar sesión.", Severity.Error);
         }

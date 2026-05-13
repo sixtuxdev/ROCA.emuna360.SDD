@@ -2,6 +2,7 @@
 @using ROCA.Emuna360.Presentation.WebUI.Security
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject TokenStorageService TokenStorage
+@inject AuthApiService AuthApiService
 @inject NavigationManager Navigation
 
 <MudThemeProvider Theme="@CustomMudTheme.Theme" IsDarkMode="_isDarkMode" />
@@ -48,9 +49,21 @@
 
     private async Task Logout()
     {
+        var refreshToken = await TokenStorage.GetRefreshTokenAsync();
+        var userInfo = await TokenStorage.GetUserInfoAsync();
+
+        if (!string.IsNullOrWhiteSpace(refreshToken) && userInfo is not null)
+        {
+            await AuthApiService.LogoutAsync(new LogoutRequestDto
+            {
+                DenominacionId = userInfo.DenominacionId,
+                RefreshToken = refreshToken
+            });
+        }
+
         await TokenStorage.RemoveTokenAsync();
         AuthStateProvider.NotifyUserLogout();
-        Navigation.NavigateTo("login");
+        Navigation.NavigateTo("login", replace: true);
     }
 
     public string DarkLightModeButtonIcon => _isDarkMode switch

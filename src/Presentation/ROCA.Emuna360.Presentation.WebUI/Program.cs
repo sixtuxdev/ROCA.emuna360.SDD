@@ -2,6 +2,8 @@ using ROCA.Emuna360.Application;
 using ROCA.Emuna360.Infrastructure;
 using MudBlazor.Services;
 using ROCA.Emuna360.Presentation.WebUI.Components;
+using ROCA.Emuna360.Presentation.WebUI.Security;
+using ROCA.Emuna360.Presentation.WebUI.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,14 +32,23 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<ROCA.Emuna360.Presentation.WebUI.Services.TokenStorageService>();
-builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, ROCA.Emuna360.Presentation.WebUI.Security.CustomAuthenticationStateProvider>();
-builder.Services.AddScoped(sp => (ROCA.Emuna360.Presentation.WebUI.Security.CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
+builder.Services.AddScoped<TokenStorageService>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped(sp => (CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
+builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
-builder.Services.AddScoped<ROCA.Emuna360.Presentation.WebUI.Services.AuthApiService>();
+builder.Services.AddHttpClient("PublicApi", client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+});
+builder.Services.AddHttpClient("AuthenticatedApi", client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+}).AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"));
+builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 
 var app = builder.Build();
 

@@ -1,11 +1,58 @@
+@inject TokenStorageService TokenStorage
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    
+    @if (_menus.Count > 0)
+    {
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Inicio</MudNavLink>
 
+        @foreach (var menu in _menus)
+        {
+            <MudNavLink Href="@NormalizeUrl(menu.Url)" Match="NavLinkMatch.Prefix" Icon="@ResolveIcon(menu.Imagen)">
+                @menu.Descripcion
+            </MudNavLink>
+        }
+    }
+    else
+    {
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+    }
 </MudNavMenu>
 
+@code {
+    private List<AuthMenuDto> _menus = new();
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _menus = (await TokenStorage.GetMenusAsync())
+            .OrderBy(menu => menu.Orden)
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private static string NormalizeUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        return url.TrimStart('/');
+    }
+
+    private static string ResolveIcon(string iconName)
+    {
+        return iconName switch
+        {
+            "AddHomeWork" => Icons.Material.Filled.AddHomeWork,
+            "Home" => Icons.Material.Filled.Home,
+            "List" => Icons.Material.Filled.List,
+            "Settings" => Icons.Material.Filled.Settings,
+            "People" => Icons.Material.Filled.People,
+            _ => Icons.Material.Filled.ChevronRight
+        };
+    }
+}

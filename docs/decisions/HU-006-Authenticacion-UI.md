@@ -159,6 +159,7 @@ LocalStora:
 * Mejorar funcionalidad del formulario de Login para que el botón INICIAR SESION se habilite cuando pase la validación del formulario, ejemplo: si ingreso el correo electrónico o documento y ingreso la contraseña cumpliendo con la cantidad minima de caracteres se habilite inmediatamente el botón INICIAR SESIÓN y no cuando pierdo el focus en el campo de contraseña.
 * Al cerrar la sesión debe destruir todo lo relacionado con la sesión activa para que redireccione al login correctamente y no se pueda navegar a la ventana anterior una vez haya cerrado sesión.
 * Aplicar siempre las mejores prácticas, respetando la arquitectura que se tiene implementado actualmente.
+* Recientemente se hicieron cambios en la arquitectura para recibir bien lo que devuelve la API, tener en cuenta estos cambios para seguir haciendo lo  mismo en los demás llamado y ajustar el front para recibir este tipo de datos usando los DTOs requeridos o creados.
 
 Nota: En las API algunos Controladores o especificamente en algún endpoint de un controlador no se requiere que tenga la validación del token para consumir, ya que algunos se van a usar a sí el usuario no haya iniciado sesión, como por ejemplo el módulo de Registro, un usuario puede registrarse desde un formulario externo.
 

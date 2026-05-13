@@ -211,7 +211,7 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
         p.Add("@DenominacionId", denominacionId);
         p.Add("@RefreshTokenId", refreshTokenId);
         p.Add("@ReemplazadoPor", reemplazadoPor);
-        return await ExecuteUpdateAsync("sp_auth_revocar_refresh_token", p, "@OutId");
+        return await ExecuteUpdateAsync("sp_auth_revocar_refresh_token", p, "@OutRefreshTokenId");
     }
 
     public async Task<IEnumerable<AuthRole>> GetUserRolesAsync(int denominacionId, int usuarioId)
