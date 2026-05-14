@@ -1,0 +1,71 @@
+@using ROCA.Emuna360.Presentation.WebUI.Theme
+
+<MudThemeProvider Theme="@CustomMudTheme.Theme" />
+
+<section class="app-loading-shell">
+    <MudPaper Elevation="0" Class="app-loading-panel">
+        <div class="brand-mark">
+            <MudImage Src="image/logo.png" Alt="ROCA Logo" Height="72" />
+        </div>
+        <MudText Typo="Typo.h5" Color="Color.Primary" Class="loading-title">ROCA.Emuna360</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary loading-copy">Validando sesión...</MudText>
+
+        <div class="loading-skeleton">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="10px" Width="72%" Animation="Animation.Wave" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="10px" Width="52%" Animation="Animation.Wave" />
+            <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mt-4" />
+        </div>
+    </MudPaper>
+</section>
+
+<style>
+    .app-loading-shell {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background:
+            linear-gradient(135deg, color-mix(in srgb, var(--mud-palette-primary) 8%, transparent), transparent 42%),
+            linear-gradient(315deg, color-mix(in srgb, var(--mud-palette-secondary) 10%, transparent), transparent 44%),
+            var(--mud-palette-background);
+    }
+
+    .app-loading-panel {
+        width: min(100%, 26rem);
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+        box-shadow: 0 1.25rem 3.5rem rgba(0, 0, 0, .10);
+    }
+
+    .brand-mark {
+        width: 6rem;
+        height: 6rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        border-radius: 50%;
+        background-color: color-mix(in srgb, var(--mud-palette-primary) 6%, var(--mud-palette-surface));
+        border: 1px solid var(--mud-palette-divider);
+    }
+
+    .loading-title {
+        font-weight: 700;
+    }
+
+    .loading-copy {
+        margin-top: .25rem;
+    }
+
+    .loading-skeleton {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .65rem;
+        margin-top: 1.5rem;
+    }
+</style>

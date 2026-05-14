@@ -1,23 +1,58 @@
-<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                @if (context.User.Identity?.IsAuthenticated != true)
-                {
-                    <RedirectToLogin />
-                }
-                else
-                {
-                    <MudText Typo="Typo.h6">No tiene permisos para ver esta página.</MudText>
-                }
-            </NotAuthorized>
-        </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="typeof(Layout.MainLayout)">
-            <MudText Typo="Typo.h6">Página no encontrada.</MudText>
-        </LayoutView>
-    </NotFound>
-</Router>
+@inject AppStartupViewModel StartupViewModel
+@inject NavigationManager Navigation
+
+@if (!StartupViewModel.IsInitialized)
+{
+    <AppLoading />
+}
+else
+{
+    <Router AppAssembly="typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated != true)
+                    {
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h6">No tiene permisos para ver esta página.</MudText>
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <MudText Typo="Typo.h6">Página no encontrada.</MudText>
+            </LayoutView>
+        </NotFound>
+    </Router>
+}
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await StartupViewModel.InitializeAsync();
+
+        if (StartupViewModel.IsAuthenticated && IsLoginRoute())
+        {
+            Navigation.NavigateTo("/dashboard", replace: true);
+            return;
+        }
+
+        StateHasChanged();
+    }
+
+    private bool IsLoginRoute()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        return string.IsNullOrWhiteSpace(relativePath)
+            || relativePath.Equals("login", StringComparison.OrdinalIgnoreCase);
+    }
+}
