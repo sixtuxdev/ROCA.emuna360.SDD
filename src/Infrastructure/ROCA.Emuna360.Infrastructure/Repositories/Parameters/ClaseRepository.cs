@@ -23,9 +23,8 @@ public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@Descripcion", entity.Descripcion);
-        parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        return await ExecuteCreateAsync("usp_Clase_Insertar", parameters, "@OutId");
+        parameters.Add("@Estado", entity.Estado);        
+        return await ExecuteCreateAsync("usp_Clase_Insertar", parameters, "@OutClaseId");
     }
 
     public async Task<OperationResult<bool>> UpdateAsync(Clase entity)
@@ -34,9 +33,8 @@ public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
         parameters.Add("@ClaseId", entity.ClaseId);
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@Descripcion", entity.Descripcion);
-        parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        return await ExecuteUpdateAsync("usp_Clase_Actualizar", parameters, "@OutId");
+        parameters.Add("@Estado", entity.Estado);        
+        return await ExecuteUpdateAsync("usp_Clase_Actualizar", parameters, string.Empty);
     }
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)

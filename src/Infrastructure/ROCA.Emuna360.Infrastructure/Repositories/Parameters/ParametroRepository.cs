@@ -44,8 +44,7 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
         parameters.Add("@Descripcion", entity.Descripcion);
         parameters.Add("@Observacion", entity.Observacion);
         parameters.Add("@PadreParametroId", entity.PadreParametroId);
-        parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        parameters.Add("@Estado", entity.Estado);        
         return await ExecuteCreateAsync("usp_Parametro_Insertar", parameters, "@OutParametroId");
     }
 
@@ -59,8 +58,7 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
         parameters.Add("@Observacion", entity.Observacion);
         parameters.Add("@PadreParametroId", entity.PadreParametroId);
         parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        return await ExecuteUpdateAsync("usp_Parametro_Actualizar", parameters, "@OutParametroId");
+        return await ExecuteUpdateAsync("usp_Parametro_Actualizar", parameters, string.Empty);
     }
 
     public async Task<System.Collections.Generic.IEnumerable<Parametro>> GetAllAsync(int denominacionId)

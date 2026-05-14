@@ -51,8 +51,12 @@ public abstract class BaseRepository<TEntity>
 
     protected async Task<OperationResult<bool>> ExecuteUpdateAsync(string procedureName, DynamicParameters parameters, string outIdParameter)
     {
-        if (!parameters.ParameterNames.Any(n => n.Equals(outIdParameter, System.StringComparison.OrdinalIgnoreCase)))
-            parameters.Add(outIdParameter, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        if (outIdParameter != string.Empty)
+        {
+            if (!parameters.ParameterNames.Any(n => n.Equals(outIdParameter, System.StringComparison.OrdinalIgnoreCase)))
+                parameters.Add(outIdParameter, dbType: DbType.Int32, direction: ParameterDirection.Output);
+        }
 
         if (!parameters.ParameterNames.Any(n => n.Equals("@Resultado", System.StringComparison.OrdinalIgnoreCase)))
             parameters.Add("@Resultado", dbType: DbType.String, direction: ParameterDirection.Output, size: 20);
