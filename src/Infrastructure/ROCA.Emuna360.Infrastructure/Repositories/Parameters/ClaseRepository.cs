@@ -44,7 +44,7 @@ public class ClaseRepository : BaseRepository<Clase>, IClaseRepository
         p.Add("@ClaseId", id);
         p.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Clase_Eliminar", p, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        return rows > 0;        
     }
 
     public async Task<IEnumerable<Clase>> GetAllAsync(int denominacionId)

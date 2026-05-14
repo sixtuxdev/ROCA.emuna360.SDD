@@ -77,6 +77,6 @@ public class ParametroRepository : BaseRepository<Parametro>, IParametroReposito
         parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Parametro_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
-    }
+    }    
 }
 
