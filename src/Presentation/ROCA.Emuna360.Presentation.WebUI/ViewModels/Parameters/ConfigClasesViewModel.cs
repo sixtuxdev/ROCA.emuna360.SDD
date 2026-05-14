@@ -6,10 +6,23 @@ namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Parameters;
 
 public sealed class ConfigClasesViewModel
 {
+    private const int AllStatusFilter = -1;
+    private const int ActiveStatusFilter = 1;
+    private const int InactiveStatusFilter = 0;
+    private const int DefaultPageSize = 10;
+
     private readonly ParametersApiService _parametersApiService;
     private readonly TokenStorageService _tokenStorageService;
     private readonly ISnackbar _snackbar;
     private readonly IDialogService _dialogService;
+    private string _claseSearchText = string.Empty;
+    private string _parametroSearchText = string.Empty;
+    private int _claseStatusFilter = AllStatusFilter;
+    private int _parametroStatusFilter = AllStatusFilter;
+    private int _clasePage = 1;
+    private int _parametroPage = 1;
+    private int _clasePageSize = DefaultPageSize;
+    private int _parametroPageSize = DefaultPageSize;
 
     public ConfigClasesViewModel(
         ParametersApiService parametersApiService,
@@ -42,6 +55,103 @@ public sealed class ConfigClasesViewModel
     public bool IsEditingParametro { get; private set; }
     public bool ShowClaseForm { get; private set; }
     public bool ShowParametroForm { get; private set; }
+    public int[] PageSizeOptions { get; } = [5, 10, 20, 50];
+    public IReadOnlyList<StatusFilterOption> StatusFilterOptions { get; } =
+    [
+        new(AllStatusFilter, "Todos"),
+        new(ActiveStatusFilter, "Activos"),
+        new(InactiveStatusFilter, "Inactivos")
+    ];
+
+    public string ClaseSearchText
+    {
+        get => _claseSearchText;
+        set
+        {
+            if (_claseSearchText == value)
+                return;
+
+            _claseSearchText = value ?? string.Empty;
+            ClasePage = 1;
+        }
+    }
+
+    public string ParametroSearchText
+    {
+        get => _parametroSearchText;
+        set
+        {
+            if (_parametroSearchText == value)
+                return;
+
+            _parametroSearchText = value ?? string.Empty;
+            ParametroPage = 1;
+        }
+    }
+
+    public int ClaseStatusFilter
+    {
+        get => _claseStatusFilter;
+        set
+        {
+            if (_claseStatusFilter == value)
+                return;
+
+            _claseStatusFilter = value;
+            ClasePage = 1;
+        }
+    }
+
+    public int ParametroStatusFilter
+    {
+        get => _parametroStatusFilter;
+        set
+        {
+            if (_parametroStatusFilter == value)
+                return;
+
+            _parametroStatusFilter = value;
+            ParametroPage = 1;
+        }
+    }
+
+    public int ClasePage
+    {
+        get => _clasePage;
+        set => _clasePage = ClampPage(value, ClasePageCount);
+    }
+
+    public int ParametroPage
+    {
+        get => _parametroPage;
+        set => _parametroPage = ClampPage(value, ParametroPageCount);
+    }
+
+    public int ClasePageSize
+    {
+        get => _clasePageSize;
+        set
+        {
+            if (_clasePageSize == value)
+                return;
+
+            _clasePageSize = value;
+            ClasePage = 1;
+        }
+    }
+
+    public int ParametroPageSize
+    {
+        get => _parametroPageSize;
+        set
+        {
+            if (_parametroPageSize == value)
+                return;
+
+            _parametroPageSize = value;
+            ParametroPage = 1;
+        }
+    }
 
     public string ParametrosSubtitle => SelectedClase is null
         ? "Seleccione una clase para ver sus parámetros"
@@ -51,6 +161,31 @@ public sealed class ConfigClasesViewModel
     public bool CanSaveParametro => !IsSavingParametro && SelectedClase is not null && !string.IsNullOrWhiteSpace(ParametroForm.Descripcion);
     public bool CanSaveParent => !IsSavingParent && SelectedParametro is not null && SelectedPadreParametro is not null;
     public bool CanRemoveParent => !IsSavingParent && SelectedParametro?.PadreParametroId is not null;
+    public IReadOnlyList<ClaseDto> FilteredClases => Clases
+        .Where(MatchesClaseFilters)
+        .ToList();
+
+    public IReadOnlyList<ClaseDto> PagedClases => FilteredClases
+        .Skip((ClasePage - 1) * ClasePageSize)
+        .Take(ClasePageSize)
+        .ToList();
+
+    public int ClaseTotalItems => FilteredClases.Count;
+    public int ClasePageCount => GetPageCount(ClaseTotalItems, ClasePageSize);
+    public bool HasClaseFilters => !string.IsNullOrWhiteSpace(ClaseSearchText) || ClaseStatusFilter != AllStatusFilter;
+
+    public IReadOnlyList<ParametroDto> FilteredParametros => Parametros
+        .Where(MatchesParametroFilters)
+        .ToList();
+
+    public IReadOnlyList<ParametroDto> PagedParametros => FilteredParametros
+        .Skip((ParametroPage - 1) * ParametroPageSize)
+        .Take(ParametroPageSize)
+        .ToList();
+
+    public int ParametroTotalItems => FilteredParametros.Count;
+    public int ParametroPageCount => GetPageCount(ParametroTotalItems, ParametroPageSize);
+    public bool HasParametroFilters => !string.IsNullOrWhiteSpace(ParametroSearchText) || ParametroStatusFilter != AllStatusFilter;
 
     public async Task InitializeAsync()
     {
@@ -76,6 +211,7 @@ public sealed class ConfigClasesViewModel
         try
         {
             Clases = await _parametersApiService.GetClasesAsync(DenominacionId);
+            _clasePage = ClampPage(_clasePage, ClasePageCount);
 
             if (SelectedClase is not null)
             {
@@ -101,6 +237,7 @@ public sealed class ConfigClasesViewModel
         SelectedParametro = null;
         SelectedPadreParametro = null;
         ShowParametroForm = false;
+        ParametroPage = 1;
         await LoadParametrosAsync();
     }
 
@@ -109,6 +246,7 @@ public sealed class ConfigClasesViewModel
         if (SelectedClase is null)
         {
             Parametros = [];
+            ParametroPage = 1;
             return;
         }
 
@@ -118,6 +256,7 @@ public sealed class ConfigClasesViewModel
         try
         {
             Parametros = await _parametersApiService.GetParametrosByClaseAsync(SelectedClase.ClaseId, DenominacionId);
+            _parametroPage = ClampPage(_parametroPage, ParametroPageCount);
 
             if (SelectedParametro is not null)
             {
@@ -241,6 +380,7 @@ public sealed class ConfigClasesViewModel
                 SelectedParametro = null;
                 SelectedPadreParametro = null;
                 Parametros = [];
+                ParametroPage = 1;
             }
 
             await LoadClasesAsync();
@@ -538,4 +678,46 @@ public sealed class ConfigClasesViewModel
             FechaActualizacion = parametro.FechaActualizacion
         };
     }
+
+    private bool MatchesClaseFilters(ClaseDto clase)
+    {
+        return MatchesStatus(clase.Estado, ClaseStatusFilter)
+            && MatchesText(clase.Descripcion, ClaseSearchText);
+    }
+
+    private bool MatchesParametroFilters(ParametroDto parametro)
+    {
+        return MatchesStatus(parametro.Estado, ParametroStatusFilter)
+            && (MatchesText(parametro.Descripcion, ParametroSearchText)
+                || MatchesText(parametro.Observacion, ParametroSearchText));
+    }
+
+    private static bool MatchesText(string? value, string searchText)
+    {
+        return string.IsNullOrWhiteSpace(searchText)
+            || (!string.IsNullOrWhiteSpace(value)
+                && value.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool MatchesStatus(bool estado, int statusFilter)
+    {
+        return statusFilter == AllStatusFilter
+            || (statusFilter == ActiveStatusFilter && estado)
+            || (statusFilter == InactiveStatusFilter && !estado);
+    }
+
+    private static int GetPageCount(int totalItems, int pageSize)
+    {
+        if (totalItems <= 0)
+            return 1;
+
+        return (int)Math.Ceiling(totalItems / (double)Math.Max(1, pageSize));
+    }
+
+    private static int ClampPage(int page, int pageCount)
+    {
+        return Math.Clamp(page, 1, Math.Max(1, pageCount));
+    }
+
+    public sealed record StatusFilterOption(int Value, string Text);
 }

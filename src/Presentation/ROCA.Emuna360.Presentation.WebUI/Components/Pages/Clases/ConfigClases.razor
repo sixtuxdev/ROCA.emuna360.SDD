@@ -68,6 +68,27 @@
                     </MudPaper>
                 }
 
+                <div class="filter-row">
+                    <MudTextField T="string"
+                                  Label="Buscar clases"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  @bind-Value="ViewModel.ClaseSearchText" />
+                    <MudSelect T="int"
+                               Label="Estado"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               @bind-Value="ViewModel.ClaseStatusFilter">
+                        @foreach (var option in ViewModel.StatusFilterOptions)
+                        {
+                            <MudSelectItem T="int" Value="@option.Value">@option.Text</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
                 @if (ViewModel.IsLoadingClases)
                 {
                     <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
@@ -78,10 +99,16 @@
                         No hay clases registradas.
                     </MudAlert>
                 }
+                else if (!ViewModel.FilteredClases.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No se encontraron clases con los filtros aplicados.
+                    </MudAlert>
+                }
                 else
                 {
                     <div class="item-list">
-                        @foreach (var clase in ViewModel.Clases)
+                        @foreach (var clase in ViewModel.PagedClases)
                         {
                             var selected = ViewModel.SelectedClase?.ClaseId == clase.ClaseId;
 
@@ -112,6 +139,26 @@
                                 </div>
                             </MudPaper>
                         }
+                    </div>
+                    <div class="pagination-row">
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                            Mostrando @ViewModel.PagedClases.Count de @ViewModel.ClaseTotalItems clases
+                        </MudText>
+                        <div class="pagination-actions">
+                            <MudSelect T="int"
+                                       Label="Por página"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       @bind-Value="ViewModel.ClasePageSize">
+                                @foreach (var pageSize in ViewModel.PageSizeOptions)
+                                {
+                                    <MudSelectItem T="int" Value="@pageSize">@pageSize</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudPagination Count="@ViewModel.ClasePageCount"
+                                           @bind-Selected="ViewModel.ClasePage"
+                                           Disabled="@(ViewModel.ClasePageCount <= 1)" />
+                        </div>
                     </div>
                 }
             </MudPaper>
@@ -190,6 +237,27 @@
                         </MudPaper>
                     }
 
+                    <div class="filter-row">
+                        <MudTextField T="string"
+                                      Label="Buscar parámetros"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      @bind-Value="ViewModel.ParametroSearchText" />
+                        <MudSelect T="int"
+                                   Label="Estado"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   @bind-Value="ViewModel.ParametroStatusFilter">
+                            @foreach (var option in ViewModel.StatusFilterOptions)
+                            {
+                                <MudSelectItem T="int" Value="@option.Value">@option.Text</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </div>
+
                     @if (ViewModel.IsLoadingParametros)
                     {
                         <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
@@ -200,10 +268,16 @@
                             No hay parámetros registrados para esta clase.
                         </MudAlert>
                     }
+                    else if (!ViewModel.FilteredParametros.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                            No se encontraron parámetros con los filtros aplicados.
+                        </MudAlert>
+                    }
                     else
                     {
                         <div class="item-list">
-                            @foreach (var parametro in ViewModel.Parametros)
+                            @foreach (var parametro in ViewModel.PagedParametros)
                             {
                                 var selected = ViewModel.SelectedParametro?.ParametroId == parametro.ParametroId;
 
@@ -246,6 +320,26 @@
                                     </div>
                                 </MudPaper>
                             }
+                        </div>
+                        <div class="pagination-row">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                                Mostrando @ViewModel.PagedParametros.Count de @ViewModel.ParametroTotalItems parámetros
+                            </MudText>
+                            <div class="pagination-actions">
+                                <MudSelect T="int"
+                                           Label="Por página"
+                                           Variant="Variant.Outlined"
+                                           Margin="Margin.Dense"
+                                           @bind-Value="ViewModel.ParametroPageSize">
+                                    @foreach (var pageSize in ViewModel.PageSizeOptions)
+                                    {
+                                        <MudSelectItem T="int" Value="@pageSize">@pageSize</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudPagination Count="@ViewModel.ParametroPageCount"
+                                               @bind-Selected="ViewModel.ParametroPage"
+                                               Disabled="@(ViewModel.ParametroPageCount <= 1)" />
+                            </div>
                         </div>
                     }
                 }
@@ -302,7 +396,10 @@
     .item-main,
     .item-actions,
     .toolbar-actions,
-    .chip-row {
+    .chip-row,
+    .filter-row,
+    .pagination-row,
+    .pagination-actions {
         display: flex;
         align-items: center;
         gap: .75rem;
@@ -310,7 +407,8 @@
 
     .config-clases-header,
     .panel-toolbar,
-    .form-actions {
+    .form-actions,
+    .pagination-row {
         justify-content: space-between;
     }
 
@@ -334,6 +432,33 @@
         flex-direction: column;
         gap: .75rem;
         margin-top: 1rem;
+    }
+
+    .filter-row {
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .filter-row > :first-child {
+        flex: 1 1 16rem;
+    }
+
+    .filter-row > :last-child {
+        flex: 0 0 10rem;
+    }
+
+    .pagination-row {
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .pagination-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .pagination-actions .mud-input-control {
+        width: 8rem;
     }
 
     .config-list-item {
@@ -379,14 +504,24 @@
     @@media (max-width: 600px) {
         .panel-toolbar,
         .form-actions,
-        .config-list-item {
+        .config-list-item,
+        .filter-row,
+        .pagination-row {
             align-items: stretch;
             flex-direction: column;
         }
 
         .toolbar-actions,
-        .item-actions {
+        .item-actions,
+        .pagination-actions {
             justify-content: flex-start;
+        }
+
+        .filter-row > :first-child,
+        .filter-row > :last-child,
+        .pagination-actions .mud-input-control {
+            width: 100%;
+            flex-basis: auto;
         }
     }
 </style>
