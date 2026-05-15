@@ -1,16 +1,40 @@
-he realizado cambios en la SPEC-010 te la comparto para que la tengas en contexto y basado en esto me ayudes a crear el prompt para Codex, Dame el prompt en formato markdown y en un sólo bloque
+Necesito que trabajes sobre la solución **ROCA.Emuna360** respetando estrictamente la arquitectura actual, el patrón MVVM y las buenas prácticas ya implementadas en el proyecto.
 
-Fase 1:
+Primero debes leer la SPEC ubicada en:
 
-Se requiere que leas la SPEC ubicada en docs/specs/SPEC-010-Configuracion-Iglesias-MVVM-UI.md para que tengas contexto de lo que se requiere, además debes seguir lo siguiente:
+`docs/specs/SPEC-010-Configuracion-Iglesias-MVVM-UI.md`
 
-## Fase 1.1 - Plan de ejecución obligatorio antes de implementar
+La SPEC contiene toda la definición funcional y técnica del módulo de administración de Iglesias.
+
+---
+
+# Fase 1 - Lectura y análisis de contexto
+
+Debes leer completamente la SPEC antes de realizar cualquier implementación.
+
+También debes revisar cómo está implementado actualmente el patrón MVVM en el proyecto WebUI.
+
+Toma como referencia principal el componente:
+
+`ROCA.Emuna360.Presentation.WebUI/Pages/Clases/ConfigClases.razor`
+
+Debes seguir exactamente el mismo patrón y estructura que ya se encuentra implementada allí.
+
+No inventes arquitecturas nuevas.
+
+No crees modelos innecesarios si ya existen DTOs reutilizables en la solución.
+
+Debes reutilizar DTOs existentes de la arquitectura actual.
+
+---
+
+# Fase 1.1 - Plan de ejecución obligatorio antes de implementar
 
 Antes de realizar cualquier cambio en el código, debes crear un **plan de ejecución detallado** para que sea validado y aprobado.
 
-No debes implementar nada hasta que el plan sea revisado y aprobado.
+No debes implementar absolutamente nada hasta que el plan haya sido revisado y aprobado.
 
-El plan debe incluir:
+El plan debe incluir como mínimo:
 
 - Archivos que vas a revisar.
 - Archivos que vas a crear.
@@ -18,62 +42,349 @@ El plan debe incluir:
 - Servicios que vas a consumir.
 - DTOs que vas a reutilizar.
 - Componentes Razor que vas a crear.
-- ViewModels que vas a crear o ajustar.
+- ViewModels que vas a crear o modificar.
 - Cambios necesarios en navegación o menú, si aplica.
 - Validaciones que vas a implementar.
-- Estrategia para manejar el acceso según Administrador de Denominación.
-- Estrategia para redireccionar a `AdminIglesia.razor` cuando no sea Administrador de Denominación.
+- Estrategia para manejar acceso según Administrador de Denominación.
+- Estrategia para redireccionar a `AdminIglesia.razor` cuando el usuario no sea Administrador de Denominación.
 - Estrategia para cargar Países, Departamentos, Ciudades y Corregimientos.
+- Estrategia para manejar formularios reactivos.
 - Riesgos detectados antes de implementar.
-- Dudas o puntos que requieren confirmación.
+- Posibles conflictos con la arquitectura actual.
+- Dudas o puntos que requieren validación previa.
 
-El plan debe ser claro, ordenado y específico.
+El plan debe ser:
 
-Después de entregar el plan, debes detenerte y esperar aprobación antes de implementar cualquier cambio.
+- Claro.
+- Ordenado.
+- Técnico.
+- Detallado.
+- Específico.
 
-Fase 2:
+Después de entregar el plan debes detenerte y esperar aprobación antes de implementar cualquier cambio.
 
-Se requiere que se crea el componente en el proyecto ROCA.Emuna360.Presentation.WebUI Componente en Pages/Iglesias/ConfigIglesias.razor siguiendo la arquitectura que ya está definida con MVVM.
+---
 
-Para esta implementación como se está haciendo con MVVM los modelos que estás creando en el Proyecto ROCA.Emuna360.Presentation.WebUI carpeta Models, has como lo hiciste en el componente Pages/Clases/ConfigClases.razor ya que acá usaste los Dtos que ya están en la arquitectura del proyecto.
+# Fase 2 - Implementación del módulo Configuración de Iglesias
 
-Necesito que el formaulario sea reactivo, aplica las validaciones correctamente, el botón guardar sólo se habilita cuando ya todos los campos del formulario están llenos, se habilite el botón sin que tengas que perder el focus del input.
+Ya existe el componente:
 
-Necesito que creas 2 secciones en el componente en la izquierda debe ir un MudDataGrid donde se muestran las iglesias. Sólo el administrador de la Denominación puede acceder a este módulo, Para saber si el usuario es Administrador de la Denominación se puede consultar en la API 
+`ROCA.Emuna360.Presentation.WebUI/Pages/Iglesias/ConfigIglesias.razor`
 
-* Security/UsuariosIglesiasController.cs
-	- Endpoint: GetEsAdminDenominacion
-éste va a retornar un boolean, si es true es porque si es y puede acceder al módulo de Iglesias.
+La implementación debe seguir estrictamente la arquitectura MVVM ya existente en el proyecto.
 
-De lo contrario debe entrar a otro componente para administrar a la iglesia que pertenece y sólo si es Administrador de la Iglesia o rol que tenga acceso al módulo. Puedes crear otro componente diferente a ConfigIglesias.razor en la misma carpeta llamada Pages/Iglesias/AdminIglesia.razor
+Para los modelos que necesites en:
 
-en esta sólo vas a mostrar un formulario con todos los campos que conforman el modelo o Dtos de Iglesias.
+`ROCA.Emuna360.Presentation.WebUI/Models`
 
+Debes trabajar igual que en:
 
-Fase 3:
+`Pages/Clases/ConfigClases.razor`
 
-La Denominación ya se encuentra en el LocalStorage con la Key authDenominacionId, de allí sacas el valor para la Variable DenominacionId de tipo int para que se quede allí almacenado la DenominacionId
+En ese componente ya se reutilizan DTOs existentes de la arquitectura.
 
-Fase 4:
+Debes hacer exactamente el mismo enfoque.
 
-Para cargar los datos de Geography lo debes llamar desde el servicio ubicado en ROCA.Emuna360.Presentation.WebUI Carpeta Services allí crea un servicio para llamar los registros de Paises. Aplicar buenas practicas, lo mismo debes hacer para Departamentos, Ciudades y Corregimientos.
+No inventes modelos duplicados.
 
-Las APIS de Geography los encuentras en el siguiente Orden:
-* Controllers/Geography/PaisesController.cs
-	- Endpoint GetAll
-* Controllers/Geography/DepartamentosController.cs
-	- Endpoint GetAll
-* Controllers/Geography/CiudadesController.cs
-	- Endpoint GetAll
+No rompas el patrón MVVM actual.
 
-Fase 5:
+---
 
-Para cargar información de las Iglesias, crear, actualizar y eliminar están en la siguiente API:
-* Controllers/Organization/IglesiasController.cs
-En este controlador están los endpoint que se requieren para el CRUD completo de Iglesias.
+# Formulario Reactivo
 
+El formulario debe ser completamente reactivo.
 
-Por último debes validar que no quede con errores y que quede funcionando correctamente, haz un diseño hermoso y minimalista que se vea profesional.
+Debes aplicar validaciones correctamente.
 
+El botón Guardar:
 
+- Sólo debe habilitarse cuando todos los campos obligatorios estén completos y válidos.
+- Debe habilitarse automáticamente mientras el usuario escribe.
+- No debe requerir perder el focus del input para habilitarse.
 
+Las validaciones deben verse profesionales y consistentes con el resto de la aplicación.
+
+Debes reutilizar:
+
+- Snackbars.
+- Loading.
+- Componentes visuales.
+- Estilos existentes.
+- Validaciones ya utilizadas en otros módulos.
+
+---
+
+# Diseño del componente
+
+El componente debe tener 2 secciones principales:
+
+## Sección izquierda
+
+Debe existir un `MudDataGrid` mostrando las Iglesias.
+
+El listado debe mostrar como mínimo:
+
+- Nombre Iglesia.
+- Slug.
+- Ciudad o Corregimiento.
+- Correo.
+- Estado Activo/Inactivo.
+
+El diseño debe verse moderno, limpio, minimalista y profesional.
+
+Usa los colores institucionales del sistema.
+
+---
+
+## Sección derecha
+
+Debe existir el formulario para crear y editar Iglesias.
+
+El formulario debe ser visualmente limpio y profesional.
+
+Usa MudBlazor.
+
+Mantén consistencia visual con los demás módulos de ROCA.Emuna360.
+
+---
+
+# Acceso según Administrador de Denominación
+
+Sólo el Administrador de la Denominación puede acceder al módulo completo de configuración de Iglesias.
+
+Para validar esto debes consultar el LocalStorage usando la Key:
+
+`IsAdminDenominacion`
+
+Si el valor es:
+
+- `true`:
+  - Puede acceder a `ConfigIglesias.razor`.
+
+- `false`:
+  - No debe acceder al módulo completo.
+  - Debe ser dirigido a otro componente.
+
+---
+
+# Componente AdminIglesia
+
+Debes crear el componente:
+
+`ROCA.Emuna360.Presentation.WebUI/Pages/Iglesias/AdminIglesia.razor`
+
+Este componente será usado cuando el usuario NO sea Administrador de la Denominación.
+
+En este componente:
+
+- Sólo se debe mostrar el formulario con los datos de la Iglesia.
+- Debe permitir administrar únicamente la Iglesia a la que pertenece el usuario.
+- Debe respetar permisos y roles existentes.
+
+No debe listar todas las Iglesias.
+
+No debe permitir administración global.
+
+---
+
+# Fase 3 - DenominacionId desde LocalStorage
+
+La Denominación ya se encuentra almacenada en LocalStorage con la Key:
+
+`authDenominacionId`
+
+Debes obtener ese valor y almacenarlo en una variable:
+
+`DenominacionId`
+
+Tipo:
+
+`int`
+
+Este valor debe usarse para:
+
+- Listar Iglesias.
+- Crear Iglesias.
+- Actualizar Iglesias.
+- Filtrar información.
+- Validaciones relacionadas con Denominación.
+
+No quemes valores.
+
+No solicites la Denominación manualmente desde el formulario.
+
+---
+
+# Fase 4 - Servicios Geography
+
+Para cargar información geográfica debes crear servicios en:
+
+`ROCA.Emuna360.Presentation.WebUI/Services`
+
+Debes crear servicios aplicando buenas prácticas para consumir:
+
+- Países.
+- Departamentos.
+- Ciudades.
+- Corregimientos.
+
+Las APIs de Geography se encuentran en:
+
+## Países
+
+`Controllers/Geography/PaisesController.cs`
+
+Endpoint:
+
+`GetAll`
+
+---
+
+## Departamentos
+
+`Controllers/Geography/DepartamentosController.cs`
+
+Endpoint:
+
+`GetAll`
+
+---
+
+## Ciudades
+
+`Controllers/Geography/CiudadesController.cs`
+
+Endpoint:
+
+`GetAll`
+
+---
+
+## Corregimientos
+
+Debes validar si existe controlador o endpoint correspondiente antes de implementarlo.
+
+No inventes endpoints inexistentes.
+
+---
+
+# Carga jerárquica Geography
+
+La carga debe ser dependiente:
+
+1. Selecciona País.
+2. Se cargan Departamentos del País.
+3. Selecciona Departamento.
+4. Se cargan Ciudades del Departamento.
+5. Selecciona Ciudad.
+6. Se cargan Corregimientos de la Ciudad.
+
+No cargues toda la geografía masivamente.
+
+Cuando cambie un valor superior debes limpiar automáticamente los inferiores.
+
+Ejemplo:
+
+- Cambia País:
+  - Limpiar Departamento.
+  - Limpiar Ciudad.
+  - Limpiar Corregimiento.
+
+- Cambia Departamento:
+  - Limpiar Ciudad.
+  - Limpiar Corregimiento.
+
+- Cambia Ciudad:
+  - Limpiar Corregimiento.
+
+---
+
+# Fase 5 - CRUD Iglesias
+
+Para cargar información, crear, actualizar y eliminar Iglesias debes consumir:
+
+`Controllers/Organization/IglesiasController.cs`
+
+En este controlador ya se encuentran los endpoints necesarios para el CRUD completo.
+
+Debes revisar:
+
+- Endpoints existentes.
+- DTOs existentes.
+- Tipo de respuesta.
+- Manejo de errores.
+- Convenciones existentes.
+
+No inventes contratos.
+
+No inventes rutas.
+
+---
+
+# Restricciones obligatorias
+
+Debes respetar estrictamente:
+
+- Arquitectura actual.
+- Patrón MVVM.
+- DTOs existentes.
+- Convenciones existentes.
+- Servicios existentes.
+- Manejo actual de autenticación.
+- Manejo actual de autorización.
+
+No hagas:
+
+- Refactorizaciones globales.
+- Cambios innecesarios.
+- Cambios fuera del alcance.
+- Duplicación de lógica.
+- Código comentado innecesario.
+- TODOs pendientes.
+
+No inyectes errores.
+
+---
+
+# Validaciones finales obligatorias
+
+Antes de finalizar debes validar:
+
+- Que la solución compile correctamente.
+- Que no existan errores Razor.
+- Que no existan errores de DI.
+- Que no existan errores de namespaces.
+- Que no existan errores de MudBlazor.
+- Que el formulario sea reactivo.
+- Que el botón Guardar funcione correctamente sin perder focus.
+- Que se carguen correctamente:
+  - Países.
+  - Departamentos.
+  - Ciudades.
+  - Corregimientos.
+- Que el acceso según `IsAdminDenominacion` funcione correctamente.
+- Que el usuario no Administrador sea redireccionado correctamente a `AdminIglesia.razor`.
+- Que se use correctamente `authDenominacionId`.
+- Que el diseño se vea moderno, profesional y minimalista.
+- Que se respeten los colores institucionales.
+
+---
+
+# Resultado esperado
+
+Al finalizar debe quedar completamente implementado el módulo de Configuración de Iglesias en ROCA.Emuna360 respetando:
+
+- SPEC-010.
+- Arquitectura actual.
+- Patrón MVVM.
+- DTOs existentes.
+- APIs existentes.
+- Buenas prácticas.
+- Diseño profesional.
+
+No entregues cambios incompletos.
+
+No entregues cambios sin validar.
+
+Compila y valida todo antes de entregar.

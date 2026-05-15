@@ -41,11 +41,27 @@ El módulo debe permitir:
 
 El módulo de Iglesias sólo debe ser accesible para usuarios autenticados que cumplan con el rol configurado para administrar iglesias.
 
-Los roles permitidos podrán ser, por ejemplo:
+Los roles permitidos son:
 
-- Administrador.
-- Pastor.
-- Otros roles que el sistema defina como autorizados.
+ADMINISTRADOR: Todo poder todo control. Importante: Sólo si el Usuario es administrador a nivel de denominacón puede administrar todas las iglesias existentes en la denominación de lo contrario puede administrar la iglesia a la que pertenece el usuario.
+
+LIDER: Tiene el control solo de su regional, toda su zona y las iglesias que están debajo de el, de la regional y su zona
+
+ZONA: Tiene el control sobre su zona y las iglesias que le competen
+
+PASTOR: Tiene el control de su iglesia, todo lo que tiene que ver con registro, bautismo, aporte, gasto y todo lo que concierne a la iglesia a la que pertence
+
+SECRETARIA: Si es de la denominación todo lo que es registro en todas las iglesias, anuncio, bautismo., si es de la iglesia solo de la iglesia a la que pertence
+
+TESORERO: Solo tiene que ver con la parte financiera, si es de la denominación es de todas las iglesias. si es de la iglesia solo de la iglesia a la que pertence
+
+MIEMBRO: Solo ve su información, sus aportes y anuncios o circular
+
+INVITADO: No ve nada solo entra al sistema y le debe aparecer solo sus datos.
+
+El sistema esta estructurado de manera jerárquica de mayor a menor, donde cada rol se centra en lo que le corresponde y se mira de arriba a bajo
+
+# #Importante: Ahora mismo sólo valida el rol ADMINISTRADOR para que pueda administrar todas las iglesias en caso que sea un Administrador de la Denominación, de lo contrario es Administrado sólo debe ver y administrar a la iglesia que  pertenece.
 
 Si el usuario no tiene un rol permitido:
 
