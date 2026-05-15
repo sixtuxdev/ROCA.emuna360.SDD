@@ -53,11 +53,14 @@ var app = builder.Build();
 
 app.UseMiddleware<ROCA.Emuna360.API.Middleware.ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ROCA.Emuna360 API v1"));
-}
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ROCA.Emuna360 API v1"));
+
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ROCA.Emuna360 API v1"));
+//}
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
