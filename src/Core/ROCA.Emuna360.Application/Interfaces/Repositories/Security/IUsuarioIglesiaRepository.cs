@@ -9,4 +9,5 @@ public interface IUsuarioIglesiaRepository : IMultiOrganizationalRepository<Usua
 {
     Task<IEnumerable<UsuarioIglesia>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
     Task<IEnumerable<UsuarioIglesia>> GetByDenominacionAsync(int denominacionId);
+    Task<bool> EsAdminDenominacionAsync(int denominacionId, int usuarioId);
 }

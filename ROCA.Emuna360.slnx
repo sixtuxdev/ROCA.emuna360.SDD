@@ -24,6 +24,7 @@
     <File Path="2_prompt_spc_001_Aprobado.txt" />
     <File Path="3_PROMPT_DOCUMENTAR_SPEC_001.txt" />
     <File Path="4_promtp_spec_002.txt" />
+    <File Path="docs/prompts/5_promtp_spec_010.txt" />
   </Folder>
   <Folder Name="/docs/specs/">
     <File Path="docs/specs/HU-008-Aplicar-Patron-MVVM-UI.md" />

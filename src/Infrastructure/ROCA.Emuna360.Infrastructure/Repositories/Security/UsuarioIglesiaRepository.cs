@@ -27,6 +27,15 @@ public class UsuarioIglesiaRepository : BaseRepository<UsuarioIglesia>, IUsuario
         return await connection.QueryAsync<UsuarioIglesia>("usp_UsuarioIglesia_ListarPorIglesia", parameters, commandType: CommandType.StoredProcedure);
     }
 
+    public async Task<bool> EsAdminDenominacionAsync(int denominacionId, int usuarioId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        parameters.Add("@UsuarioId", usuarioId);
+        return await connection.QueryFirstOrDefaultAsync<bool>("sp_Get_EsAdminDenominacion", parameters, commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<OperationResult<int>> CreateAsync(UsuarioIglesia entity)
     {
         var parameters = new Dapper.DynamicParameters();

@@ -101,7 +101,22 @@ public sealed class LoginViewModel
 
             if (response is not null && !string.IsNullOrEmpty(response.AccessToken))
             {
+                if (response.User is null || response.User.DenominacionId <= 0 || response.User.UsuarioId <= 0)
+                {
+                    _snackbar.Add("No fue posible obtener la información organizacional del usuario.", Severity.Error);
+                    return;
+                }
+
+                var isAdminDenominacion = await _authApiService.EsAdminDenominacionAsync(response.User.DenominacionId, response.User.UsuarioId);
+
+                if (!isAdminDenominacion.HasValue)
+                {
+                    _snackbar.Add("No fue posible validar los permisos de administrador de la denominación.", Severity.Error);
+                    return;
+                }
+
                 await _tokenStorage.SetLoginSessionAsync(response);
+                await _tokenStorage.SetIsAdminDenominacionAsync(isAdminDenominacion.Value);
                 await _authStateProvider.NotifyUserAuthenticationAsync(response.AccessToken);
                 _snackbar.Add("Bienvenido a ROCA.Emuna360", Severity.Success);
                 _navigation.NavigateTo("/dashboard", replace: true);

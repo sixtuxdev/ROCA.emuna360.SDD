@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 using ROCA.Emuna360.Application.DTOs.Auth;
 
 namespace ROCA.Emuna360.Presentation.WebUI.Services;
@@ -7,6 +8,7 @@ public class TokenStorageService
 {
     private readonly ProtectedLocalStorage _localStorage;
     private readonly ProtectedSessionStorage _sessionStorage;
+    private readonly IJSRuntime _jsRuntime;
     private const string AccessTokenKey = "AccessToken";
     private const string RefreshTokenKey = "RefreshToken";
     private const string TokenExpirationKey = "TokenExpiration";
@@ -14,11 +16,14 @@ public class TokenStorageService
     private const string InfoRegisterKey = "InfoRegister";
     private const string RolesKey = "Roles";
     private const string MenusKey = "Menus";
+    private const string AuthDenominacionIdKey = "authDenominacionId";
+    private const string IsAdminDenominacionKey = "IsAdminDenominacion";
 
-    public TokenStorageService(ProtectedLocalStorage localStorage, ProtectedSessionStorage sessionStorage)
+    public TokenStorageService(ProtectedLocalStorage localStorage, ProtectedSessionStorage sessionStorage, IJSRuntime jsRuntime)
     {
         _localStorage = localStorage;
         _sessionStorage = sessionStorage;
+        _jsRuntime = jsRuntime;
     }
 
     public async Task SetTokenAsync(string token, bool rememberMe)
@@ -35,6 +40,11 @@ public class TokenStorageService
         if (response.User is null)
             return;
 
+        if (response.User.DenominacionId > 0)
+        {
+            await SetAuthDenominacionIdAsync(response.User.DenominacionId);
+        }
+
         await _localStorage.SetAsync(InfoUserKey, new StoredUserInfo(
             response.User.UsuarioId,
             response.User.DenominacionId,
@@ -49,6 +59,16 @@ public class TokenStorageService
 
         await _localStorage.SetAsync(RolesKey, response.User.Roles);
         await _localStorage.SetAsync(MenusKey, response.User.Menus);
+    }
+
+    public async Task SetAuthDenominacionIdAsync(int denominacionId)
+    {
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthDenominacionIdKey, denominacionId.ToString());
+    }
+
+    public async Task SetIsAdminDenominacionAsync(bool isAdminDenominacion)
+    {
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", IsAdminDenominacionKey, isAdminDenominacion.ToString().ToLowerInvariant());
     }
 
     public async Task UpdateTokensAsync(RefreshTokenResponseDto response)
@@ -185,6 +205,8 @@ public class TokenStorageService
         await _localStorage.DeleteAsync(RolesKey);
         await _localStorage.DeleteAsync(MenusKey);
         await _sessionStorage.DeleteAsync(AccessTokenKey);
+        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthDenominacionIdKey);
+        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", IsAdminDenominacionKey);
     }
 }
 
