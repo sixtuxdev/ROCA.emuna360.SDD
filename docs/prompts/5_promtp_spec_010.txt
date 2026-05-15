@@ -1,0 +1,79 @@
+he realizado cambios en la SPEC-010 te la comparto para que la tengas en contexto y basado en esto me ayudes a crear el prompt para Codex, Dame el prompt en formato markdown y en un sólo bloque
+
+Fase 1:
+
+Se requiere que leas la SPEC ubicada en docs/specs/SPEC-010-Configuracion-Iglesias-MVVM-UI.md para que tengas contexto de lo que se requiere, además debes seguir lo siguiente:
+
+## Fase 1.1 - Plan de ejecución obligatorio antes de implementar
+
+Antes de realizar cualquier cambio en el código, debes crear un **plan de ejecución detallado** para que sea validado y aprobado.
+
+No debes implementar nada hasta que el plan sea revisado y aprobado.
+
+El plan debe incluir:
+
+- Archivos que vas a revisar.
+- Archivos que vas a crear.
+- Archivos que vas a modificar.
+- Servicios que vas a consumir.
+- DTOs que vas a reutilizar.
+- Componentes Razor que vas a crear.
+- ViewModels que vas a crear o ajustar.
+- Cambios necesarios en navegación o menú, si aplica.
+- Validaciones que vas a implementar.
+- Estrategia para manejar el acceso según Administrador de Denominación.
+- Estrategia para redireccionar a `AdminIglesia.razor` cuando no sea Administrador de Denominación.
+- Estrategia para cargar Países, Departamentos, Ciudades y Corregimientos.
+- Riesgos detectados antes de implementar.
+- Dudas o puntos que requieren confirmación.
+
+El plan debe ser claro, ordenado y específico.
+
+Después de entregar el plan, debes detenerte y esperar aprobación antes de implementar cualquier cambio.
+
+Fase 2:
+
+Se requiere que se crea el componente en el proyecto ROCA.Emuna360.Presentation.WebUI Componente en Pages/Iglesias/ConfigIglesias.razor siguiendo la arquitectura que ya está definida con MVVM.
+
+Para esta implementación como se está haciendo con MVVM los modelos que estás creando en el Proyecto ROCA.Emuna360.Presentation.WebUI carpeta Models, has como lo hiciste en el componente Pages/Clases/ConfigClases.razor ya que acá usaste los Dtos que ya están en la arquitectura del proyecto.
+
+Necesito que el formaulario sea reactivo, aplica las validaciones correctamente, el botón guardar sólo se habilita cuando ya todos los campos del formulario están llenos, se habilite el botón sin que tengas que perder el focus del input.
+
+Necesito que creas 2 secciones en el componente en la izquierda debe ir un MudDataGrid donde se muestran las iglesias. Sólo el administrador de la Denominación puede acceder a este módulo, Para saber si el usuario es Administrador de la Denominación se puede consultar en la API 
+
+* Security/UsuariosIglesiasController.cs
+	- Endpoint: GetEsAdminDenominacion
+éste va a retornar un boolean, si es true es porque si es y puede acceder al módulo de Iglesias.
+
+De lo contrario debe entrar a otro componente para administrar a la iglesia que pertenece y sólo si es Administrador de la Iglesia o rol que tenga acceso al módulo. Puedes crear otro componente diferente a ConfigIglesias.razor en la misma carpeta llamada Pages/Iglesias/AdminIglesia.razor
+
+en esta sólo vas a mostrar un formulario con todos los campos que conforman el modelo o Dtos de Iglesias.
+
+
+Fase 3:
+
+La Denominación ya se encuentra en el LocalStorage con la Key authDenominacionId, de allí sacas el valor para la Variable DenominacionId de tipo int para que se quede allí almacenado la DenominacionId
+
+Fase 4:
+
+Para cargar los datos de Geography lo debes llamar desde el servicio ubicado en ROCA.Emuna360.Presentation.WebUI Carpeta Services allí crea un servicio para llamar los registros de Paises. Aplicar buenas practicas, lo mismo debes hacer para Departamentos, Ciudades y Corregimientos.
+
+Las APIS de Geography los encuentras en el siguiente Orden:
+* Controllers/Geography/PaisesController.cs
+	- Endpoint GetAll
+* Controllers/Geography/DepartamentosController.cs
+	- Endpoint GetAll
+* Controllers/Geography/CiudadesController.cs
+	- Endpoint GetAll
+
+Fase 5:
+
+Para cargar información de las Iglesias, crear, actualizar y eliminar están en la siguiente API:
+* Controllers/Organization/IglesiasController.cs
+En este controlador están los endpoint que se requieren para el CRUD completo de Iglesias.
+
+
+Por último debes validar que no quede con errores y que quede funcionando correctamente, haz un diseño hermoso y minimalista que se vea profesional.
+
+
+
