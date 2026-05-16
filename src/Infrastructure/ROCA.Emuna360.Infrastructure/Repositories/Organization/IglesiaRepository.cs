@@ -34,7 +34,7 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Slogan", entity.Slogan);
         parameters.Add("@Activa", entity.Activa);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        
         return await ExecuteCreateAsync("usp_Iglesias_Insertar", parameters, "@OutIglesiaId");
     }
 
