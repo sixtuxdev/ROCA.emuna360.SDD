@@ -41,6 +41,14 @@ public class DepartamentoRepository : BaseRepository<Departamento>, IDepartament
         return await connection.QueryAsync<Departamento>("usp_Departamento_Listar", commandType: System.Data.CommandType.StoredProcedure);
     }
 
+    public async Task<System.Collections.Generic.IEnumerable<Departamento>> GetAllAsync(int paisId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@PaisId", paisId);
+        return await connection.QueryAsync<Departamento>("usp_Departamento_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+
     public async Task<Departamento?> GetByIdAsync(int id)
     {
         using var connection = CreateConnection();

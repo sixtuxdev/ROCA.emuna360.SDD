@@ -21,18 +21,14 @@ public sealed class GeographyApiService
 
     public async Task<IReadOnlyList<DepartamentoDto>> GetDepartamentosAsync(int paisId)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<DepartamentoDto>>>("api/v1/departamentos");
-        return response?.Data?
-            .Where(departamento => departamento.PaisId == paisId)
-            .ToList() ?? [];
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<DepartamentoDto>>>($"api/v1/departamentos/all/{paisId}");
+        return response?.Data ?? [];
     }
 
     public async Task<IReadOnlyList<CiudadDto>> GetCiudadesAsync(int departamentoId)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<CiudadDto>>>("api/v1/ciudades");
-        return response?.Data?
-            .Where(ciudad => ciudad.DepartamentoId == departamentoId)
-            .ToList() ?? [];
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<CiudadDto>>>($"api/v1/ciudades/all/{departamentoId}");
+        return response?.Data ?? [];
     }
 
     public async Task<CiudadDto?> GetCiudadAsync(int ciudadId)
@@ -43,17 +39,8 @@ public sealed class GeographyApiService
 
     public async Task<IReadOnlyList<CorregimientoDto>> GetCorregimientosAsync(int ciudadId)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<CorregimientoDto>>>("api/v1/corregimientos");
-        var corregimientos = response?.Data ?? [];
-
-        if (corregimientos.Any(corregimiento => corregimiento.CiudadId.HasValue))
-        {
-            return corregimientos
-                .Where(corregimiento => corregimiento.CiudadId == ciudadId)
-                .ToList();
-        }
-
-        return corregimientos;
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<CorregimientoDto>>>($"api/v1/corregimientos/all/{ciudadId}");
+        return response?.Data ?? [];
     }
 
     public async Task<CorregimientoDto?> GetCorregimientoAsync(int corregimientoId)

@@ -7,4 +7,5 @@ namespace ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 
 public interface ICorregimientoRepository : IGeographyRepository<Corregimiento>
 {
+    Task<IEnumerable<Corregimiento>> GetAllAsync(int ciudadId);
 }

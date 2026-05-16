@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using ROCA.Emuna360.API.Common;
 using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.Interfaces.Services.Geography;
 
@@ -10,11 +9,9 @@ public class CiudadesController : GeographyBaseController<CiudadDto>
 {
     public CiudadesController(ICiudadService service) : base(service) { }
 
-    [HttpGet]
-    public virtual async Task<IActionResult> GetAll(int DepartamentoId)
+    [HttpGet("all/{id:int}")]
+    public new Task<IActionResult> GetAll(int id)
     {
-        var result = await _service.GetAllAsync(DepartamentoId);
-        if (result.IsFailure) return BadRequest(new { error = result.Error });
-        return this.ToOk(result.Value);
+        return base.GetAll(id);
     }
 }

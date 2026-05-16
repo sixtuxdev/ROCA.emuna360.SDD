@@ -23,6 +23,13 @@ public abstract class GeographyBaseController<TDto> : BaseController<TDto>
         return this.ToOk(result.Value);
     }
 
+    protected virtual async Task<IActionResult> GetAll(int id)
+    {
+        var result = await _service.GetAllAsync(id);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
+    }
+
     [HttpGet("{id}")]
     public virtual async Task<IActionResult> GetById(int id)
     {

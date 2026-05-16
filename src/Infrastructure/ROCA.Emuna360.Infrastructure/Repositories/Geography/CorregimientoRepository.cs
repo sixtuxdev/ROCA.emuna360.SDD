@@ -39,6 +39,14 @@ public class CorregimientoRepository : BaseRepository<Corregimiento>, ICorregimi
         return await connection.QueryAsync<Corregimiento>("usp_Corregimiento_Listar", commandType: System.Data.CommandType.StoredProcedure);
     }
 
+    public async Task<System.Collections.Generic.IEnumerable<Corregimiento>> GetAllAsync(int ciudadId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@CiudadId", ciudadId);
+        return await connection.QueryAsync<Corregimiento>("usp_Corregimiento_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+
     public async Task<Corregimiento?> GetByIdAsync(int id)
     {
         using var connection = CreateConnection();

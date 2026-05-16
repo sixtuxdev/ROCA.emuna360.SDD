@@ -16,10 +16,9 @@ public class CiudadService : GeographyBaseService<CiudadDto, Ciudad>, ICiudadSer
         _specificRepository = repository;
     }
 
-    public async Task<Result<IEnumerable<CiudadDto>>> GetAllAsync(int DepartamentoId)
+    public override async Task<Result<IEnumerable<CiudadDto>>> GetAllAsync(int id)
     {
-        var entities = await _repository.GetAllAsync();
+        var entities = await _specificRepository.GetAllAsync(id);
         return Result<IEnumerable<CiudadDto>>.Success(_mapper.Map<IEnumerable<CiudadDto>>(entities));
     }
 }
-

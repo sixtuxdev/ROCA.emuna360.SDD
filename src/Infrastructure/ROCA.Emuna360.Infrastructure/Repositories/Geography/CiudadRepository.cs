@@ -60,9 +60,9 @@ public class CiudadRepository : BaseRepository<Ciudad>, ICiudadRepository
         return rows > 0;
     }
 
-    public Task<IEnumerable<Ciudad>> GetAllAsync()
+    public async Task<IEnumerable<Ciudad>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        using var connection = CreateConnection();
+        return await connection.QueryAsync<Ciudad>("usp_Ciudad_Listar", commandType: System.Data.CommandType.StoredProcedure);
     }
 }
-

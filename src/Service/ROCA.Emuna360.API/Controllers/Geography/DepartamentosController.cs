@@ -8,4 +8,10 @@ namespace ROCA.Emuna360.API.Controllers.Geography;
 public class DepartamentosController : GeographyBaseController<DepartamentoDto>
 {
     public DepartamentosController(IDepartamentoService service) : base(service) { }
+
+    [HttpGet("all/{id:int}")]
+    public new Task<IActionResult> GetAll(int id)
+    {
+        return base.GetAll(id);
+    }
 }
