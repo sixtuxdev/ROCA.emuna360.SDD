@@ -17,6 +17,7 @@ public class TokenStorageService
     private const string RolesKey = "Roles";
     private const string MenusKey = "Menus";
     private const string AuthDenominacionIdKey = "authDenominacionId";
+    private const string AuthIglesiaIdKey = "authIglesiaId";
     private const string IsAdminDenominacionKey = "IsAdminDenominacion";
 
     public TokenStorageService(ProtectedLocalStorage localStorage, ProtectedSessionStorage sessionStorage, IJSRuntime jsRuntime)
@@ -45,12 +46,18 @@ public class TokenStorageService
             await SetAuthDenominacionIdAsync(response.User.DenominacionId);
         }
 
+        if (response.User.IglesiaId > 0)
+        {
+            await SetAuthIglesiaIdAsync(response.User.IglesiaId);
+        }
+
         await _localStorage.SetAsync(InfoUserKey, new StoredUserInfo(
             response.User.UsuarioId,
             response.User.DenominacionId,
             response.User.Correo,
             response.User.EmailVerificado,
-            response.User.RolId));
+            response.User.RolId,
+            response.User.IglesiaId));
 
         if (response.User.Registro is not null)
         {
@@ -66,9 +73,57 @@ public class TokenStorageService
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthDenominacionIdKey, denominacionId.ToString());
     }
 
+    public async Task SetAuthIglesiaIdAsync(int iglesiaId)
+    {
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthIglesiaIdKey, iglesiaId.ToString());
+    }
+
     public async Task SetIsAdminDenominacionAsync(bool isAdminDenominacion)
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", IsAdminDenominacionKey, isAdminDenominacion.ToString().ToLowerInvariant());
+    }
+
+    public async Task<int> GetAuthDenominacionIdAsync()
+    {
+        try
+        {
+            var value = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", AuthDenominacionIdKey);
+            return int.TryParse(value, out var denominacionId) ? denominacionId : 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public async Task<int> GetAuthIglesiaIdAsync()
+    {
+        try
+        {
+            var value = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", AuthIglesiaIdKey);
+            if (int.TryParse(value, out var iglesiaId))
+                return iglesiaId;
+
+            var userInfo = await GetUserInfoAsync();
+            return userInfo?.IglesiaId ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public async Task<bool> GetIsAdminDenominacionAsync()
+    {
+        try
+        {
+            var value = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", IsAdminDenominacionKey);
+            return bool.TryParse(value, out var isAdminDenominacion) && isAdminDenominacion;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task UpdateTokensAsync(RefreshTokenResponseDto response)
@@ -206,6 +261,7 @@ public class TokenStorageService
         await _localStorage.DeleteAsync(MenusKey);
         await _sessionStorage.DeleteAsync(AccessTokenKey);
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthDenominacionIdKey);
+        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthIglesiaIdKey);
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", IsAdminDenominacionKey);
     }
 }
@@ -215,4 +271,5 @@ public sealed record StoredUserInfo(
     int DenominacionId,
     string Correo,
     bool EmailVerificado,
-    int RolId);
+    int RolId,
+    int IglesiaId = 0);

@@ -16,8 +16,14 @@ public abstract class GeographyBaseService<TDto, TEntity> : BaseService<TDto, TE
     {
         _repository = repository;
     }
-
+    
     public virtual async Task<Result<IEnumerable<TDto>>> GetAllAsync()
+    {
+        var entities = await _repository.GetAllAsync();
+        return Result<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(entities));
+    }
+
+    public virtual async Task<Result<IEnumerable<TDto>>> GetAllAsync(int DepartamentoId)
     {
         var entities = await _repository.GetAllAsync();
         return Result<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(entities));

@@ -1,0 +1,80 @@
+@page "/iglesias/admin"
+@attribute [Authorize]
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization
+@inject AdminIglesiaViewModel ViewModel
+
+<PageTitle>Administración de Iglesia - ROCA.Emuna360</PageTitle>
+
+<section class="admin-iglesia-shell">
+    <div class="admin-iglesia-header">
+        <div>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="admin-iglesia-title">Administración de Iglesia</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Gestione la información de la iglesia asignada</MudText>
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                       Color="Color.Secondary"
+                       Disabled="@ViewModel.IsLoading"
+                       OnClick="ViewModel.LoadAdminIglesiaAsync" />
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+    }
+
+    @if (ViewModel.IsLoading)
+    {
+        <MudPaper Elevation="1" Class="admin-panel pa-4">
+            <MudProgressLinear Color="Color.Secondary" Indeterminate="true" />
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            <MudItem xs="12" lg="8">
+                <MudPaper Elevation="1" Class="admin-panel pa-4">
+                    <IglesiaForm ViewModel="ViewModel" ShowClearButton="false" />
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</section>
+
+<style>
+    .admin-iglesia-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .admin-iglesia-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .admin-iglesia-title {
+        font-weight: 700;
+    }
+
+    .admin-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+    @@media (max-width: 600px) {
+        .admin-iglesia-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeAsync();
+    }
+}

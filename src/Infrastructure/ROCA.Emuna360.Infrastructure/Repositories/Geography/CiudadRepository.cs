@@ -35,10 +35,12 @@ public class CiudadRepository : BaseRepository<Ciudad>, ICiudadRepository
         return await ExecuteUpdateAsync("usp_Ciudad_Actualizar", parameters, "@OutCiudadId");
     }
 
-    public async Task<System.Collections.Generic.IEnumerable<Ciudad>> GetAllAsync()
+    public async Task<System.Collections.Generic.IEnumerable<Ciudad>> GetAllAsync(int DepartamentoId)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync<Ciudad>("usp_Ciudad_Listar", commandType: System.Data.CommandType.StoredProcedure);
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DepartamentoId", DepartamentoId);
+        return await connection.QueryAsync<Ciudad>("usp_Ciudad_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
     public async Task<Ciudad?> GetByIdAsync(int id)
@@ -56,6 +58,11 @@ public class CiudadRepository : BaseRepository<Ciudad>, ICiudadRepository
         parameters.Add("@CiudadId", id);
         var rows = await connection.ExecuteAsync("usp_Ciudad_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
+    }
+
+    public Task<IEnumerable<Ciudad>> GetAllAsync()
+    {
+        throw new NotImplementedException();
     }
 }
 

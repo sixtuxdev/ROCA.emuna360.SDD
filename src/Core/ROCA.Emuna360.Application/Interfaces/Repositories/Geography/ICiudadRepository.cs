@@ -7,4 +7,5 @@ namespace ROCA.Emuna360.Application.Interfaces.Repositories.Geography;
 
 public interface ICiudadRepository : IGeographyRepository<Ciudad>
 {
+    public Task<IEnumerable<Ciudad>> GetAllAsync(int DepartamentoId);
 }

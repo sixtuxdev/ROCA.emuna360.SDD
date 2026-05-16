@@ -1,0 +1,248 @@
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization
+
+<div class="iglesia-form-shell">
+    <div class="panel-toolbar">
+        <div>
+            <MudText Typo="Typo.h6" Color="Color.Primary">@ViewModel.FormTitle</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">Datos generales y ubicación</MudText>
+        </div>
+        @if (ViewModel.IsLoadingGeography)
+        {
+            <MudProgressCircular Size="Size.Small" Color="Color.Secondary" Indeterminate="true" />
+        }
+    </div>
+
+    <MudGrid Spacing="2" Class="mt-2">
+        <MudItem xs="12">
+            <MudTextField T="string"
+                          Label="Nombre Iglesia"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          OnBlur="@(() => ViewModel.TouchIglesiaFormField(ConfigIglesiasViewModel.IglesiaFormField.Nombre))"
+                          Error="@HasError(ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Nombre))"
+                          ErrorText="@ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Nombre)"
+                          @bind-Value="ViewModel.IglesiaForm.Nombre" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField T="string"
+                          Label="Slug"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          OnBlur="@(() => ViewModel.TouchIglesiaFormField(ConfigIglesiasViewModel.IglesiaFormField.Slug))"
+                          Error="@HasError(ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Slug))"
+                          ErrorText="@ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Slug)"
+                          @bind-Value="ViewModel.IglesiaForm.Slug" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField T="string"
+                          Label="Personería Jurídica"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          OnBlur="@(() => ViewModel.TouchIglesiaFormField(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica))"
+                          Error="@HasError(ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica))"
+                          ErrorText="@ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica)"
+                          @bind-Value="ViewModel.IglesiaForm.PersoneriaJuridica" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="int?"
+                       Label="País"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       Clearable="true"
+                       Value="@ViewModel.IglesiaForm.PaisId"
+                       ValueChanged="@OnPaisChanged">
+                @foreach (var pais in ViewModel.Paises)
+                {
+                    <MudSelectItem T="int?" Value="@pais.PaisId">@pais.PaisNombre</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="int?"
+                       Label="Departamento"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       Clearable="true"
+                       Disabled="@(!ViewModel.IglesiaForm.PaisId.HasValue)"
+                       Value="@ViewModel.IglesiaForm.DepartamentoId"
+                       ValueChanged="@OnDepartamentoChanged">
+                @foreach (var departamento in ViewModel.Departamentos)
+                {
+                    <MudSelectItem T="int?" Value="@departamento.DepartamentoId">@departamento.DepartamentoNombre</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="int?"
+                       Label="Ciudad"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       Clearable="true"
+                       Disabled="@(!ViewModel.IglesiaForm.DepartamentoId.HasValue)"
+                       Value="@ViewModel.IglesiaForm.CiudadId"
+                       ValueChanged="@OnCiudadChanged">
+                @foreach (var ciudad in ViewModel.Ciudades)
+                {
+                    <MudSelectItem T="int?" Value="@ciudad.CiudadId">@ciudad.CiudadNombre</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="int?"
+                       Label="Corregimiento"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       Disabled="@(!ViewModel.IglesiaForm.CiudadId.HasValue)"
+                       Value="@ViewModel.IglesiaForm.CorregimientoId"
+                       ValueChanged="@OnCorregimientoChanged">
+                @foreach (var corregimiento in ViewModel.Corregimientos)
+                {
+                    <MudSelectItem T="int?" Value="@corregimiento.CorregimientoId">@corregimiento.CorregimientoNombre</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField T="string"
+                          Label="Dirección"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          @bind-Value="ViewModel.IglesiaForm.Direccion" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField T="string"
+                          Label="Teléfono"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          @bind-Value="ViewModel.IglesiaForm.Telefono" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField T="string"
+                          Label="Correo"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Error="@HasError(ViewModel.ValidateCorreo(ViewModel.IglesiaForm.Correo))"
+                          ErrorText="@ViewModel.ValidateCorreo(ViewModel.IglesiaForm.Correo)"
+                          @bind-Value="ViewModel.IglesiaForm.Correo" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField T="string"
+                          Label="Slogan"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Lines="2"
+                          Immediate="true"
+                          @bind-Value="ViewModel.IglesiaForm.Slogan" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudSwitch T="bool"
+                       Label="Iglesia activa"
+                       Color="Color.Primary"
+                       @bind-Value="ViewModel.IglesiaForm.Activa" />
+        </MudItem>
+    </MudGrid>
+
+    <div class="form-actions">
+        @if (ShowClearButton)
+        {
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.CleaningServices"
+                       OnClick="ViewModel.StartNewIglesia">
+                Limpiar
+            </MudButton>
+        }
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Disabled="@(!ViewModel.CanSaveIglesia)"
+                   OnClick="ViewModel.SaveIglesiaAsync">
+            @ViewModel.SaveButtonText
+        </MudButton>
+    </div>
+</div>
+
+<style>
+    .iglesia-form-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .panel-toolbar,
+    .form-actions {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        justify-content: space-between;
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    @@media (max-width: 600px) {
+        .panel-toolbar,
+        .form-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired]
+    public ConfigIglesiasViewModel ViewModel { get; set; } = default!;
+
+    [Parameter]
+    public bool ShowClearButton { get; set; } = true;
+
+    private static bool HasError(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value);
+    }
+
+    private async Task OnPaisChanged(int? value)
+    {
+        await ViewModel.ChangePaisAsync(value);
+    }
+
+    private async Task OnDepartamentoChanged(int? value)
+    {
+        await ViewModel.ChangeDepartamentoAsync(value);
+    }
+
+    private async Task OnCiudadChanged(int? value)
+    {
+        await ViewModel.ChangeCiudadAsync(value);
+    }
+
+    private void OnCorregimientoChanged(int? value)
+    {
+        ViewModel.ChangeCorregimiento(value);
+    }
+}

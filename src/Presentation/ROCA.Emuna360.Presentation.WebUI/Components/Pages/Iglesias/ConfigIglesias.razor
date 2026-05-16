@@ -1,5 +1,223 @@
-﻿<h3>ConfigIglesias</h3>
+@page "/iglesias/configuracion"
+@attribute [Authorize]
+@using ROCA.Emuna360.Application.DTOs.Organization
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization
+@inject ConfigIglesiasViewModel ViewModel
+
+<PageTitle>Configuración de Iglesias - ROCA.Emuna360</PageTitle>
+
+<section class="config-iglesias-shell">
+    <div class="config-iglesias-header">
+        <div>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="config-iglesias-title">Configuración de Iglesias</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Administre las iglesias asociadas a la denominación</MudText>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+    }
+
+    <MudGrid Spacing="3">
+        <MudItem xs="12" lg="7">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <div class="panel-toolbar">
+                    <div>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">Iglesias Registradas</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">Listado global de la denominación</MudText>
+                    </div>
+                    <div class="toolbar-actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Secondary"
+                                       Disabled="@ViewModel.IsLoading"
+                                       OnClick="ViewModel.LoadIglesiasAsync" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="ViewModel.StartNewIglesia">
+                            Nueva Iglesia
+                        </MudButton>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <MudTextField T="string"
+                                  Label="Buscar iglesias"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  @bind-Value="ViewModel.SearchText" />
+                    <MudSelect T="int"
+                               Label="Estado"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               @bind-Value="ViewModel.StatusFilter">
+                        @foreach (var option in ViewModel.StatusFilterOptions)
+                        {
+                            <MudSelectItem T="int" Value="@option.Value">@option.Text</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+                @if (ViewModel.IsLoading)
+                {
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
+                }
+                else if (!ViewModel.HasIglesias)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No hay iglesias registradas para esta denominación.
+                    </MudAlert>
+                }
+                else if (!ViewModel.FilteredIglesias.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No se encontraron iglesias con los filtros aplicados.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudDataGrid T="IglesiaDto"
+                                 Items="@ViewModel.FilteredIglesias"
+                                 Dense="true"
+                                 Hover="true"
+                                 Striped="false"
+                                 Bordered="false"
+                                 Elevation="0"
+                                 RowsPerPage="10"
+                                 Class="iglesias-grid mt-4">
+                        <Columns>
+                            <PropertyColumn Property="iglesia => iglesia.Nombre" Title="Nombre Iglesia" />
+                            <PropertyColumn Property="iglesia => iglesia.Slug" Title="Slug" />
+                            <TemplateColumn Title="Ciudad o Corregimiento">
+                                <CellTemplate>
+                                    @ViewModel.GetUbicacion(context.Item)
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <PropertyColumn Property="iglesia => iglesia.Correo" Title="Correo" />
+                            <TemplateColumn Title="Estado">
+                                <CellTemplate>
+                                    <MudChip T="string"
+                                             Size="Size.Small"
+                                             Color="@(context.Item.Activa ? Color.Success : Color.Default)"
+                                             Variant="Variant.Outlined">
+                                        @(context.Item.Activa ? "Activa" : "Inactiva")
+                                    </MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Acciones">
+                                <CellTemplate>
+                                    <div class="grid-actions">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ViewModel.StartEditIglesiaAsync(context.Item))" />
+                                        <MudIconButton Icon="@(context.Item.Activa ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
+                                                       Color="@(context.Item.Activa ? Color.Error : Color.Success)"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ViewModel.ToggleEstadoAsync(context.Item))" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="IglesiaDto" />
+                        </PagerContent>
+                    </MudDataGrid>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" lg="5">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <IglesiaForm ViewModel="ViewModel" />
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</section>
+
+<style>
+    .config-iglesias-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .config-iglesias-header,
+    .panel-toolbar,
+    .toolbar-actions,
+    .filter-row,
+    .grid-actions {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+
+    .config-iglesias-header,
+    .panel-toolbar {
+        justify-content: space-between;
+    }
+
+    .config-iglesias-title {
+        font-weight: 700;
+    }
+
+    .config-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+    .filter-row {
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .filter-row > :first-child {
+        flex: 1 1 16rem;
+    }
+
+    .filter-row > :last-child {
+        flex: 0 0 10rem;
+    }
+
+    .toolbar-actions,
+    .grid-actions {
+        justify-content: flex-end;
+    }
+
+    .iglesias-grid {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        overflow: hidden;
+    }
+
+    @@media (max-width: 600px) {
+        .panel-toolbar,
+        .filter-row {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .toolbar-actions,
+        .grid-actions {
+            justify-content: flex-start;
+        }
+
+        .filter-row > :first-child,
+        .filter-row > :last-child {
+            width: 100%;
+            flex-basis: auto;
+        }
+    }
+</style>
 
 @code {
-
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeAsync();
+    }
 }

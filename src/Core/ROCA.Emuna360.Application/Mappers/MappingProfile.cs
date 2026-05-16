@@ -48,7 +48,9 @@ public class MappingProfile : Profile
         CreateMap<TipoEstructura, TipoEstructuraDto>().ReverseMap();
 
         // Auth
-        CreateMap<AuthUser, AuthUserDto>().ReverseMap();
+        CreateMap<AuthUser, AuthUserDto>()
+            .ForMember(dest => dest.IglesiaId, opt => opt.MapFrom(src => src.UsuarioIglesia != null ? src.UsuarioIglesia.IglesiaId : src.Registro != null ? src.Registro.IglesiaId : 0));
+        CreateMap<AuthUserDto, AuthUser>();
         CreateMap<AuthRole, AuthRoleDto>().ReverseMap();
         CreateMap<AuthMenu, AuthMenuDto>().ReverseMap();
         CreateMap<Registro, AuthRegistroDto>().ReverseMap();
