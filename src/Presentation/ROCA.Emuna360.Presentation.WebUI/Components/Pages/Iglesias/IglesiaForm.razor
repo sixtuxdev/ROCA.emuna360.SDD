@@ -60,10 +60,11 @@
                        Required="true"
                        Clearable="true"
                        Value="@ViewModel.IglesiaForm.PaisId"
-                       ValueChanged="@OnPaisChanged">
+                       ValueChanged="@OnPaisChanged"
+                       ToStringFunc="@GetPaisText">
                 @foreach (var pais in ViewModel.Paises)
                 {
-                    <MudSelectItem T="int?" Value="@pais.PaisId">@pais.PaisNombre</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@((int?)pais.PaisId)">@pais.PaisNombre</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
@@ -77,10 +78,11 @@
                        Clearable="true"
                        Disabled="@(!ViewModel.IglesiaForm.PaisId.HasValue)"
                        Value="@ViewModel.IglesiaForm.DepartamentoId"
-                       ValueChanged="@OnDepartamentoChanged">
+                       ValueChanged="@OnDepartamentoChanged"
+                       ToStringFunc="@GetDepartamentoText">
                 @foreach (var departamento in ViewModel.Departamentos)
                 {
-                    <MudSelectItem T="int?" Value="@departamento.DepartamentoId">@departamento.DepartamentoNombre</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@((int?)departamento.DepartamentoId)">@departamento.DepartamentoNombre</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
@@ -94,10 +96,11 @@
                        Clearable="true"
                        Disabled="@(!ViewModel.IglesiaForm.DepartamentoId.HasValue)"
                        Value="@ViewModel.IglesiaForm.CiudadId"
-                       ValueChanged="@OnCiudadChanged">
+                       ValueChanged="@OnCiudadChanged"
+                       ToStringFunc="@GetCiudadText">
                 @foreach (var ciudad in ViewModel.Ciudades)
                 {
-                    <MudSelectItem T="int?" Value="@ciudad.CiudadId">@ciudad.CiudadNombre</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@((int?)ciudad.CiudadId)">@ciudad.CiudadNombre</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
@@ -110,10 +113,11 @@
                        Clearable="true"
                        Disabled="@(!ViewModel.IglesiaForm.CiudadId.HasValue)"
                        Value="@ViewModel.IglesiaForm.CorregimientoId"
-                       ValueChanged="@OnCorregimientoChanged">
+                       ValueChanged="@OnCorregimientoChanged"
+                       ToStringFunc="@GetCorregimientoText">
                 @foreach (var corregimiento in ViewModel.Corregimientos)
                 {
-                    <MudSelectItem T="int?" Value="@corregimiento.CorregimientoId">@corregimiento.CorregimientoNombre</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@((int?)corregimiento.CorregimientoId)">@corregimiento.CorregimientoNombre</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
@@ -224,6 +228,46 @@
     private static bool HasError(string? value)
     {
         return !string.IsNullOrWhiteSpace(value);
+    }
+
+    private string GetPaisText(int? value)
+    {
+        if (!value.HasValue)
+            return string.Empty;
+
+        return ViewModel.Paises
+            .FirstOrDefault(pais => pais.PaisId == value.Value)
+            ?.PaisNombre ?? string.Empty;
+    }
+
+    private string GetDepartamentoText(int? value)
+    {
+        if (!value.HasValue)
+            return string.Empty;
+
+        return ViewModel.Departamentos
+            .FirstOrDefault(departamento => departamento.DepartamentoId == value.Value)
+            ?.DepartamentoNombre ?? string.Empty;
+    }
+
+    private string GetCiudadText(int? value)
+    {
+        if (!value.HasValue)
+            return string.Empty;
+
+        return ViewModel.Ciudades
+            .FirstOrDefault(ciudad => ciudad.CiudadId == value.Value)
+            ?.CiudadNombre ?? string.Empty;
+    }
+
+    private string GetCorregimientoText(int? value)
+    {
+        if (!value.HasValue)
+            return string.Empty;
+
+        return ViewModel.Corregimientos
+            .FirstOrDefault(corregimiento => corregimiento.CorregimientoId == value.Value)
+            ?.CorregimientoNombre ?? string.Empty;
     }
 
     private async Task OnPaisChanged(int? value)

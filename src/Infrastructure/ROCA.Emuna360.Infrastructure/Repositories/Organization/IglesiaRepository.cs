@@ -55,8 +55,8 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Slogan", entity.Slogan);
         parameters.Add("@Activa", entity.Activa);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        return await ExecuteUpdateAsync("usp_Iglesias_Actualizar", parameters, "@OutIglesiaId");
+        
+        return await ExecuteUpdateAsync("usp_Iglesias_Actualizar", parameters, string.Empty);
     }
     
     public async Task<IEnumerable<Iglesia>> GetAllAsync(int denominacionId)

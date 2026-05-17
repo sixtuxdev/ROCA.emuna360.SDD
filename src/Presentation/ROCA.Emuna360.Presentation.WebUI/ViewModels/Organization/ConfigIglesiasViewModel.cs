@@ -408,16 +408,37 @@ public class ConfigIglesiasViewModel
 
     protected async Task LoadGeographyForFormAsync()
     {
+        var paisId = IglesiaForm.PaisId;
+        var departamentoId = IglesiaForm.DepartamentoId;
+        var ciudadId = IglesiaForm.CiudadId;
+        var corregimientoId = IglesiaForm.CorregimientoId;
+
+        IglesiaForm.PaisId = null;
+        IglesiaForm.DepartamentoId = null;
+        IglesiaForm.CiudadId = null;
+        IglesiaForm.CorregimientoId = null;
+        Departamentos = [];
+        Ciudades = [];
+        Corregimientos = [];
+
         await LoadPaisesAsync();
 
-        if (IglesiaForm.PaisId.HasValue)
-            await LoadDepartamentosAsync(IglesiaForm.PaisId.Value);
+        IglesiaForm.PaisId = paisId;
 
-        if (IglesiaForm.DepartamentoId.HasValue)
-            await LoadCiudadesAsync(IglesiaForm.DepartamentoId.Value);
+        if (paisId.HasValue)
+            await LoadDepartamentosAsync(paisId.Value);
 
-        if (IglesiaForm.CiudadId.HasValue)
-            await LoadCorregimientosAsync(IglesiaForm.CiudadId.Value);
+        IglesiaForm.DepartamentoId = departamentoId;
+
+        if (departamentoId.HasValue)
+            await LoadCiudadesAsync(departamentoId.Value);
+
+        IglesiaForm.CiudadId = ciudadId;
+
+        if (ciudadId.HasValue)
+            await LoadCorregimientosAsync(ciudadId.Value);
+
+        IglesiaForm.CorregimientoId = corregimientoId;
     }
 
     protected List<string> ValidateForm()
