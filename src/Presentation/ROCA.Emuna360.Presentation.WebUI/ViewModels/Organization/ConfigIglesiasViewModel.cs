@@ -195,6 +195,10 @@ public class ConfigIglesiasViewModel
                     _snackbar.Add("No fue posible actualizar la iglesia.", Severity.Error);
                     return;
                 }
+                else
+                {
+                    StartNewIglesia();
+                }
             }
             else
             {
@@ -206,6 +210,7 @@ public class ConfigIglesiasViewModel
                     _snackbar.Add("No fue posible crear la iglesia.", Severity.Error);
                     return;
                 }
+                StartNewIglesia();
             }
 
             _snackbar.Add(IsEditing ? "Iglesia actualizada correctamente." : "Iglesia creada correctamente.", Severity.Success);
