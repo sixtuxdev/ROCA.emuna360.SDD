@@ -10,6 +10,7 @@ using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Parameters;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Structure;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +50,7 @@ builder.Services.AddScoped<DashboardViewModel>();
 builder.Services.AddScoped<ConfigClasesViewModel>();
 builder.Services.AddScoped<ConfigIglesiasViewModel>();
 builder.Services.AddScoped<AdminIglesiaViewModel>();
+builder.Services.AddScoped<ConfigEstructuraOrganizacionalViewModel>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
@@ -65,6 +67,7 @@ builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpC
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new EstructuraOrganizacionalApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 
 var app = builder.Build();
 

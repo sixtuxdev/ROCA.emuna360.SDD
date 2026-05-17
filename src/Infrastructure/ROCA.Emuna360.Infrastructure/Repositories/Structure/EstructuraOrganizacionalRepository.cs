@@ -23,11 +23,10 @@ public class EstructuraOrganizacionalRepository : BaseRepository<EstructuraOrgan
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@Descripcion", entity.Descripcion);
-        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);
-        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);        
         parameters.Add("@Responsable", entity.Responsable);
         parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
+        
         return await ExecuteCreateAsync("usp_EstructuraOrganizacional_Insertar", parameters, "@OutEstructuraOrganizacionalId");
     }
 

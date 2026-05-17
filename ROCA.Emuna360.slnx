@@ -14,6 +14,7 @@
     <File Path="docs/decisions/HU-008-Aplicar-Patron-MVVM-UI.md" />
     <File Path="docs/decisions/HU-009-Clase Parámetros-MVVM-UI.md" />
     <File Path="docs/decisions/HU-010-Configuracion-Iglesias-MVVM-UI.md" />
+    <File Path="docs/decisions/HU-011-Estructura-Organizacional-MVVM-UI.md" />
   </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
@@ -37,6 +38,7 @@
     <File Path="docs/specs/SPEC-007-Menu-UI-ROCA.Emuna360.md.md" />
     <File Path="docs/specs/SPEC-009-Clase Parámetros-MVVM-UI.md.md" />
     <File Path="docs/specs/SPEC-010-Configuracion-Iglesias-MVVM-UI.md" />
+    <File Path="docs/specs/SPEC-011-Estructura-Organizacional-MVVM-UI.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">
