@@ -6,6 +6,7 @@ public class RefreshToken
     public int DenominacionId { get; set; }
     public int UsuarioId { get; set; }
     public int IglesiaId { get; set; }
+    public bool EsAdministrador { get; set; }
     public string? TokenHash { get; set; }
     public DateTime ExpiraEn { get; set; }
     public DateTime? RevocadoEn { get; set; }

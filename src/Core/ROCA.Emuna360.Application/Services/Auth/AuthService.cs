@@ -87,6 +87,7 @@ public class AuthService : IAuthService
             DenominacionId = user.DenominacionId,
             UsuarioId = user.UsuarioId,
             IglesiaId = user.Registro?.IglesiaId ?? 0,
+            EsAdministrador = user.UsuarioIglesia.EsAdministrador,
             TokenHash = HashToken(refreshToken),
             ExpiraEn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenDays),
             FechaCreacion = DateTime.UtcNow
