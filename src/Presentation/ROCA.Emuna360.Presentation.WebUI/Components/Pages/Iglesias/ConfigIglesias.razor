@@ -133,7 +133,7 @@
 
         <MudItem xs="12" lg="5">
             <MudPaper Elevation="1" Class="config-panel pa-4">
-                <IglesiaForm ViewModel="ViewModel" />
+                <IglesiaForm ViewModel="ViewModel" OnSaved="RefreshAfterIglesiaSavedAsync" />
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -219,5 +219,11 @@
     protected override async Task OnInitializedAsync()
     {
         await ViewModel.InitializeAsync();
+    }
+
+    private Task RefreshAfterIglesiaSavedAsync()
+    {
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }

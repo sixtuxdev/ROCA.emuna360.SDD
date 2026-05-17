@@ -183,7 +183,7 @@
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Save"
                    Disabled="@(!ViewModel.CanSaveIglesia)"
-                   OnClick="ViewModel.SaveIglesiaAsync">
+                   OnClick="SaveIglesiaAsync">
             @ViewModel.SaveButtonText
         </MudButton>
     </div>
@@ -224,6 +224,9 @@
 
     [Parameter]
     public bool ShowClearButton { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
 
     private static bool HasError(string? value)
     {
@@ -288,5 +291,15 @@
     private void OnCorregimientoChanged(int? value)
     {
         ViewModel.ChangeCorregimiento(value);
+    }
+
+    private async Task SaveIglesiaAsync()
+    {
+        await ViewModel.SaveIglesiaAsync();
+
+        if (ViewModel.LastSaveSucceeded)
+        {
+            await OnSaved.InvokeAsync();
+        }
     }
 }

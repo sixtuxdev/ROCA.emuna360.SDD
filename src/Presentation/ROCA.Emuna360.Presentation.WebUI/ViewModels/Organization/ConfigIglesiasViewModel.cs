@@ -46,6 +46,7 @@ public class ConfigIglesiasViewModel
     public bool IsAdminDenominacion { get; private set; }
     public bool IsLoading { get; protected set; }
     public bool IsSaving { get; protected set; }
+    public bool LastSaveSucceeded { get; protected set; }
     public bool IsLoadingGeography { get; protected set; }
     public string? ErrorMessage { get; protected set; }
     public IReadOnlyList<IglesiaDto> Iglesias { get; protected set; } = [];
@@ -174,9 +175,13 @@ public class ConfigIglesiasViewModel
         }
 
         IsSaving = true;
+        LastSaveSucceeded = false;
 
         try
         {
+            var wasEditing = IsEditing;
+            var selectedId = IglesiaForm.IglesiaId;
+
             IglesiaForm.DenominacionId = DenominacionId;
             IglesiaForm.Nombre = IglesiaForm.Nombre.Trim();
             IglesiaForm.Slug = IglesiaForm.Slug.Trim();
@@ -187,7 +192,7 @@ public class ConfigIglesiasViewModel
             IglesiaForm.Slogan = NormalizeOptional(IglesiaForm.Slogan);
             IglesiaForm.FechaActualizacion = DateTime.UtcNow;
 
-            if (IsEditing)
+            if (wasEditing)
             {
                 var updated = await _iglesiasApiService.UpdateIglesiaAsync(IglesiaForm);
                 if (!updated)
@@ -213,9 +218,9 @@ public class ConfigIglesiasViewModel
                 StartNewIglesia();
             }
 
-            _snackbar.Add(IsEditing ? "Iglesia actualizada correctamente." : "Iglesia creada correctamente.", Severity.Success);
-            var selectedId = IsEditing ? IglesiaForm.IglesiaId : 0;
-            await AfterSaveAsync(IsEditing, selectedId);
+            _snackbar.Add(wasEditing ? "Iglesia actualizada correctamente." : "Iglesia creada correctamente.", Severity.Success);
+            await AfterSaveAsync(wasEditing, selectedId);
+            LastSaveSucceeded = true;
         }
         catch
         {
