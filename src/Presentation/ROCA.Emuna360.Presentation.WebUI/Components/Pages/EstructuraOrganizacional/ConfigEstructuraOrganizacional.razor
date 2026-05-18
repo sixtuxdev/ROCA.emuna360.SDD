@@ -113,7 +113,7 @@
 
                     <MudCardContent>
                         <MudGrid Spacing="2">
-                            <MudItem xs="12">
+                            @* <MudItem xs="12" Style="display: none;">
                                 <MudTextField T="string"
                                               Label="Denominacion ID"
                                               Value="@ViewModel.DenominacionLabel"
@@ -121,7 +121,7 @@
                                               Margin="Margin.Dense"
                                               ReadOnly="true"
                                               HelperText="Se obtiene automaticamente del sistema" />
-                            </MudItem>
+                            </MudItem> *@
 
                             <MudItem xs="12">
                                 <MudTextField T="string"
@@ -167,14 +167,14 @@
                                                  ErrorText="@ViewModel.GetFormFieldError(ConfigEstructuraOrganizacionalViewModel.EstructuraFormField.Padre)" />
                             </MudItem>
 
-                            <MudItem xs="12" sm="6">
+                            @* <MudItem xs="12" sm="6">
                                 <MudNumericField T="int"
                                                  Label="Orden"
                                                  Variant="Variant.Outlined"
                                                  Margin="Margin.Dense"
                                                  Min="1"
                                                  @bind-Value="ViewModel.EstructuraForm.Orden" />
-                            </MudItem>
+                            </MudItem> *@
 
                             <MudItem xs="12" sm="6">
                                 <MudSwitch T="bool"

@@ -36,12 +36,11 @@ public class EstructuraOrganizacionalRepository : BaseRepository<EstructuraOrgan
         parameters.Add("@EstructuraOrganizacionalId", entity.EstructuraOrganizacionalId);
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@Descripcion", entity.Descripcion);
-        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);
-        parameters.Add("@Orden", entity.Orden);
+        parameters.Add("@GrupoEstructuraOrganizacionalId", entity.GrupoEstructuraOrganizacionalId);        
         parameters.Add("@Responsable", entity.Responsable);
-        parameters.Add("@Estado", entity.Estado);
-        parameters.Add("@FechaCreacion", entity.FechaCreacion);
-        return await ExecuteUpdateAsync("usp_EstructuraOrganizacional_Actualizar", parameters, "@OutEstructuraOrganizacionalId");
+        parameters.Add("@Estado", entity.Estado);        
+
+        return await ExecuteUpdateAsync("usp_EstructuraOrganizacional_Actualizar", parameters, string.Empty);
     }
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)
