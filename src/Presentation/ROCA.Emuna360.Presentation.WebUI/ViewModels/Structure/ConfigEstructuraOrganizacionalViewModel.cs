@@ -263,16 +263,19 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
 
             if (parentId.HasValue)
                 _expandedNodeIds.Add(parentId.Value);
+            
 
             _snackbar.Add(
                 wasEditing ? "Estructura organizacional actualizada correctamente." : "Estructura organizacional creada correctamente.",
-                Severity.Success);
+                Severity.Success);            
 
             await LoadEstructurasAsync();
 
             var saved = Estructuras.FirstOrDefault(estructura => estructura.EstructuraOrganizacionalId == selectedId);
             if (saved is not null)
                 SelectEstructura(saved);
+
+            StartNewRoot();
         }
         catch
         {
