@@ -299,23 +299,161 @@
         await ViewModel.InitializeAsync();
     }
 
-    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => @<MudTreeViewItem T="EstructuraOrganizacionalDto"
-        Value="@estructura"
-        Text="@estructura.Descripcion"
-        EndText="@(estructura.Estado ? "Activa" : "Inactiva")"
-        Icon="@Icons.Material.Filled.AccountTree"
-        IconExpanded="@Icons.Material.Filled.FolderOpen"
-        IconColor="@(ViewModel.IsSelected(estructura) ? Color.Primary : Color.Secondary)"
-        CanExpand="@ViewModel.HasChildren(estructura)"
-        Expanded="@ViewModel.IsExpanded(estructura)"
-        ExpandedChanged="@((bool expanded) => ViewModel.SetExpanded(estructura, expanded))"
-        Selected="@ViewModel.IsSelected(estructura)"
-        OnClick="@(() => ViewModel.SelectEstructura(estructura))">
-        @foreach (var child in ViewModel.GetChildren(estructura))
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0);
+
+    /// <summary>
+    /// Renderiza recursivamente un item del arbol y sus hijos.
+    /// </summary>
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel) => builder =>
+    {
+        var isSelected = ViewModel.IsSelected(estructura);
+        var paddingLeft = nivel * 20;
+        var children = ViewModel.GetChildren(estructura);
+        var hasChildren = children.Any();
+        var isExpanded = ViewModel.IsExpanded(estructura);
+        var isNew = !ViewModel.IsEditing;
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style",
+            $"border-left: 4px solid {(isSelected ? "var(--mud-palette-primary)" : "transparent")}; " +
+            $"background-color: {(isSelected ? "var(--mud-palette-action-disabled-background)" : "transparent")}; " +
+            $"transition: all 0.2s ease-in-out; padding-left: {paddingLeft}px;");
+
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "d-flex align-center pa-2");
+
+        if (hasChildren)
         {
-            @RenderTreeItem(child)
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "style", "cursor: pointer; display: inline-flex; align-items: center; width: 24px;");
+            builder.AddAttribute(6, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => ViewModel.SetExpanded(estructura, !isExpanded)));
+            builder.AddEventStopPropagationAttribute(7, "onclick", true);
+
+            builder.OpenComponent<MudIcon>(8);
+            builder.AddAttribute(9, "Icon", isExpanded
+                ? Icons.Material.Filled.ExpandMore
+                : Icons.Material.Filled.ChevronRight);
+            builder.AddAttribute(10, "Size", Size.Small);
+            builder.AddAttribute(11, "Class", "mr-1");
+            builder.CloseComponent();
+
+            builder.CloseElement();
         }
-    </MudTreeViewItem>;
+        else
+        {
+            builder.OpenElement(12, "span");
+            builder.AddAttribute(13, "style", "width: 24px; display: inline-block;");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(14, "div");
+        builder.AddAttribute(15, "class", "d-flex align-center flex-grow-1");
+
+        if (isNew)
+        {
+            builder.AddAttribute(16, "style", "cursor: pointer; opacity: 0.7;");
+            builder.AddAttribute(17, "title", "Click para establecer como padre de la nueva estructura");
+            builder.AddAttribute(18, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => ViewModel.SetParent(estructura)));
+        }
+        else
+        {
+            builder.AddAttribute(16, "style", "cursor: default;");
+        }
+
+        builder.OpenComponent<MudIcon>(19);
+        builder.AddAttribute(20, "Icon", Icons.Material.Filled.AccountTree);
+        builder.AddAttribute(21, "Color", isSelected ? Color.Primary : Color.Secondary);
+        builder.AddAttribute(22, "Size", Size.Medium);
+        builder.AddAttribute(23, "Class", "mr-3");
+        builder.CloseComponent();
+
+        builder.OpenElement(24, "div");
+        builder.AddAttribute(25, "class", "flex-grow-1");
+
+        builder.OpenComponent<MudText>(26);
+        builder.AddAttribute(27, "Typo", Typo.body1);
+        builder.AddAttribute(28, "Class", "mud-typography-fontWeightMedium");
+        builder.AddAttribute(29, "ChildContent", (RenderFragment)(cb =>
+        {
+            cb.AddContent(30, GetEstructuraTitulo(estructura));
+        }));
+        builder.CloseComponent();
+
+        var subtitulos = GetEstructuraSubtitulos(estructura);
+
+        foreach (var linea in subtitulos)
+        {
+            builder.OpenComponent<MudText>(31);
+            builder.AddAttribute(32, "Typo", Typo.body2);
+            builder.AddAttribute(33, "Class", "mud-text-secondary");
+            builder.AddAttribute(34, "ChildContent", (RenderFragment)(cb =>
+            {
+                cb.AddContent(35, linea);
+            }));
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+
+        builder.OpenComponent<MudIconButton>(47);
+        builder.AddAttribute(48, "Icon", Icons.Material.Filled.Edit);
+        builder.AddAttribute(49, "Color", Color.Primary);
+        builder.AddAttribute(50, "Size", Size.Small);
+        builder.AddAttribute(51, "Class", "ml-2");
+        builder.AddAttribute(52, "title", "Editar estructura organizacional");
+        builder.AddAttribute(53, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => ViewModel.SelectEstructura(estructura)));
+        builder.AddEventStopPropagationAttribute(54, "onclick", true);
+        builder.CloseComponent();
+
+        if (estructura.Estado)
+        {
+            builder.OpenComponent<MudChip<string>>(55);
+            builder.AddAttribute(56, "Color", Color.Success);
+            builder.AddAttribute(57, "Variant", Variant.Outlined);
+            builder.AddAttribute(58, "Size", Size.Small);
+            builder.AddAttribute(59, "Class", "ml-2");
+            builder.AddAttribute(60, "Text", "Activo");
+            builder.CloseComponent();
+        }
+        else
+        {
+            builder.OpenComponent<MudChip<string>>(61);
+            builder.AddAttribute(62, "Color", Color.Default);
+            builder.AddAttribute(63, "Variant", Variant.Outlined);
+            builder.AddAttribute(64, "Size", Size.Small);
+            builder.AddAttribute(65, "Class", "ml-2");
+            builder.AddAttribute(66, "Text", "Inactivo");
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+
+        if (hasChildren && isExpanded)
+        {
+            builder.OpenElement(67, "div");
+            builder.AddAttribute(68, "style", "margin-left: 10px;");
+
+            foreach (var child in children)
+            {
+                builder.AddContent(69, RenderTreeItem(child, nivel + 1));
+            }
+
+            builder.CloseElement();
+        }
+
+        static string GetEstructuraTitulo(EstructuraOrganizacionalDto item)
+        {
+            return item.Descripcion;
+        }
+
+        static IEnumerable<string> GetEstructuraSubtitulos(EstructuraOrganizacionalDto item)
+        {
+            if (!string.IsNullOrWhiteSpace(item.Responsable))
+                yield return $"Responsable: {item.Responsable}";
+        }
+    };
 
     private void OnParentChanged(EstructuraOrganizacionalDto? estructura)
     {
