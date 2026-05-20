@@ -50,13 +50,42 @@
                         }
                         else if (ViewModel.HasEstructuras)
                         {
+                            <div class="tree-filter px-4 pb-2">
+                                <MudTextField T="string"
+                                              Label="Buscar por descripcion o responsable"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Dense"
+                                              Immediate="true"
+                                              Clearable="true"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              @bind-Value="_treeSearchText" />
+                            </div>
                             <div class="tree-scroll">
-                                <MudTreeView T="EstructuraOrganizacionalDto" Dense="true" Hover="true">
-                                    @foreach (var estructura in ViewModel.RootEstructuras)
-                                    {
-                                        @RenderTreeItem(estructura)
-                                    }
-                                </MudTreeView>
+                                @if (FilteredRootEstructuras.Any())
+                                {
+                                    <MudTreeView T="EstructuraOrganizacionalDto" Dense="true" Hover="true">
+                                        @foreach (var estructura in FilteredRootEstructuras)
+                                        {
+                                            @RenderTreeItem(estructura)
+                                        }
+                                    </MudTreeView>
+                                }
+                                else
+                                {
+                                    <MudPaper Class="empty-state pa-8 ma-4" Elevation="0">
+                                        <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                                                 Size="Size.Large"
+                                                 Color="Color.Default"
+                                                 Class="mb-3" />
+                                        <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
+                                            No se encontraron estructuras
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                                            Ajuste el texto de busqueda para ver resultados
+                                        </MudText>
+                                    </MudPaper>
+                                }
                             </div>
                         }
                         else
@@ -294,23 +323,41 @@
 </style>
 
 @code {
+    private const int RootParentKey = 0;
+
+    private string? _treeSearchText;
+    private IReadOnlyList<EstructuraOrganizacionalDto>? _indexedEstructuras;
+    private Dictionary<int, IReadOnlyList<EstructuraOrganizacionalDto>> _childrenByParent = [];
+
+    private string TreeSearchTerm => _treeSearchText?.Trim() ?? string.Empty;
+
+    private bool IsTreeSearchActive => !string.IsNullOrWhiteSpace(TreeSearchTerm);
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> FilteredRootEstructuras => GetTreeRootEstructuras()
+        .Where(ShouldShowInTree)
+        .ToList();
+
     protected override async Task OnInitializedAsync()
     {
         await ViewModel.InitializeAsync();
     }
 
-    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0);
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0, false);
 
     /// <summary>
     /// Renderiza recursivamente un item del arbol y sus hijos.
     /// </summary>
-    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel) => builder =>
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel, bool ancestorMatchesSearch) => builder =>
     {
         var isSelected = ViewModel.IsSelected(estructura);
         var paddingLeft = nivel * 20;
-        var children = ViewModel.GetChildren(estructura);
-        var hasChildren = children.Any();
+        var searchActive = IsTreeSearchActive;
+        var matchesSearch = TreeNodeMatchesSearch(estructura);
+        var shouldShowDescendants = searchActive && (ancestorMatchesSearch || matchesSearch);
+        var children = GetVisibleChildren(estructura, shouldShowDescendants);
+        var hasChildren = GetTreeChildren(estructura).Any();
         var isExpanded = ViewModel.IsExpanded(estructura);
+        var shouldRenderChildren = hasChildren && children.Any() && (isExpanded || searchActive);
         var isNew = !ViewModel.IsEditing;
 
         builder.OpenElement(0, "div");
@@ -430,14 +477,14 @@
         builder.CloseElement();
         builder.CloseElement();
 
-        if (hasChildren && isExpanded)
+        if (shouldRenderChildren)
         {
             builder.OpenElement(67, "div");
             builder.AddAttribute(68, "style", "margin-left: 10px;");
 
             foreach (var child in children)
             {
-                builder.AddContent(69, RenderTreeItem(child, nivel + 1));
+                builder.AddContent(69, RenderTreeItem(child, nivel + 1, shouldShowDescendants));
             }
 
             builder.CloseElement();
@@ -454,6 +501,82 @@
                 yield return $"Responsable: {item.Responsable}";
         }
     };
+
+    private bool ShouldShowInTree(EstructuraOrganizacionalDto estructura)
+    {
+        return !IsTreeSearchActive || TreeNodeMatchesSearch(estructura) || HasMatchingDescendant(estructura);
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetVisibleChildren(
+        EstructuraOrganizacionalDto estructura,
+        bool ancestorOrSelfMatchesSearch)
+    {
+        var children = GetTreeChildren(estructura);
+
+        if (!IsTreeSearchActive || ancestorOrSelfMatchesSearch)
+            return children;
+
+        return children
+            .Where(ShouldShowInTree)
+            .ToList();
+    }
+
+    private bool HasMatchingDescendant(EstructuraOrganizacionalDto estructura)
+    {
+        return GetTreeChildren(estructura)
+            .Any(child => TreeNodeMatchesSearch(child) || HasMatchingDescendant(child));
+    }
+
+    private bool TreeNodeMatchesSearch(EstructuraOrganizacionalDto estructura)
+    {
+        if (!IsTreeSearchActive)
+            return true;
+
+        var term = TreeSearchTerm;
+
+        return ContainsSearchTerm(estructura.Descripcion, term)
+            || ContainsSearchTerm(estructura.Responsable, term);
+    }
+
+    private static bool ContainsSearchTerm(string? value, string term)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(term, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetTreeRootEstructuras()
+    {
+        EnsureTreeIndex();
+
+        return _childrenByParent.TryGetValue(RootParentKey, out var roots)
+            ? roots
+            : [];
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetTreeChildren(EstructuraOrganizacionalDto estructura)
+    {
+        EnsureTreeIndex();
+
+        return _childrenByParent.TryGetValue(estructura.EstructuraOrganizacionalId, out var children)
+            ? children
+            : [];
+    }
+
+    private void EnsureTreeIndex()
+    {
+        if (ReferenceEquals(_indexedEstructuras, ViewModel.Estructuras))
+            return;
+
+        _indexedEstructuras = ViewModel.Estructuras;
+        _childrenByParent = ViewModel.Estructuras
+            .GroupBy(estructura => estructura.GrupoEstructuraOrganizacionalId ?? RootParentKey)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<EstructuraOrganizacionalDto>)group
+                    .OrderBy(estructura => estructura.Orden)
+                    .ThenBy(estructura => estructura.Descripcion)
+                    .ToList());
+    }
 
     private void OnParentChanged(EstructuraOrganizacionalDto? estructura)
     {
