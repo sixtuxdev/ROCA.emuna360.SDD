@@ -43,7 +43,7 @@ public sealed class LoginViewModel
         !string.IsNullOrWhiteSpace(LoginRequest.Login) &&
         !string.IsNullOrWhiteSpace(LoginRequest.Password) &&
         LoginRequest.Password.Length >= 7 &&
-        LoginRequest.Password.Length <= 15;
+        LoginRequest.Password.Length <= 25;
 
     public async Task RedirectIfSessionActiveAsync()
     {
@@ -74,8 +74,8 @@ public sealed class LoginViewModel
         if (password.Length < 7)
             return "La contraseña debe tener al menos 7 caracteres.";
 
-        if (password.Length > 15)
-            return "La contraseña no debe exceder los 15 caracteres.";
+        if (password.Length > 25)
+            return "La contraseña no debe exceder los 25 caracteres.";
 
         return null;
     }

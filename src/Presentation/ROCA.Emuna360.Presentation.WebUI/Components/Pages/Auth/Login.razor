@@ -41,7 +41,7 @@
                           Adornment="Adornment.End"
                           AdornmentIcon="@ViewModel.PasswordInputIcon"
                           OnAdornmentClick="@ViewModel.TogglePasswordVisibility"
-                          HelperText="Entre 7 y 15 caracteres"
+                          HelperText="Entre 7 y 25 caracteres"
                           Validation="@(new Func<string, string?>(ViewModel.ValidatePassword))" />
 
             <div class="d-flex align-center justify-space-between mt-2">
