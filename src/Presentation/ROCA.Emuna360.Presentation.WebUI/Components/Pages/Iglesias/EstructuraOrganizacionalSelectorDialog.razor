@@ -1,0 +1,391 @@
+@using ROCA.Emuna360.Application.DTOs.Structure
+
+<MudDialog>
+    <DialogContent>
+        @if (!Estructuras.Any())
+        {
+            <MudPaper Class="empty-state pa-8 ma-4" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.AccountTree"
+                         Size="Size.Large"
+                         Color="Color.Default"
+                         Class="mb-3" />
+                <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
+                    No hay estructuras organizacionales disponibles
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                    Verifique la estructura asociada a la iglesia o la denominacion actual
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <div class="tree-filter pb-2">
+                <MudTextField T="string"
+                              Label="Buscar por descripcion o responsable"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Immediate="true"
+                              Clearable="true"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              @bind-Value="_treeSearchText" />
+            </div>
+            <div class="tree-scroll">
+                @if (FilteredRootEstructuras.Any())
+                {
+                    <MudTreeView T="EstructuraOrganizacionalDto" Dense="true" Hover="true">
+                        @foreach (var estructura in FilteredRootEstructuras)
+                        {
+                            @RenderTreeItem(estructura)
+                        }
+                    </MudTreeView>
+                }
+                else
+                {
+                    <MudPaper Class="empty-state pa-8 ma-4" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                                 Size="Size.Large"
+                                 Color="Color.Default"
+                                 Class="mb-3" />
+                        <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
+                            No se encontraron estructuras
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                            Ajuste el texto de busqueda para ver resultados
+                        </MudText>
+                    </MudPaper>
+                }
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .tree-loading,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 18rem;
+        text-align: center;
+    }
+
+    .empty-state {
+        background-color: var(--mud-palette-action-disabled-background);
+        border-radius: 8px;
+    }
+
+    .tree-scroll {
+        max-height: 600px;
+        overflow-y: auto;
+        padding: .5rem 0 1rem;
+    }
+
+    .tree-node-label {
+        min-width: 0;
+    }
+
+    .tree-node-meta {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        margin-top: .15rem;
+    }
+</style>
+
+@code {
+    private const int RootParentKey = 0;
+
+    private readonly HashSet<int> _expandedNodeIds = [];
+    private string? _treeSearchText;
+    private IReadOnlyList<EstructuraOrganizacionalDto>? _indexedEstructuras;
+    private Dictionary<int, IReadOnlyList<EstructuraOrganizacionalDto>> _childrenByParent = [];
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public IReadOnlyList<EstructuraOrganizacionalDto> Estructuras { get; set; } = [];
+
+    [Parameter]
+    public int? SelectedEstructuraId { get; set; }
+
+    private string TreeSearchTerm => _treeSearchText?.Trim() ?? string.Empty;
+
+    private bool IsTreeSearchActive => !string.IsNullOrWhiteSpace(TreeSearchTerm);
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> FilteredRootEstructuras => GetTreeRootEstructuras()
+        .Where(ShouldShowInTree)
+        .ToList();
+
+    protected override void OnParametersSet()
+    {
+        if (SelectedEstructuraId.HasValue)
+            ExpandAncestors(SelectedEstructuraId.Value);
+    }
+
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0, false);
+
+    /// <summary>
+    /// Renderiza recursivamente un item del arbol y sus hijos.
+    /// </summary>
+    private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel, bool ancestorMatchesSearch) => builder =>
+    {
+        var isSelected = SelectedEstructuraId == estructura.EstructuraOrganizacionalId;
+        var paddingLeft = nivel * 20;
+        var searchActive = IsTreeSearchActive;
+        var matchesSearch = TreeNodeMatchesSearch(estructura);
+        var shouldShowDescendants = searchActive && (ancestorMatchesSearch || matchesSearch);
+        var children = GetVisibleChildren(estructura, shouldShowDescendants);
+        var hasChildren = GetTreeChildren(estructura).Any();
+        var isExpanded = _expandedNodeIds.Contains(estructura.EstructuraOrganizacionalId);
+        var shouldRenderChildren = hasChildren && children.Any() && (isExpanded || searchActive);
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style",
+            $"border-left: 4px solid {(isSelected ? "var(--mud-palette-primary)" : "transparent")}; " +
+            $"background-color: {(isSelected ? "var(--mud-palette-action-disabled-background)" : "transparent")}; " +
+            $"transition: all 0.2s ease-in-out; padding-left: {paddingLeft}px;");
+
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "d-flex align-center pa-2");
+
+        if (hasChildren)
+        {
+            builder.OpenElement(4, "span");
+            builder.AddAttribute(5, "style", "cursor: pointer; display: inline-flex; align-items: center; width: 24px;");
+            builder.AddAttribute(6, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => SetExpanded(estructura, !isExpanded)));
+            builder.AddEventStopPropagationAttribute(7, "onclick", true);
+
+            builder.OpenComponent<MudIcon>(8);
+            builder.AddAttribute(9, "Icon", isExpanded
+                ? Icons.Material.Filled.ExpandMore
+                : Icons.Material.Filled.ChevronRight);
+            builder.AddAttribute(10, "Size", Size.Small);
+            builder.AddAttribute(11, "Class", "mr-1");
+            builder.CloseComponent();
+
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(12, "span");
+            builder.AddAttribute(13, "style", "width: 24px; display: inline-block;");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(14, "div");
+        builder.AddAttribute(15, "class", "d-flex align-center flex-grow-1");
+        builder.AddAttribute(16, "style", "cursor: pointer; opacity: 0.7;");
+        builder.AddAttribute(17, "title", "Click para seleccionar esta estructura organizacional");
+        builder.AddAttribute(18, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => Select(estructura)));
+
+        builder.OpenComponent<MudIcon>(19);
+        builder.AddAttribute(20, "Icon", Icons.Material.Filled.AccountTree);
+        builder.AddAttribute(21, "Color", isSelected ? Color.Primary : Color.Secondary);
+        builder.AddAttribute(22, "Size", Size.Medium);
+        builder.AddAttribute(23, "Class", "mr-3");
+        builder.CloseComponent();
+
+        builder.OpenElement(24, "div");
+        builder.AddAttribute(25, "class", "flex-grow-1");
+
+        builder.OpenComponent<MudText>(26);
+        builder.AddAttribute(27, "Typo", Typo.body1);
+        builder.AddAttribute(28, "Class", "mud-typography-fontWeightMedium");
+        builder.AddAttribute(29, "ChildContent", (RenderFragment)(cb =>
+        {
+            cb.AddContent(30, GetEstructuraTitulo(estructura));
+        }));
+        builder.CloseComponent();
+
+        var subtitulos = GetEstructuraSubtitulos(estructura);
+
+        foreach (var linea in subtitulos)
+        {
+            builder.OpenComponent<MudText>(31);
+            builder.AddAttribute(32, "Typo", Typo.body2);
+            builder.AddAttribute(33, "Class", "mud-text-secondary");
+            builder.AddAttribute(34, "ChildContent", (RenderFragment)(cb =>
+            {
+                cb.AddContent(35, linea);
+            }));
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+
+        builder.OpenComponent<MudIconButton>(47);
+        builder.AddAttribute(48, "Icon", Icons.Material.Filled.Edit);
+        builder.AddAttribute(49, "Color", Color.Primary);
+        builder.AddAttribute(50, "Size", Size.Small);
+        builder.AddAttribute(51, "Class", "ml-2");
+        builder.AddAttribute(52, "title", "Seleccionar estructura organizacional");
+        builder.AddAttribute(53, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => Select(estructura)));
+        builder.AddEventStopPropagationAttribute(54, "onclick", true);
+        builder.CloseComponent();
+
+        if (estructura.Estado)
+        {
+            builder.OpenComponent<MudChip<string>>(55);
+            builder.AddAttribute(56, "Color", Color.Success);
+            builder.AddAttribute(57, "Variant", Variant.Outlined);
+            builder.AddAttribute(58, "Size", Size.Small);
+            builder.AddAttribute(59, "Class", "ml-2");
+            builder.AddAttribute(60, "Text", "Activo");
+            builder.CloseComponent();
+        }
+        else
+        {
+            builder.OpenComponent<MudChip<string>>(61);
+            builder.AddAttribute(62, "Color", Color.Default);
+            builder.AddAttribute(63, "Variant", Variant.Outlined);
+            builder.AddAttribute(64, "Size", Size.Small);
+            builder.AddAttribute(65, "Class", "ml-2");
+            builder.AddAttribute(66, "Text", "Inactivo");
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+
+        if (shouldRenderChildren)
+        {
+            builder.OpenElement(67, "div");
+            builder.AddAttribute(68, "style", "margin-left: 10px;");
+
+            foreach (var child in children)
+            {
+                builder.AddContent(69, RenderTreeItem(child, nivel + 1, shouldShowDescendants));
+            }
+
+            builder.CloseElement();
+        }
+
+        static string GetEstructuraTitulo(EstructuraOrganizacionalDto item)
+        {
+            return item.Descripcion;
+        }
+
+        static IEnumerable<string> GetEstructuraSubtitulos(EstructuraOrganizacionalDto item)
+        {
+            if (!string.IsNullOrWhiteSpace(item.Responsable))
+                yield return $"Responsable: {item.Responsable}";
+        }
+    };
+
+    private void Select(EstructuraOrganizacionalDto estructura)
+    {
+        MudDialog.Close(DialogResult.Ok(estructura));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void SetExpanded(EstructuraOrganizacionalDto estructura, bool expanded)
+    {
+        if (expanded)
+        {
+            _expandedNodeIds.Add(estructura.EstructuraOrganizacionalId);
+            return;
+        }
+
+        _expandedNodeIds.Remove(estructura.EstructuraOrganizacionalId);
+    }
+
+    private bool ShouldShowInTree(EstructuraOrganizacionalDto estructura)
+    {
+        return !IsTreeSearchActive || TreeNodeMatchesSearch(estructura) || HasMatchingDescendant(estructura);
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetVisibleChildren(
+        EstructuraOrganizacionalDto estructura,
+        bool ancestorOrSelfMatchesSearch)
+    {
+        var children = GetTreeChildren(estructura);
+
+        if (!IsTreeSearchActive || ancestorOrSelfMatchesSearch)
+            return children;
+
+        return children
+            .Where(ShouldShowInTree)
+            .ToList();
+    }
+
+    private bool HasMatchingDescendant(EstructuraOrganizacionalDto estructura)
+    {
+        return GetTreeChildren(estructura)
+            .Any(child => TreeNodeMatchesSearch(child) || HasMatchingDescendant(child));
+    }
+
+    private bool TreeNodeMatchesSearch(EstructuraOrganizacionalDto estructura)
+    {
+        if (!IsTreeSearchActive)
+            return true;
+
+        var term = TreeSearchTerm;
+
+        return ContainsSearchTerm(estructura.Descripcion, term)
+            || ContainsSearchTerm(estructura.Responsable, term);
+    }
+
+    private static bool ContainsSearchTerm(string? value, string term)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(term, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetTreeRootEstructuras()
+    {
+        EnsureTreeIndex();
+
+        return _childrenByParent.TryGetValue(RootParentKey, out var roots)
+            ? roots
+            : [];
+    }
+
+    private IReadOnlyList<EstructuraOrganizacionalDto> GetTreeChildren(EstructuraOrganizacionalDto estructura)
+    {
+        EnsureTreeIndex();
+
+        return _childrenByParent.TryGetValue(estructura.EstructuraOrganizacionalId, out var children)
+            ? children
+            : [];
+    }
+
+    private void EnsureTreeIndex()
+    {
+        if (ReferenceEquals(_indexedEstructuras, Estructuras))
+            return;
+
+        _indexedEstructuras = Estructuras;
+        _childrenByParent = Estructuras
+            .GroupBy(estructura => estructura.GrupoEstructuraOrganizacionalId ?? RootParentKey)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<EstructuraOrganizacionalDto>)group
+                    .OrderBy(estructura => estructura.Orden)
+                    .ThenBy(estructura => estructura.Descripcion)
+                    .ToList());
+    }
+
+    private void ExpandAncestors(int estructuraId)
+    {
+        var current = Estructuras.FirstOrDefault(estructura => estructura.EstructuraOrganizacionalId == estructuraId);
+
+        while (current?.GrupoEstructuraOrganizacionalId is not null)
+        {
+            _expandedNodeIds.Add(current.GrupoEstructuraOrganizacionalId.Value);
+            current = Estructuras.FirstOrDefault(estructura =>
+                estructura.EstructuraOrganizacionalId == current.GrupoEstructuraOrganizacionalId.Value);
+        }
+    }
+}

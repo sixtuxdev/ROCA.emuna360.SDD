@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.DTOs.Organization;
+using ROCA.Emuna360.Application.DTOs.Structure;
+using ROCA.Emuna360.Presentation.WebUI.Components.Pages.Iglesias;
 using ROCA.Emuna360.Presentation.WebUI.Services;
 
 namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
@@ -15,6 +17,8 @@ public class ConfigIglesiasViewModel
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     protected readonly IglesiasApiService _iglesiasApiService;
+    protected readonly IglesiasEstructurasApiService _iglesiasEstructurasApiService;
+    protected readonly EstructuraOrganizacionalApiService _estructuraOrganizacionalApiService;
     protected readonly GeographyApiService _geographyApiService;
     protected readonly TokenStorageService _tokenStorageService;
     protected readonly ISnackbar _snackbar;
@@ -28,6 +32,8 @@ public class ConfigIglesiasViewModel
 
     public ConfigIglesiasViewModel(
         IglesiasApiService iglesiasApiService,
+        IglesiasEstructurasApiService iglesiasEstructurasApiService,
+        EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
         GeographyApiService geographyApiService,
         TokenStorageService tokenStorageService,
         ISnackbar snackbar,
@@ -35,6 +41,8 @@ public class ConfigIglesiasViewModel
         NavigationManager navigation)
     {
         _iglesiasApiService = iglesiasApiService;
+        _iglesiasEstructurasApiService = iglesiasEstructurasApiService;
+        _estructuraOrganizacionalApiService = estructuraOrganizacionalApiService;
         _geographyApiService = geographyApiService;
         _tokenStorageService = tokenStorageService;
         _snackbar = snackbar;
@@ -57,6 +65,7 @@ public class ConfigIglesiasViewModel
     public IReadOnlyList<DepartamentoDto> Departamentos { get; protected set; } = [];
     public IReadOnlyList<CiudadDto> Ciudades { get; protected set; } = [];
     public IReadOnlyList<CorregimientoDto> Corregimientos { get; protected set; } = [];
+    public IReadOnlyList<EstructuraOrganizacionalDto> EstructurasDisponibles { get; protected set; } = [];
     public IReadOnlyList<StatusFilterOption> StatusFilterOptions { get; } =
     [
         new(AllStatusFilter, "Todos"),
@@ -113,6 +122,7 @@ public class ConfigIglesiasViewModel
 
         await LoadPaisesAsync();
         await LoadIglesiasAsync();
+        await LoadEstructurasDisponiblesAsync();
         StartNewIglesia();
     }
 
@@ -163,6 +173,46 @@ public class ConfigIglesiasViewModel
         IsEditing = true;
         ResetIglesiaFormInteraction();
         await LoadGeographyForFormAsync();
+    }
+
+    public async Task OpenEstructuraSelectorAsync()
+    {
+        if (!EstructurasDisponibles.Any())
+            await LoadEstructurasDisponiblesAsync();
+
+        var parameters = new DialogParameters
+        {
+            [nameof(EstructuraOrganizacionalSelectorDialog.Estructuras)] = EstructurasDisponibles,
+            [nameof(EstructuraOrganizacionalSelectorDialog.SelectedEstructuraId)] = IglesiaForm.EstructuraOrg?.EstructuraOrganizacionalId
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        };
+
+        var dialog = await _dialogService.ShowAsync<EstructuraOrganizacionalSelectorDialog>(
+            "Seleccionar estructura organizacional",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not EstructuraOrganizacionalDto estructura)
+            return;
+
+        SelectEstructura(estructura);
+    }
+
+    public void SelectEstructura(EstructuraOrganizacionalDto estructura)
+    {
+        IglesiaForm.EstructuraOrg = CloneEstructura(estructura);
+    }
+
+    public void ClearEstructura()
+    {
+        IglesiaForm.EstructuraOrg = null;
     }
 
     public virtual async Task SaveIglesiaAsync()
@@ -502,9 +552,51 @@ public class ConfigIglesiasViewModel
             Correo = iglesia.Correo,
             Slogan = iglesia.Slogan,
             Activa = iglesia.Activa,
+            EstructuraOrg = iglesia.EstructuraOrg is null ? null : CloneEstructura(iglesia.EstructuraOrg),
             FechaCreacion = iglesia.FechaCreacion,
             FechaActualizacion = iglesia.FechaActualizacion
         };
+    }
+
+    protected async Task LoadEstructurasDisponiblesAsync()
+    {
+        if (DenominacionId <= 0)
+            return;
+
+        try
+        {
+            var estructuras = await _estructuraOrganizacionalApiService.GetEstructurasAsync(DenominacionId);
+
+            if (IsAdminDenominacion)
+            {
+                EstructurasDisponibles = estructuras;
+                return;
+            }
+
+            var iglesiaId = await _tokenStorageService.GetAuthIglesiaIdAsync();
+            if (iglesiaId <= 0)
+            {
+                EstructurasDisponibles = [];
+                return;
+            }
+
+            var relation = await _iglesiasEstructurasApiService.GetCurrentByIglesiaAsync(iglesiaId, DenominacionId);
+            if (relation is null || relation.EstructuraId <= 0)
+            {
+                EstructurasDisponibles = [];
+                return;
+            }
+
+            var allowedIds = GetDescendantIds(estructuras, relation.EstructuraId);
+            EstructurasDisponibles = estructuras
+                .Where(estructura => allowedIds.Contains(estructura.EstructuraOrganizacionalId))
+                .ToList();
+        }
+        catch
+        {
+            EstructurasDisponibles = [];
+            _snackbar.Add("No fue posible cargar las estructuras organizacionales disponibles.", Severity.Error);
+        }
     }
 
     private async Task LoadDepartamentosAsync(int paisId)
@@ -656,6 +748,44 @@ public class ConfigIglesiasViewModel
         return string.IsNullOrWhiteSpace(value)
             ? value
             : char.ToUpperInvariant(value[0]) + value[1..];
+    }
+
+    private static EstructuraOrganizacionalDto CloneEstructura(EstructuraOrganizacionalDto estructura)
+    {
+        return new EstructuraOrganizacionalDto
+        {
+            EstructuraOrganizacionalId = estructura.EstructuraOrganizacionalId,
+            DenominacionId = estructura.DenominacionId,
+            Descripcion = estructura.Descripcion,
+            GrupoEstructuraOrganizacionalId = estructura.GrupoEstructuraOrganizacionalId,
+            Orden = estructura.Orden,
+            Responsable = estructura.Responsable,
+            Estado = estructura.Estado,
+            FechaCreacion = estructura.FechaCreacion,
+            FechaActualizacion = estructura.FechaActualizacion
+        };
+    }
+
+    private static HashSet<int> GetDescendantIds(IReadOnlyList<EstructuraOrganizacionalDto> estructuras, int rootId)
+    {
+        var allowedIds = new HashSet<int> { rootId };
+        var added = true;
+
+        while (added)
+        {
+            added = false;
+            foreach (var estructura in estructuras)
+            {
+                if (estructura.GrupoEstructuraOrganizacionalId.HasValue
+                    && allowedIds.Contains(estructura.GrupoEstructuraOrganizacionalId.Value)
+                    && allowedIds.Add(estructura.EstructuraOrganizacionalId))
+                {
+                    added = true;
+                }
+            }
+        }
+
+        return allowedIds;
     }
 
     public sealed record StatusFilterOption(int Value, string Text);

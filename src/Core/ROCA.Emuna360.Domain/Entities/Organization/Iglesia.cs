@@ -1,5 +1,7 @@
 namespace ROCA.Emuna360.Domain.Entities.Organization;
 
+using ROCA.Emuna360.Domain.Entities.Structure;
+
 public class Iglesia
 {
     public int IglesiaId { get; set; }
@@ -17,4 +19,5 @@ public class Iglesia
     public string? Slogan { get; set; }
     public bool Activa { get; set; }
     public DateTime FechaCreacion { get; set; }
+    public EstructuraOrganizacional? EstructuraOrg { get; set; }
 }

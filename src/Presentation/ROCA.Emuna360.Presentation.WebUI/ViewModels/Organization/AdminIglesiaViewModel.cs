@@ -8,12 +8,22 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
 {
     public AdminIglesiaViewModel(
         IglesiasApiService iglesiasApiService,
+        IglesiasEstructurasApiService iglesiasEstructurasApiService,
+        EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
         GeographyApiService geographyApiService,
         TokenStorageService tokenStorageService,
         ISnackbar snackbar,
         IDialogService dialogService,
         NavigationManager navigation)
-        : base(iglesiasApiService, geographyApiService, tokenStorageService, snackbar, dialogService, navigation)
+        : base(
+            iglesiasApiService,
+            iglesiasEstructurasApiService,
+            estructuraOrganizacionalApiService,
+            geographyApiService,
+            tokenStorageService,
+            snackbar,
+            dialogService,
+            navigation)
     {
     }
 
@@ -45,6 +55,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
         }
 
         await LoadPaisesAsync();
+        await LoadEstructurasDisponiblesAsync();
         await LoadAdminIglesiaAsync();
     }
 

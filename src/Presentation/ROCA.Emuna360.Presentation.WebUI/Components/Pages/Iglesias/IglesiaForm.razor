@@ -161,11 +161,47 @@
                           @bind-Value="ViewModel.IglesiaForm.Slogan" />
         </MudItem>
 
-        <MudItem xs="12">
+        <MudItem xs="12" sm="4">
             <MudSwitch T="bool"
                        Label="Iglesia activa"
                        Color="Color.Primary"
                        @bind-Value="ViewModel.IglesiaForm.Activa" />
+        </MudItem>
+
+        <MudItem xs="12" sm="8">
+            <div class="estructura-selector">
+                <div class="estructura-selector-content">
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">Estructura organizacional</MudText>
+                    @if (ViewModel.IglesiaForm.EstructuraOrg is null)
+                    {
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">Sin estructura seleccionada</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1" Class="mud-typography-fontWeightMedium">
+                            @ViewModel.IglesiaForm.EstructuraOrg.Descripcion
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                            Responsable: @(string.IsNullOrWhiteSpace(ViewModel.IglesiaForm.EstructuraOrg.Responsable) ? "Sin responsable" : ViewModel.IglesiaForm.EstructuraOrg.Responsable)
+                        </MudText>
+                    }
+                </div>
+                <div class="estructura-selector-actions">
+                    @if (ViewModel.IglesiaForm.EstructuraOrg is not null)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Clear"
+                                       Color="Color.Default"
+                                       Size="Size.Small"
+                                       title="Limpiar estructura"
+                                       OnClick="ViewModel.ClearEstructura" />
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.AccountTree"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   title="Seleccionar estructura"
+                                   OnClick="ViewModel.OpenEstructuraSelectorAsync" />
+                </div>
+            </div>
         </MudItem>
     </MudGrid>
 
@@ -209,11 +245,38 @@
         justify-content: flex-end;
     }
 
+    .estructura-selector {
+        align-items: center;
+        border: 1px solid var(--mud-palette-lines-inputs);
+        border-radius: var(--mud-default-borderradius);
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: .55rem .75rem;
+    }
+
+    .estructura-selector-content {
+        min-width: 0;
+    }
+
+    .estructura-selector-actions {
+        align-items: center;
+        display: flex;
+        flex: 0 0 auto;
+        gap: .25rem;
+    }
+
     @@media (max-width: 600px) {
         .panel-toolbar,
-        .form-actions {
+        .form-actions,
+        .estructura-selector {
             align-items: stretch;
             flex-direction: column;
+        }
+
+        .estructura-selector-actions {
+            justify-content: flex-end;
         }
     }
 </style>

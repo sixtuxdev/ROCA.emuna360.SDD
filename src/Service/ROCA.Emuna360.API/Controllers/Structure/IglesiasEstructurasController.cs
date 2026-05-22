@@ -23,5 +23,32 @@ public class IglesiasEstructurasController : MultiOrganizationalBaseController<I
         if (result.IsFailure) return BadRequest(new { error = result.Error });
         return this.ToOk(result.Value);
     }
+
+    [HttpGet("iglesia/{iglesiaId}/denominacion/{denominacionId}/actual")]
+    public async Task<IActionResult> GetCurrentByIglesia(int iglesiaId, int denominacionId)
+    {
+        var result = await _iglesiaEstructuraService.GetCurrentByIglesiaAsync(iglesiaId, denominacionId);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
+    }
+
+    [HttpPut("iglesia/{iglesiaId}/denominacion/{denominacionId}")]
+    public async Task<IActionResult> UpsertByIglesia(int iglesiaId, int denominacionId, [FromBody] IglesiaEstructuraDto dto)
+    {
+        dto.IglesiaId = iglesiaId;
+        dto.DenominacionId = denominacionId;
+
+        var result = await _iglesiaEstructuraService.UpsertByIglesiaAsync(dto);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value, "Updated successfully");
+    }
+
+    [HttpDelete("iglesia/{iglesiaId}/denominacion/{denominacionId}")]
+    public async Task<IActionResult> DeleteByIglesia(int iglesiaId, int denominacionId)
+    {
+        var result = await _iglesiaEstructuraService.DeleteByIglesiaAsync(iglesiaId, denominacionId);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value, "Deleted successfully");
+    }
 }
 

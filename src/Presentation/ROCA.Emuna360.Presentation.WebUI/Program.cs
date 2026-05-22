@@ -66,6 +66,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new EstructuraOrganizacionalApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 
