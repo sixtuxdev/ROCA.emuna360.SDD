@@ -28,7 +28,7 @@ public class ConfigIglesiasViewModel
     private readonly Dictionary<int, string> _corregimientosPorId = new();
     private readonly HashSet<IglesiaFormField> _touchedIglesiaFields = [];
     private string _searchText = string.Empty;
-    private int _statusFilter = AllStatusFilter;
+    private int _statusFilter = AllStatusFilter;       
 
     public ConfigIglesiasViewModel(
         IglesiasApiService iglesiasApiService,
@@ -47,7 +47,7 @@ public class ConfigIglesiasViewModel
         _tokenStorageService = tokenStorageService;
         _snackbar = snackbar;
         _dialogService = dialogService;
-        _navigation = navigation;
+        _navigation = navigation;        
     }
 
     public int DenominacionId { get; protected set; }
@@ -225,6 +225,7 @@ public class ConfigIglesiasViewModel
         if (resp)
         {
             IglesiaForm.EstructuraOrg = null;
+            //await _adminIglesiaViewModel.LoadAdminIglesiaAsync();
         }
     }
 

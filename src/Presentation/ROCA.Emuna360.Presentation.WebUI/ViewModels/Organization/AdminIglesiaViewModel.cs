@@ -14,7 +14,8 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
         TokenStorageService tokenStorageService,
         ISnackbar snackbar,
         IDialogService dialogService,
-        NavigationManager navigation)
+        NavigationManager navigation
+        )
         : base(
             iglesiasApiService,
             iglesiasEstructurasApiService,
