@@ -210,9 +210,22 @@ public class ConfigIglesiasViewModel
         IglesiaForm.EstructuraOrg = CloneEstructura(estructura);
     }
 
-    public void ClearEstructura()
+    public async Task ClearEstructura()
     {
-        IglesiaForm.EstructuraOrg = null;
+        var confirmed = await _dialogService.ShowMessageBox(
+            "Eliminar Estructura Organizacional",
+            $"¿Desea eliminar la Estructura Organizacional Seleccionada?",
+            yesText: "Eliminar",
+            cancelText: "Cancelar");
+
+        if (confirmed != true)
+            return;
+
+        var resp = await _iglesiasEstructurasApiService.DeleteByIglesiaAsync(IglesiaForm.IglesiaId, IglesiaForm!.EstructuraOrg!.DenominacionId);
+        if (resp)
+        {
+            IglesiaForm.EstructuraOrg = null;
+        }
     }
 
     public virtual async Task SaveIglesiaAsync()

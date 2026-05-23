@@ -57,9 +57,8 @@ public class IglesiaEstructuraRepository : BaseRepository<IglesiaEstructura>, II
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@DenominacionId", entity.DenominacionId);
         parameters.Add("@IglesiaId", entity.IglesiaId);
-        parameters.Add("@EstructuraId", entity.EstructuraId);
-        parameters.Add("@FechaAsignacion", entity.FechaAsignacion);
-        return await ExecuteUpdateAsync("usp_IglesiasEstructuras_GuardarPorIglesia", parameters, string.Empty);
+        parameters.Add("@EstructuraId", entity.EstructuraId);        
+        return await ExecuteUpdateAsync("usp_IglesiasEstructuras_GuardarPorIglesia", parameters, "OutIglesiaEstructurasId");
     }
 
     public async Task<System.Collections.Generic.IEnumerable<IglesiaEstructura>> GetAllAsync(int denominacionId)
@@ -92,10 +91,17 @@ public class IglesiaEstructuraRepository : BaseRepository<IglesiaEstructura>, II
     public async Task<bool> DeleteByIglesiaAsync(int iglesiaId, int denominacionId)
     {
         using var connection = CreateConnection();
+
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@IglesiaId", iglesiaId);
         parameters.Add("@DenominacionId", denominacionId);
-        var rows = await connection.ExecuteAsync("usp_IglesiasEstructuras_EliminarPorIglesia", parameters, commandType: System.Data.CommandType.StoredProcedure);
+
+        var rows = await connection.QuerySingleAsync<int>(
+            "usp_IglesiasEstructuras_EliminarPorIglesia",
+            parameters,
+            commandType: System.Data.CommandType.StoredProcedure
+        );
+
         return rows > 0;
     }
 }

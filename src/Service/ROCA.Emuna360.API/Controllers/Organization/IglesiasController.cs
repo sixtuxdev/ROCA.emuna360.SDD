@@ -10,7 +10,7 @@ namespace ROCA.Emuna360.API.Controllers.Organization;
 public class IglesiasController : MultiOrganizationalBaseController<IglesiaDto>
 {
     public IglesiasController(IIglesiaService service) : base(service) 
-    { 
+    {
     }
 }
 
