@@ -4,7 +4,7 @@ using ROCA.Emuna360.Presentation.WebUI.Services;
 
 namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
 
-public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
+public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
 {
     public AdminIglesiaViewModel(
         IglesiasApiService iglesiasApiService,
@@ -14,7 +14,8 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
         TokenStorageService tokenStorageService,
         ISnackbar snackbar,
         IDialogService dialogService,
-        NavigationManager navigation
+        NavigationManager navigation,
+        IglesiaStateService iglesiaStateService
         )
         : base(
             iglesiasApiService,
@@ -24,9 +25,13 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
             tokenStorageService,
             snackbar,
             dialogService,
-            navigation)
+            navigation,
+            iglesiaStateService)
     {
+        _iglesiaStateService.EstructuraChanged += HandleEstructuraChangedAsync;
     }
+
+    public event Action? StateChanged;
 
     public int IglesiaId { get; private set; }
 
@@ -75,6 +80,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
                 return;
             }
 
+            await RefreshEstructuraForIglesiaAsync(iglesia);
             Iglesias = [iglesia];
             SelectedIglesia = iglesia;
             IglesiaForm = CloneIglesia(iglesia);
@@ -95,5 +101,32 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel
     protected override async Task AfterSaveAsync(bool wasEditing, int selectedId)
     {
         await LoadAdminIglesiaAsync();
+        NotifyStateChanged();
+    }
+
+    protected override async Task AfterClearEstructuraAsync()
+    {
+        await LoadAdminIglesiaAsync();
+        NotifyStateChanged();
+        await _iglesiaStateService.NotifyEstructuraChangedAsync(this);
+    }
+
+    private async Task HandleEstructuraChangedAsync(object? source)
+    {
+        if (ReferenceEquals(source, this))
+            return;
+
+        await LoadAdminIglesiaAsync();
+        NotifyStateChanged();
+    }
+
+    private void NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+    }
+
+    public void Dispose()
+    {
+        _iglesiaStateService.EstructuraChanged -= HandleEstructuraChangedAsync;
     }
 }

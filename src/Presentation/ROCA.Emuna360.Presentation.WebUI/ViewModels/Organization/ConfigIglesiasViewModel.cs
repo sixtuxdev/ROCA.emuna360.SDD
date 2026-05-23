@@ -24,6 +24,7 @@ public class ConfigIglesiasViewModel
     protected readonly ISnackbar _snackbar;
     protected readonly IDialogService _dialogService;
     protected readonly NavigationManager _navigation;
+    protected readonly IglesiaStateService _iglesiaStateService;
     private readonly Dictionary<int, string> _ciudadesPorId = new();
     private readonly Dictionary<int, string> _corregimientosPorId = new();
     private readonly HashSet<IglesiaFormField> _touchedIglesiaFields = [];
@@ -38,7 +39,8 @@ public class ConfigIglesiasViewModel
         TokenStorageService tokenStorageService,
         ISnackbar snackbar,
         IDialogService dialogService,
-        NavigationManager navigation)
+        NavigationManager navigation,
+        IglesiaStateService iglesiaStateService)
     {
         _iglesiasApiService = iglesiasApiService;
         _iglesiasEstructurasApiService = iglesiasEstructurasApiService;
@@ -47,7 +49,8 @@ public class ConfigIglesiasViewModel
         _tokenStorageService = tokenStorageService;
         _snackbar = snackbar;
         _dialogService = dialogService;
-        _navigation = navigation;        
+        _navigation = navigation;
+        _iglesiaStateService = iglesiaStateService;
     }
 
     public int DenominacionId { get; protected set; }
@@ -168,8 +171,11 @@ public class ConfigIglesiasViewModel
 
     public async Task StartEditIglesiaAsync(IglesiaDto iglesia)
     {
-        SelectedIglesia = iglesia;
-        IglesiaForm = CloneIglesia(iglesia);
+        var refreshedIglesia = CloneIglesia(iglesia);
+        await RefreshEstructuraForIglesiaAsync(refreshedIglesia);
+
+        SelectedIglesia = refreshedIglesia;
+        IglesiaForm = CloneIglesia(refreshedIglesia);
         IsEditing = true;
         ResetIglesiaFormInteraction();
         await LoadGeographyForFormAsync();
@@ -221,12 +227,34 @@ public class ConfigIglesiasViewModel
         if (confirmed != true)
             return;
 
-        var resp = await _iglesiasEstructurasApiService.DeleteByIglesiaAsync(IglesiaForm.IglesiaId, IglesiaForm!.EstructuraOrg!.DenominacionId);
+        var denominacionId = IglesiaForm.DenominacionId > 0 ? IglesiaForm.DenominacionId : DenominacionId;
+        var resp = await _iglesiasEstructurasApiService.DeleteByIglesiaAsync(IglesiaForm.IglesiaId, denominacionId);
         if (resp)
         {
             IglesiaForm.EstructuraOrg = null;
-            //await _adminIglesiaViewModel.LoadAdminIglesiaAsync();
+            await AfterClearEstructuraAsync();
         }
+    }
+
+    protected virtual async Task AfterClearEstructuraAsync()
+    {
+        var selectedId = IglesiaForm.IglesiaId;
+
+        await LoadIglesiasAsync();
+
+        if (selectedId > 0)
+        {
+            var refreshedIglesia = Iglesias.FirstOrDefault(iglesia => iglesia.IglesiaId == selectedId);
+            if (refreshedIglesia is not null)
+            {
+                SelectedIglesia = refreshedIglesia;
+                IglesiaForm = CloneIglesia(refreshedIglesia);
+                IsEditing = true;
+                await LoadGeographyForFormAsync();
+            }
+        }
+
+        await _iglesiaStateService.NotifyEstructuraChangedAsync(this);
     }
 
     public virtual async Task SaveIglesiaAsync()
@@ -513,6 +541,26 @@ public class ConfigIglesiasViewModel
             await LoadCorregimientosAsync(ciudadId.Value);
 
         IglesiaForm.CorregimientoId = corregimientoId;
+    }
+
+    protected async Task RefreshEstructuraForIglesiaAsync(IglesiaDto iglesia)
+    {
+        var denominacionId = iglesia.DenominacionId > 0 ? iglesia.DenominacionId : DenominacionId;
+        if (iglesia.IglesiaId <= 0 || denominacionId <= 0)
+        {
+            iglesia.EstructuraOrg = null;
+            return;
+        }
+
+        var relation = await _iglesiasEstructurasApiService.GetCurrentByIglesiaAsync(iglesia.IglesiaId, denominacionId);
+        if (relation is null || relation.EstructuraId <= 0)
+        {
+            iglesia.EstructuraOrg = null;
+            return;
+        }
+
+        var estructura = await _estructuraOrganizacionalApiService.GetEstructuraAsync(relation.EstructuraId, denominacionId);
+        iglesia.EstructuraOrg = estructura is null ? null : CloneEstructura(estructura);
     }
 
     protected List<string> ValidateForm()

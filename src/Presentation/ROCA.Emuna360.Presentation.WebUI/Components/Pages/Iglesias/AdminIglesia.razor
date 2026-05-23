@@ -1,6 +1,7 @@
 @page "/iglesias/admin"
 @attribute [Authorize]
 @using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization
+@implements IDisposable
 @inject AdminIglesiaViewModel ViewModel
 
 <PageTitle>Administración de Iglesia - ROCA.Emuna360</PageTitle>
@@ -75,6 +76,17 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
+        ViewModel.StateChanged += RefreshAdminIglesia;
         await ViewModel.InitializeAsync();
+    }
+
+    private void RefreshAdminIglesia()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= RefreshAdminIglesia;
     }
 }

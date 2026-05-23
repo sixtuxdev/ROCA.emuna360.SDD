@@ -43,7 +43,16 @@ public sealed class IglesiasEstructurasApiService
         var response = await _httpClient.DeleteAsync(
             $"api/v1/iglesias-estructuras/iglesia/{iglesiaId}/denominacion/{denominacionId}");
 
-        return response.IsSuccessStatusCode && await ReadDataAsync<bool>(response);
+        return response.IsSuccessStatusCode && await ReadSuccessAsync(response);
+    }
+
+    private static async Task<bool> ReadSuccessAsync(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponseDto<bool>>();
+        return apiResponse?.Success == true;
     }
 
     private static async Task<T?> ReadDataAsync<T>(HttpResponseMessage response)

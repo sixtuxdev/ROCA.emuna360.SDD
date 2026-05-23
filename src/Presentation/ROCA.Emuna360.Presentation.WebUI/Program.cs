@@ -47,6 +47,7 @@ builder.Services.AddScoped<AppStartupViewModel>();
 builder.Services.AddScoped<LoginViewModel>();
 builder.Services.AddScoped<MenuViewModel>();
 builder.Services.AddScoped<DashboardViewModel>();
+builder.Services.AddScoped<IglesiaStateService>();
 builder.Services.AddScoped<ConfigClasesViewModel>();
 builder.Services.AddScoped<ConfigIglesiasViewModel>();
 builder.Services.AddScoped<AdminIglesiaViewModel>();
