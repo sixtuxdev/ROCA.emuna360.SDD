@@ -33,6 +33,7 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Slogan", entity.Slogan);
+        parameters.Add("@PastorResponsableRegistroId", entity.PastorResponsableRegistroId);
         parameters.Add("@Activa", entity.Activa);
         
         return await ExecuteCreateAsync("usp_Iglesias_Insertar", parameters, "@OutIglesiaId");
@@ -54,6 +55,7 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Slogan", entity.Slogan);
+        parameters.Add("@PastorResponsableRegistroId", entity.PastorResponsableRegistroId);
         parameters.Add("@Activa", entity.Activa);
         
         return await ExecuteUpdateAsync("usp_Iglesias_Actualizar", parameters, string.Empty);

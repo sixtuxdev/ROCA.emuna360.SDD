@@ -55,6 +55,10 @@ public class IglesiaService : MultiOrganizationalBaseService<IglesiaDto, Iglesia
 
     public override async Task<Result<int>> CreateAsync(IglesiaDto dto)
     {
+        var validation = ValidatePastorResponsable(dto);
+        if (validation.IsFailure)
+            return Result<int>.Failure(validation.Error);
+
         var entity = _mapper.Map<Iglesia>(dto);
         var result = await _specificRepository.CreateAsync(entity);
 
@@ -71,6 +75,10 @@ public class IglesiaService : MultiOrganizationalBaseService<IglesiaDto, Iglesia
 
     public override async Task<Result<bool>> UpdateAsync(IglesiaDto dto)
     {
+        var validation = ValidatePastorResponsable(dto);
+        if (validation.IsFailure)
+            return Result<bool>.Failure(validation.Error);
+
         var entity = _mapper.Map<Iglesia>(dto);
         var result = await _specificRepository.UpdateAsync(entity);
 
@@ -129,6 +137,13 @@ public class IglesiaService : MultiOrganizationalBaseService<IglesiaDto, Iglesia
         return result.Success
             ? Result<bool>.Success(true)
             : Result<bool>.Failure(result.Message);
+    }
+
+    private static Result<bool> ValidatePastorResponsable(IglesiaDto iglesia)
+    {
+        return iglesia.PastorResponsableRegistroId.HasValue && iglesia.PastorResponsableRegistroId.Value > 0
+            ? Result<bool>.Success(true)
+            : Result<bool>.Failure("El pastor responsable es obligatorio.");
     }
 }
 

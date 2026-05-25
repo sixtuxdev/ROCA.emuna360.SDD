@@ -35,6 +35,7 @@ public class MappingProfile : Profile
         CreateMap<UsuarioIglesia, UsuarioIglesiaDto>().ReverseMap();
         CreateMap<UsuarioPerfil, UsuarioPerfilDto>().ReverseMap();
         CreateMap<Usuario, UsuarioDto>().ReverseMap();
+        CreateMap<UsuarioPastorResponse, UsuarioPastorResponseDTO>().ReverseMap();
         CreateMap<UsuarioRol, UsuarioRolDto>().ReverseMap();
         CreateMap<Registro, RegistroDto>().ReverseMap();
         CreateMap<Menu, MenuDto>().ReverseMap();

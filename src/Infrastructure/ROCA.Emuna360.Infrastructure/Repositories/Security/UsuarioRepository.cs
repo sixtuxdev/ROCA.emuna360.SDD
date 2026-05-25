@@ -73,4 +73,12 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
         var rows = await connection.ExecuteAsync("usp_Usuario_Eliminar", parameters, commandType: System.Data.CommandType.StoredProcedure);
         return rows > 0;
     }
+
+    public async Task<IEnumerable<UsuarioPastorResponse>> GetPastores(int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+        return await connection.QueryAsync<UsuarioPastorResponse>("UspGetPastores", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
 }

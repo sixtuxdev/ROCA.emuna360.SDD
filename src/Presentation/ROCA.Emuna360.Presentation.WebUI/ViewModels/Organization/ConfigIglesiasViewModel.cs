@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.DTOs.Organization;
+using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.DTOs.Structure;
 using ROCA.Emuna360.Presentation.WebUI.Components.Pages.Iglesias;
 using ROCA.Emuna360.Presentation.WebUI.Services;
@@ -17,6 +18,7 @@ public class ConfigIglesiasViewModel
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     protected readonly IglesiasApiService _iglesiasApiService;
+    protected readonly UsuariosApiService _usuariosApiService;
     protected readonly IglesiasEstructurasApiService _iglesiasEstructurasApiService;
     protected readonly EstructuraOrganizacionalApiService _estructuraOrganizacionalApiService;
     protected readonly GeographyApiService _geographyApiService;
@@ -33,6 +35,7 @@ public class ConfigIglesiasViewModel
 
     public ConfigIglesiasViewModel(
         IglesiasApiService iglesiasApiService,
+        UsuariosApiService usuariosApiService,
         IglesiasEstructurasApiService iglesiasEstructurasApiService,
         EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
         GeographyApiService geographyApiService,
@@ -43,6 +46,7 @@ public class ConfigIglesiasViewModel
         IglesiaStateService iglesiaStateService)
     {
         _iglesiasApiService = iglesiasApiService;
+        _usuariosApiService = usuariosApiService;
         _iglesiasEstructurasApiService = iglesiasEstructurasApiService;
         _estructuraOrganizacionalApiService = estructuraOrganizacionalApiService;
         _geographyApiService = geographyApiService;
@@ -69,6 +73,7 @@ public class ConfigIglesiasViewModel
     public IReadOnlyList<CiudadDto> Ciudades { get; protected set; } = [];
     public IReadOnlyList<CorregimientoDto> Corregimientos { get; protected set; } = [];
     public IReadOnlyList<EstructuraOrganizacionalDto> EstructurasDisponibles { get; protected set; } = [];
+    public IReadOnlyList<UsuarioPastorResponseDTO> PastoresDisponibles { get; protected set; } = [];
     public IReadOnlyList<StatusFilterOption> StatusFilterOptions { get; } =
     [
         new(AllStatusFilter, "Todos"),
@@ -97,6 +102,7 @@ public class ConfigIglesiasViewModel
     public bool CanSaveIglesia => !IsSaving && ValidateForm().Count == 0;
     public string FormTitle => IsEditing ? "Editar Iglesia" : "Nueva Iglesia";
     public string SaveButtonText => IsSaving ? "Guardando..." : "Guardar";
+    public string PastorResponsableNombre => GetPastorResponsableNombre(IglesiaForm);
 
     public enum IglesiaFormField
     {
@@ -126,6 +132,7 @@ public class ConfigIglesiasViewModel
         await LoadPaisesAsync();
         await LoadIglesiasAsync();
         await LoadEstructurasDisponiblesAsync();
+        await LoadPastoresDisponiblesAsync();
         StartNewIglesia();
     }
 
@@ -141,6 +148,13 @@ public class ConfigIglesiasViewModel
         {
             Iglesias = await _iglesiasApiService.GetIglesiasAsync(DenominacionId);
             await LoadUbicacionesDelListadoAsync();
+            if (PastoresDisponibles.Any())
+            {
+                foreach (var iglesia in Iglesias)
+                {
+                    SyncPastorResponsable(iglesia);
+                }
+            }
 
             if (SelectedIglesia is not null)
             {
@@ -211,9 +225,45 @@ public class ConfigIglesiasViewModel
         SelectEstructura(estructura);
     }
 
+    public async Task OpenPastorResponsableSelectorAsync()
+    {
+        if (!PastoresDisponibles.Any())
+            await LoadPastoresDisponiblesAsync();
+
+        var parameters = new DialogParameters
+        {
+            [nameof(PastorResponsableSelectorDialog.Pastores)] = PastoresDisponibles,
+            [nameof(PastorResponsableSelectorDialog.SelectedUsuarioId)] = IglesiaForm.PastorResponsableRegistroId
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large
+        };
+
+        var dialog = await _dialogService.ShowAsync<PastorResponsableSelectorDialog>(
+            "Seleccionar pastor responsable",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not UsuarioPastorResponseDTO pastor)
+            return;
+
+        SelectPastorResponsable(pastor);
+    }
+
     public void SelectEstructura(EstructuraOrganizacionalDto estructura)
     {
         IglesiaForm.EstructuraOrg = CloneEstructura(estructura);
+    }
+
+    public void SelectPastorResponsable(UsuarioPastorResponseDTO pastor)
+    {
+        IglesiaForm.PastorResponsableRegistroId = pastor.UsuarioId;
+        IglesiaForm.PastorResponsable = ClonePastor(pastor);
     }
 
     public async Task ClearEstructura()
@@ -283,6 +333,7 @@ public class ConfigIglesiasViewModel
             IglesiaForm.Telefono = NormalizeOptional(IglesiaForm.Telefono);
             IglesiaForm.Slogan = NormalizeOptional(IglesiaForm.Slogan);
             IglesiaForm.FechaActualizacion = DateTime.UtcNow;
+            EnsurePastorResponsableForSave();
 
             if (wasEditing)
             {
@@ -571,6 +622,7 @@ public class ConfigIglesiasViewModel
         AddIfNotNull(errors, ValidateSlug(IglesiaForm.Slug));
         AddIfNotNull(errors, ValidatePersoneriaJuridica(IglesiaForm.PersoneriaJuridica));
         AddIfNotNull(errors, ValidateCorreo(IglesiaForm.Correo));
+        AddIfNotNull(errors, ValidatePastorResponsable());
 
         if (DenominacionId <= 0)
             errors.Add("La denominación es obligatoria.");
@@ -613,8 +665,10 @@ public class ConfigIglesiasViewModel
             Telefono = iglesia.Telefono,
             Correo = iglesia.Correo,
             Slogan = iglesia.Slogan,
+            PastorResponsableRegistroId = iglesia.PastorResponsableRegistroId,
             Activa = iglesia.Activa,
             EstructuraOrg = iglesia.EstructuraOrg is null ? null : CloneEstructura(iglesia.EstructuraOrg),
+            PastorResponsable = iglesia.PastorResponsable is null ? null : ClonePastor(iglesia.PastorResponsable),
             FechaCreacion = iglesia.FechaCreacion,
             FechaActualizacion = iglesia.FechaActualizacion
         };
@@ -658,6 +712,45 @@ public class ConfigIglesiasViewModel
         {
             EstructurasDisponibles = [];
             _snackbar.Add("No fue posible cargar las estructuras organizacionales disponibles.", Severity.Error);
+        }
+    }
+
+    public string GetPastorResponsableNombre(IglesiaDto iglesia)
+    {
+        var pastor = iglesia.PastorResponsable;
+        if (pastor is null && iglesia.PastorResponsableRegistroId.HasValue)
+        {
+            pastor = PastoresDisponibles.FirstOrDefault(item => item.UsuarioId == iglesia.PastorResponsableRegistroId.Value);
+        }
+
+        var nombre = string.Join(' ', new[] { pastor?.Nombres, pastor?.Apellidos }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+
+        return string.IsNullOrWhiteSpace(nombre) ? "Sin pastor responsable" : nombre;
+    }
+
+    protected async Task LoadPastoresDisponiblesAsync()
+    {
+        if (DenominacionId <= 0)
+            return;
+
+        try
+        {
+            PastoresDisponibles = (await _usuariosApiService.GetPastoresAsync(DenominacionId))
+                .OrderBy(pastor => pastor.Nombres)
+                .ThenBy(pastor => pastor.Apellidos)
+                .ToList();
+
+            SyncPastorResponsable(IglesiaForm);
+            foreach (var iglesia in Iglesias)
+            {
+                SyncPastorResponsable(iglesia);
+            }
+        }
+        catch
+        {
+            PastoresDisponibles = [];
+            _snackbar.Add("No fue posible cargar los pastores disponibles.", Severity.Error);
         }
     }
 
@@ -800,6 +893,33 @@ public class ConfigIglesiasViewModel
             errors.Add(error);
     }
 
+    private string? ValidatePastorResponsable()
+    {
+        return IglesiaForm.PastorResponsableRegistroId.HasValue && IglesiaForm.PastorResponsableRegistroId.Value > 0
+            ? null
+            : "El pastor responsable es obligatorio.";
+    }
+
+    private void EnsurePastorResponsableForSave()
+    {
+        if (IglesiaForm.PastorResponsableRegistroId.HasValue && IglesiaForm.PastorResponsableRegistroId.Value > 0)
+            return;
+
+        IglesiaForm.PastorResponsableRegistroId = IglesiaForm.PastorResponsable?.UsuarioId;
+    }
+
+    private void SyncPastorResponsable(IglesiaDto iglesia)
+    {
+        if (!iglesia.PastorResponsableRegistroId.HasValue)
+        {
+            iglesia.PastorResponsable = null;
+            return;
+        }
+
+        var pastor = PastoresDisponibles.FirstOrDefault(item => item.UsuarioId == iglesia.PastorResponsableRegistroId.Value);
+        iglesia.PastorResponsable = pastor is null ? null : ClonePastor(pastor);
+    }
+
     private void ResetIglesiaFormInteraction()
     {
         _touchedIglesiaFields.Clear();
@@ -825,6 +945,19 @@ public class ConfigIglesiasViewModel
             Estado = estructura.Estado,
             FechaCreacion = estructura.FechaCreacion,
             FechaActualizacion = estructura.FechaActualizacion
+        };
+    }
+
+    private static UsuarioPastorResponseDTO ClonePastor(UsuarioPastorResponseDTO pastor)
+    {
+        return new UsuarioPastorResponseDTO
+        {
+            UsuarioId = pastor.UsuarioId,
+            Nombres = pastor.Nombres,
+            Apellidos = pastor.Apellidos,
+            Direccion = pastor.Direccion,
+            Telefono = pastor.Telefono,
+            Correo = pastor.Correo
         };
     }
 

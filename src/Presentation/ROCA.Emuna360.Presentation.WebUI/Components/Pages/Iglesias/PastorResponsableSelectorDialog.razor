@@ -1,0 +1,141 @@
+@using ROCA.Emuna360.Application.DTOs.Security
+
+<MudDialog>
+    <DialogContent>
+        @if (!Pastores.Any())
+        {
+            <MudPaper Class="empty-state pa-8 ma-4" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.PersonSearch"
+                         Size="Size.Large"
+                         Color="Color.Default"
+                         Class="mb-3" />
+                <MudText Typo="Typo.h6" Class="mud-text-secondary mb-2">
+                    No hay pastores disponibles
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                    Verifique los usuarios y roles registrados en la denominacion actual
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <MudTextField T="string"
+                          Label="Buscar pastor"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Clearable="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Class="pb-2"
+                          @bind-Value="_searchText" />
+
+            <div class="pastores-scroll">
+                <MudTable T="UsuarioPastorResponseDTO"
+                          Items="@FilteredPastores"
+                          Dense="true"
+                          Hover="true"
+                          Bordered="false"
+                          Elevation="0"
+                          Breakpoint="Breakpoint.Sm">
+                    <HeaderContent>
+                        <MudTh>UsuarioId</MudTh>
+                        <MudTh>Nombres</MudTh>
+                        <MudTh>Apellidos</MudTh>
+                        <MudTh>Telefono</MudTh>
+                        <MudTh>Correo</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="UsuarioId">@context.UsuarioId</MudTd>
+                        <MudTd DataLabel="Nombres">@context.Nombres</MudTd>
+                        <MudTd DataLabel="Apellidos">@context.Apellidos</MudTd>
+                        <MudTd DataLabel="Telefono">@context.Telefono</MudTd>
+                        <MudTd DataLabel="Correo">@context.Correo</MudTd>
+                        <MudTd DataLabel="Seleccionar" Class="text-end">
+                            <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
+                                           Color="@(SelectedUsuarioId == context.UsuarioId ? Color.Success : Color.Primary)"
+                                           Size="Size.Small"
+                                           title="Seleccionar pastor"
+                                           OnClick="@(() => Select(context))" />
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary pa-4">
+                            No se encontraron pastores con ese criterio.
+                        </MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .empty-state {
+        align-items: center;
+        background-color: var(--mud-palette-action-disabled-background);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 18rem;
+        text-align: center;
+    }
+
+    .pastores-scroll {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+</style>
+
+@code {
+    private string? _searchText;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public IReadOnlyList<UsuarioPastorResponseDTO> Pastores { get; set; } = [];
+
+    [Parameter]
+    public int? SelectedUsuarioId { get; set; }
+
+    private IReadOnlyList<UsuarioPastorResponseDTO> FilteredPastores => Pastores
+        .Where(MatchesSearch)
+        .OrderBy(pastor => pastor.Nombres)
+        .ThenBy(pastor => pastor.Apellidos)
+        .ToList();
+
+    private bool MatchesSearch(UsuarioPastorResponseDTO pastor)
+    {
+        var term = _searchText?.Trim();
+        if (string.IsNullOrWhiteSpace(term))
+            return true;
+
+        return ContainsTerm(pastor.UsuarioId.ToString(), term)
+            || ContainsTerm(pastor.Nombres, term)
+            || ContainsTerm(pastor.Apellidos, term)
+            || ContainsTerm(pastor.Telefono, term)
+            || ContainsTerm(pastor.Correo, term);
+    }
+
+    private static bool ContainsTerm(string? value, string term)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(term, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void Select(UsuarioPastorResponseDTO pastor)
+    {
+        MudDialog.Close(DialogResult.Ok(pastor));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

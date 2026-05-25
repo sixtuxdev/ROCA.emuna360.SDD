@@ -8,6 +8,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
 {
     public AdminIglesiaViewModel(
         IglesiasApiService iglesiasApiService,
+        UsuariosApiService usuariosApiService,
         IglesiasEstructurasApiService iglesiasEstructurasApiService,
         EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
         GeographyApiService geographyApiService,
@@ -19,6 +20,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
         )
         : base(
             iglesiasApiService,
+            usuariosApiService,
             iglesiasEstructurasApiService,
             estructuraOrganizacionalApiService,
             geographyApiService,
@@ -62,6 +64,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
 
         await LoadPaisesAsync();
         await LoadEstructurasDisponiblesAsync();
+        await LoadPastoresDisponiblesAsync();
         await LoadAdminIglesiaAsync();
     }
 
@@ -81,6 +84,11 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
             }
 
             await RefreshEstructuraForIglesiaAsync(iglesia);
+            if (PastoresDisponibles.Any())
+            {
+                var pastor = PastoresDisponibles.FirstOrDefault(item => item.UsuarioId == iglesia.PastorResponsableRegistroId);
+                iglesia.PastorResponsable = pastor;
+            }
             Iglesias = [iglesia];
             SelectedIglesia = iglesia;
             IglesiaForm = CloneIglesia(iglesia);

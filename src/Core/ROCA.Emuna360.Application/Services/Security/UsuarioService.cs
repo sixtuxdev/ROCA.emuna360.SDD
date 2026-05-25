@@ -1,9 +1,9 @@
-using ROCA.Emuna360.Domain.Entities.Security;
 using AutoMapper;
 using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 using ROCA.Emuna360.Application.Interfaces.Services.Security;
 using ROCA.Emuna360.Domain.Common.Results;
+using ROCA.Emuna360.Domain.Entities.Security;
 
 namespace ROCA.Emuna360.Application.Services.Security;
 
@@ -52,6 +52,15 @@ public class UsuarioService : MultiOrganizationalBaseService<UsuarioDto, Usuario
                password.StartsWith("$2b$") ||
                password.StartsWith("$2x$") ||
                password.StartsWith("$2y$");
+    }
+
+    public async Task<Result<IEnumerable<UsuarioPastorResponseDTO>>> GetPastores(int denominacionId)
+    {
+        if (denominacionId <= 0)
+            return Result<IEnumerable<UsuarioPastorResponseDTO>>.Failure("La denominacion es obligatoria.");
+
+        var entities = await _specificRepository.GetPastores(denominacionId);
+        return Result<IEnumerable<UsuarioPastorResponseDTO>>.Success(_mapper.Map<IEnumerable<UsuarioPastorResponseDTO>>(entities));
     }
 }
 

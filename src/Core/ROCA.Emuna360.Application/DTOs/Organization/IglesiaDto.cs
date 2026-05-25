@@ -1,4 +1,5 @@
 using ROCA.Emuna360.Application.Common;
+using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Application.DTOs.Structure;
 
 namespace ROCA.Emuna360.Application.DTOs.Organization;
@@ -18,7 +19,9 @@ public class IglesiaDto : BaseAuditDto
     public string? Telefono { get; set; }
     public string? Correo { get; set; }
     public string? Slogan { get; set; }
+    public int? PastorResponsableRegistroId { get; set; }
     public bool Activa { get; set; }
 
     public EstructuraOrganizacionalDto? EstructuraOrg { get; set; }
+    public UsuarioPastorResponseDTO? PastorResponsable { get; set; }
 }
