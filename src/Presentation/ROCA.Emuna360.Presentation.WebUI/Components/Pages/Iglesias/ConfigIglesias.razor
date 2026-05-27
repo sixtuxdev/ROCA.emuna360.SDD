@@ -92,11 +92,7 @@
                         <Columns>
                             <PropertyColumn Property="iglesia => iglesia.Nombre" Title="Nombre Iglesia" />
                             <PropertyColumn Property="iglesia => iglesia.Slug" Title="Slug" />
-                            <TemplateColumn Title="Ciudad o Corregimiento">
-                                <CellTemplate>
-                                    @ViewModel.GetUbicacion(context.Item)
-                                </CellTemplate>
-                            </TemplateColumn>
+                            <PropertyColumn Property="iglesia => iglesia.CiudadCorregimiento" Title="Ciudad o Corregimiento" />                                                        
                             <PropertyColumn Property="iglesia => iglesia.Correo" Title="Correo" />
                             <TemplateColumn Title="Estado">
                                 <CellTemplate>

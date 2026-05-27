@@ -14,6 +14,7 @@ public sealed class MenuViewModel
     }
 
     public IReadOnlyList<AuthMenuDto> Menus { get; private set; } = [];
+    public IReadOnlyList<AuthRoleDto> Roles { get; private set; } = [];
     public Dictionary<int, bool> ExpandedGroups { get; } = new();
     public bool IsLoading { get; private set; } = true;
 
@@ -24,6 +25,7 @@ public sealed class MenuViewModel
             Menus = (await _tokenStorage.GetMenusAsync())
                 .OrderBy(menu => menu.Orden)
                 .ToList();
+            Roles = await _tokenStorage.GetRolesAsync();
 
             foreach (var grupo in Menus.Where(menu => NormalizarTipo(menu.Tipo) == "G"))
             {
@@ -37,6 +39,7 @@ public sealed class MenuViewModel
     }
 
     public IEnumerable<AuthMenuDto> Groups => Menus.Where(menu => NormalizarTipo(menu.Tipo) == "G");
+    public bool CanShowRegistroFallback => !HasRegistroMenu && Roles.Any(IsRegistroRole);
 
     public IReadOnlyList<AuthMenuDto> GetChildren(AuthMenuDto group)
     {
@@ -46,6 +49,10 @@ public sealed class MenuViewModel
                 menu.IdGrupo.Value == group.MenuId)
             .ToList();
     }
+
+    private bool HasRegistroMenu => Menus.Any(menu =>
+        NormalizeUrl(menu.Url).Equals("registro", StringComparison.OrdinalIgnoreCase)
+        || NormalizeUrl(menu.Url).Equals("registro/", StringComparison.OrdinalIgnoreCase));
 
     public static string NormalizeUrl(string url)
     {
@@ -184,5 +191,30 @@ public sealed class MenuViewModel
             "O" => "S",
             _ => string.Empty
         };
+    }
+
+    private static bool IsRegistroRole(AuthRoleDto role)
+    {
+        var code = NormalizeRole(role.Codigo);
+        var name = NormalizeRole(role.Nombre);
+
+        return IsAllowedRegistroRole(code) || IsAllowedRegistroRole(name);
+    }
+
+    private static bool IsAllowedRegistroRole(string value)
+    {
+        return value.Contains("ADMINISTRADOR", StringComparison.Ordinal)
+            || value.Contains("PASTOR", StringComparison.Ordinal)
+            || value.Contains("SECRETARIA", StringComparison.Ordinal);
+    }
+
+    private static string NormalizeRole(string? value)
+    {
+        return (value ?? string.Empty).Trim().ToUpperInvariant()
+            .Replace("É", "E")
+            .Replace("Á", "A")
+            .Replace("Í", "I")
+            .Replace("Ó", "O")
+            .Replace("Ú", "U");
     }
 }

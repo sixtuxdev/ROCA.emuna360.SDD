@@ -15,6 +15,7 @@ public class IglesiaDto : BaseAuditDto
     public int? DepartamentoId { get; set; }
     public int? CiudadId { get; set; }
     public int? CorregimientoId { get; set; }
+    public string? CiudadCorregimiento { get; set; }
     public string? Direccion { get; set; }
     public string? Telefono { get; set; }
     public string? Correo { get; set; }

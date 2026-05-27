@@ -1,0 +1,84 @@
+Necesito que leas la SPEC-012 ubicada en la siguiente ruta:
+
+\docs\specs\SPEC-012-Registro-MVVM-UI.md
+
+Con base en esa SPEC, crea un plan de implementación en español para el módulo de Registro.
+
+IMPORTANTE:
+No debes ejecutar cambios todavía.
+No debes modificar archivos.
+No debes crear archivos.
+No debes eliminar archivos.
+No debes aplicar código.
+No debes instalar paquetes.
+No debes hacer commits.
+
+Primero necesito ver claramente qué vas a hacer para poder revisarlo y aprobarlo antes de que ejecutes cualquier implementación.
+
+El plan debe incluir como mínimo:
+
+1. Resumen de lo que entendiste de la SPEC-012.
+
+2. Archivos que vas a revisar antes de implementar, incluyendo como mínimo:
+   - \docs\specs\SPEC-012-Registro-MVVM-UI.md
+   - Controllers/Registry/RegistroController.cs
+   - Components/Pages/Iglesias/ConfigIglesias.razor o el componente equivalente existente que sirva como referencia visual
+   - ViewModels relacionados con ConfigIglesias
+   - Servicios actuales dentro de ROCA.Emuna360.Presentation.WebUI/Services
+   - Archivos relacionados con menú, rutas, permisos o roles
+   - Modelos, entidades o DTOs relacionados con Registro y RegistroDto
+
+3. Propuesta de estructura de archivos a crear o modificar.
+
+4. Flujo propuesto para acceso desde Login:
+   - Cómo se accederá al módulo.
+   - Cómo se identificará que viene desde Login.
+   - Cómo se asignará Interno = false.
+
+5. Flujo propuesto para acceso desde Menú:
+   - Cómo se agregará la opción del menú.
+   - Cómo se validará el rol permitido o configurado.
+   - Cómo se asignará Interno = true.
+
+6. Propuesta para RegistroApiService.cs:
+   - Métodos que se crearán.
+   - Endpoints que consumirá.
+   - Cómo manejará las respuestas.
+   - Cómo respetará la arquitectura actual.
+
+7. Propuesta para AdminRegistro.razor:
+   - Ubicación exacta.
+   - Diseño de dos secciones izquierda/derecha.
+   - Componentes MudBlazor que se usarán.
+   - Relación con el ViewModel.
+   - Cómo cargará registros por Denominación.
+   - Cómo creará registros.
+
+8. Propuesta MVVM:
+   - ViewModel a crear o modificar.
+   - Responsabilidades del ViewModel.
+   - Responsabilidades del componente Razor.
+   - Responsabilidades del servicio API.
+
+9. Validaciones previstas:
+   - Campos requeridos.
+   - Manejo de errores.
+   - Mensajes al usuario.
+   - Validación de DenominaciónId.
+   - Validación del campo Interno.
+
+10. Riesgos o puntos que debes confirmar antes de implementar:
+   - Nombres reales de endpoints del RegistroController.
+   - Estructura exacta de RegistroDto.
+   - Cómo se obtiene actualmente DenominacionId.
+   - Cómo se manejan actualmente los permisos del menú.
+   - Si ya existe alguna ruta pública desde Login para componentes similares.
+   - Si el módulo debe permitir edición o únicamente creación y consulta.
+
+11. Orden de implementación propuesto, paso a paso.
+
+12. Criterios para considerar terminada la implementación.
+
+El resultado debe ser únicamente el plan de implementación en español.
+
+No ejecutes nada hasta que yo apruebe el plan.

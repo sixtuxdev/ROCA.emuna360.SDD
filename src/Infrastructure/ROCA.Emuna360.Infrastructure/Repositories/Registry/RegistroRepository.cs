@@ -39,6 +39,8 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
+        parameters.Add("@Interno", entity.Interno);
+
         return await ExecuteCreateAsync("usp_Registro_Insertar", parameters, "@OutRegistroId");
     }
 

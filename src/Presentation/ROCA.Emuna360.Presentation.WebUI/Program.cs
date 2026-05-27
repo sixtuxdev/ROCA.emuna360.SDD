@@ -10,6 +10,7 @@ using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Parameters;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Structure;
 
 
@@ -51,6 +52,7 @@ builder.Services.AddScoped<IglesiaStateService>();
 builder.Services.AddScoped<ConfigClasesViewModel>();
 builder.Services.AddScoped<ConfigIglesiasViewModel>();
 builder.Services.AddScoped<AdminIglesiaViewModel>();
+builder.Services.AddScoped<AdminRegistroViewModel>();
 builder.Services.AddScoped<ConfigEstructuraOrganizacionalViewModel>();
 
 // API Client
@@ -67,6 +69,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new UsuariosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));

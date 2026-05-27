@@ -16,4 +16,9 @@
     <ProjectReference Include="..\..\Core\ROCA.Emuna360.Application\ROCA.Emuna360.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ROCA.Emuna360.Infrastructure\ROCA.Emuna360.Infrastructure.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Components\Pages\Registry\" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,410 @@
+@page "/registro"
+@page "/register"
+@using ROCA.Emuna360.Application.DTOs.Registry
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry
+@inject AdminRegistroViewModel ViewModel
+@inject NavigationManager Navigation
+
+<PageTitle>Registro - ROCA.Emuna360</PageTitle>
+
+<section class="admin-registro-shell">
+    <div class="admin-registro-header">
+        <div>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="admin-registro-title">Registro</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">@ViewModel.SourceLabel</MudText>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+    }
+
+    <MudGrid Spacing="3">
+        <MudItem xs="12" lg="7">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <div class="panel-toolbar">
+                    <div>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">Registros</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">Listado asociado a la denominacion</MudText>
+                    </div>
+                    <div class="toolbar-actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Secondary"
+                                       Disabled="@ViewModel.IsLoading"
+                                       OnClick="ViewModel.LoadRegistrosAsync" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="ViewModel.StartNewRegistro">
+                            Nuevo Registro
+                        </MudButton>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <MudTextField T="string"
+                                  Label="Buscar registros"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  @bind-Value="ViewModel.SearchText" />
+                </div>
+
+                @if (ViewModel.IsLoading)
+                {
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-4" />
+                }
+                else if (!ViewModel.HasRegistros)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No hay registros para mostrar.
+                    </MudAlert>
+                }
+                else if (!ViewModel.FilteredRegistros.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                        No se encontraron registros con los filtros aplicados.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudDataGrid T="RegistroDto"
+                                 Items="@ViewModel.FilteredRegistros"
+                                 Dense="true"
+                                 Hover="true"
+                                 Striped="false"
+                                 Bordered="false"
+                                 Elevation="0"
+                                 RowsPerPage="10"
+                                 Class="registros-grid mt-4">
+                        <Columns>
+                            <TemplateColumn Title="Nombre">
+                                <CellTemplate>
+                                    @($"{context.Item.Nombres} {context.Item.Apellidos}".Trim())
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <PropertyColumn Property="registro => registro.Documento" Title="Documento" />
+                            <PropertyColumn Property="registro => registro.Correo" Title="Correo" />
+                            <TemplateColumn Title="Iglesia">
+                                <CellTemplate>
+                                    @ViewModel.GetIglesiaNombre(context.Item.IglesiaId)
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Origen">
+                                <CellTemplate>
+                                    <MudChip T="string"
+                                             Size="Size.Small"
+                                             Color="@(context.Item.Interno == true ? Color.Primary : Color.Secondary)"
+                                             Variant="Variant.Outlined">
+                                        @(context.Item.Interno == true ? "Interno" : "Externo")
+                                    </MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="RegistroDto" />
+                        </PagerContent>
+                    </MudDataGrid>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" lg="5">
+            <MudPaper Elevation="1" Class="config-panel pa-4">
+                <MudText Typo="Typo.h6" Color="Color.Primary">Nuevo Registro</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">Complete la informacion de la persona</MudText>
+
+                <MudGrid Spacing="2">
+                    <MudItem xs="12">
+                        <MudSelect T="int"
+                                   Label="Iglesia"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Required="true"
+                                   Disabled="@ViewModel.EsInterno"
+                                   Value="@ViewModel.RegistroForm.IglesiaId"
+                                   ValueChanged="ViewModel.ChangeIglesiaAsync"
+                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Iglesia))"
+                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Iglesia))"
+                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Iglesia)">
+                            @foreach (var iglesia in ViewModel.Iglesias)
+                            {
+                                <MudSelectItem T="int" Value="@iglesia.IglesiaId">@iglesia.Nombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Nombres"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Required="true"
+                                      @bind-Value="ViewModel.RegistroForm.Nombres"
+                                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Nombres))"
+                                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Nombres))"
+                                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Nombres)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Apellidos"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Required="true"
+                                      @bind-Value="ViewModel.RegistroForm.Apellidos"
+                                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Apellidos))"
+                                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Apellidos))"
+                                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Apellidos)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Tipo documento"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Required="true"
+                                   @bind-Value="ViewModel.RegistroForm.ParametroIdTipoDocumento"
+                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.TipoDocumento))"
+                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.TipoDocumento))"
+                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.TipoDocumento)">
+                            @foreach (var tipo in ViewModel.TipoDocumentoOptions)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)tipo.ParametroId)">@tipo.Descripcion</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Documento"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Required="true"
+                                      @bind-Value="ViewModel.RegistroForm.Documento"
+                                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Documento))"
+                                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Documento))"
+                                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Documento)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int"
+                                   Label="Sexo"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Required="true"
+                                   @bind-Value="ViewModel.RegistroForm.ParametroIdSexo"
+                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Sexo))"
+                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Sexo))"
+                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Sexo)">
+                            @foreach (var sexo in ViewModel.SexoOptions)
+                            {
+                                <MudSelectItem T="int" Value="@sexo.ParametroId">@sexo.Descripcion</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Correo"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      @bind-Value="ViewModel.RegistroForm.Correo"
+                                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Correo))"
+                                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Correo))"
+                                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Correo)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Telefono"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      @bind-Value="ViewModel.RegistroForm.Telefono" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Pais"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Value="@ViewModel.RegistroForm.PaisId"
+                                   ValueChanged="ViewModel.ChangePaisAsync">
+                            @foreach (var pais in ViewModel.Paises)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)pais.PaisId)">@pais.PaisNombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Departamento"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Disabled="@(!ViewModel.Departamentos.Any())"
+                                   Value="@ViewModel.RegistroForm.DepartamentoId"
+                                   ValueChanged="ViewModel.ChangeDepartamentoAsync">
+                            @foreach (var departamento in ViewModel.Departamentos)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)departamento.DepartamentoId)">@departamento.DepartamentoNombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Ciudad"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Disabled="@(!ViewModel.Ciudades.Any())"
+                                   Value="@ViewModel.RegistroForm.CiudadId"
+                                   ValueChanged="ViewModel.ChangeCiudadAsync">
+                            @foreach (var ciudad in ViewModel.Ciudades)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)ciudad.CiudadId)">@ciudad.CiudadNombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Corregimiento"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Disabled="@(!ViewModel.Corregimientos.Any())"
+                                   Value="@ViewModel.RegistroForm.CorregimientoId"
+                                   ValueChanged="ViewModel.ChangeCorregimiento">
+                            @foreach (var corregimiento in ViewModel.Corregimientos)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)corregimiento.CorregimientoId)">@corregimiento.CorregimientoNombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField T="string"
+                                      Label="Direccion"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      Lines="2"
+                                      @bind-Value="ViewModel.RegistroForm.Direccion" />
+                    </MudItem>
+                </MudGrid>
+
+                <div class="form-actions mt-4">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               Disabled="@ViewModel.IsSaving"
+                               OnClick="ViewModel.StartNewRegistro">
+                        Limpiar
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               Disabled="@(!ViewModel.CanSaveRegistro)"
+                               OnClick="ViewModel.SaveRegistroAsync">
+                        @if (ViewModel.IsSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Guardando...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Guardar</MudText>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</section>
+
+<style>
+    .admin-registro-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .admin-registro-header,
+    .panel-toolbar,
+    .toolbar-actions,
+    .filter-row,
+    .form-actions {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+
+    .admin-registro-header,
+    .panel-toolbar {
+        justify-content: space-between;
+    }
+
+    .admin-registro-title {
+        font-weight: 700;
+    }
+
+    .config-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+    .filter-row {
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .filter-row > * {
+        width: 100%;
+    }
+
+    .toolbar-actions,
+    .form-actions {
+        justify-content: flex-end;
+    }
+
+    .registros-grid {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        overflow: hidden;
+    }
+
+    @@media (max-width: 600px) {
+        .panel-toolbar,
+        .toolbar-actions,
+        .form-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .toolbar-actions,
+        .form-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/');
+        await ViewModel.InitializeAsync(!relativePath.Equals("register", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool HasError(string? error)
+    {
+        return !string.IsNullOrWhiteSpace(error);
+    }
+}

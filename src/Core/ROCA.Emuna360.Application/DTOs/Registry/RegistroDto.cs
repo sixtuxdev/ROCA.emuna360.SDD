@@ -19,4 +19,5 @@ public class RegistroDto : BaseAuditDto
     public string? Correo { get; set; }
     public string? Telefono { get; set; }
     public int ParametroIdSexo { get; set; }
+    public bool? Interno { get; set; }
 }

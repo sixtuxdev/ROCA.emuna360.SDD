@@ -15,6 +15,7 @@
     <File Path="docs/decisions/HU-009-Clase Parámetros-MVVM-UI.md" />
     <File Path="docs/decisions/HU-010-Configuracion-Iglesias-MVVM-UI.md" />
     <File Path="docs/decisions/HU-011-Estructura-Organizacional-MVVM-UI.md" />
+    <File Path="docs/decisions/HU-012-Registro-MVVM-UI.md" />
   </Folder>
   <Folder Name="/docs/doc/">
     <File Path="docs/doc/RESP_SPEC-001-RESULTADO - Validación de Arquitectura Base.md" />
@@ -26,6 +27,7 @@
     <File Path="3_PROMPT_DOCUMENTAR_SPEC_001.txt" />
     <File Path="4_promtp_spec_002.txt" />
     <File Path="docs/prompts/5_promtp_spec_010.txt" />
+    <File Path="docs/prompts/6_promtp_spec_012.txt" />
   </Folder>
   <Folder Name="/docs/specs/">
     <File Path="docs/specs/HU-008-Aplicar-Patron-MVVM-UI.md" />
@@ -39,6 +41,7 @@
     <File Path="docs/specs/SPEC-009-Clase Parámetros-MVVM-UI.md.md" />
     <File Path="docs/specs/SPEC-010-Configuracion-Iglesias-MVVM-UI.md" />
     <File Path="docs/specs/SPEC-011-Estructura-Organizacional-MVVM-UI.md" />
+    <File Path="docs/specs/SPEC-012-Registro-MVVM-UI.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">

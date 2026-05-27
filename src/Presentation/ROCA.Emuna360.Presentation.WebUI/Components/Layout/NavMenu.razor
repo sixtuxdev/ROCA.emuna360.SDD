@@ -62,6 +62,27 @@
                 </MudNavLink>
             }
         }
+
+        @if (ViewModel.CanShowRegistroFallback)
+        {
+            <MudNavLink Href="registro"
+                        Icon="@Icons.Material.Filled.AppRegistration"
+                        IconColor="Color.Tertiary"
+                        Match="NavLinkMatch.Prefix"
+                        Class="roca-nav-link">
+                Registro
+            </MudNavLink>
+        }
+    }
+    else if (ViewModel.CanShowRegistroFallback)
+    {
+        <MudNavLink Href="registro"
+                    Icon="@Icons.Material.Filled.AppRegistration"
+                    IconColor="Color.Tertiary"
+                    Match="NavLinkMatch.Prefix"
+                    Class="roca-nav-link">
+            Registro
+        </MudNavLink>
     }
     else if (!ViewModel.IsLoading)
     {
