@@ -23,4 +23,12 @@ public class ParametroController : MultiOrganizationalBaseController<ParametroDt
         if (result.IsFailure) return BadRequest(new { error = result.Error });
         return this.ToOk(result.Value);
     }
+
+    [HttpGet("nombre-clase/{nombreClase}/denominacion/{denominacionId}")]
+    public async Task<IActionResult> GetParametrosByNombreClase(string nombreClase, int denominacionId)
+    {
+        var result = await _parametroService.GetByNombreClaseAsync(denominacionId, nombreClase);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
+    }
 }

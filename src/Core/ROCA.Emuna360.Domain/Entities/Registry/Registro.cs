@@ -18,4 +18,5 @@ public class Registro
     public string? Telefono { get; set; }
     public int ParametroIdSexo { get; set; }
     public bool? Interno { get; set; }
+    public int? ParametroIdInteres { get; set; }
 }

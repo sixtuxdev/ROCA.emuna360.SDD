@@ -49,6 +49,13 @@ public sealed class ParametersApiService
         return response?.Data ?? [];
     }
 
+    public async Task<IReadOnlyList<ParametroDto>> GetParametrosByNombreClase(string nombreClase, int denominacionId)
+    {
+        var nombreClaseEncoded = Uri.EscapeDataString(nombreClase);
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<ParametroDto>>>($"api/v1/parametros/nombre-clase/{nombreClaseEncoded}/denominacion/{denominacionId}");
+        return response?.Data ?? [];
+    }
+
     public async Task<int?> CreateParametroAsync(ParametroDto parametro)
     {
         var response = await _httpClient.PostAsJsonAsync("api/v1/parametros", parametro);

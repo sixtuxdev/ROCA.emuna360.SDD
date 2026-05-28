@@ -9,4 +9,5 @@ public interface IParametroRepository : IMultiOrganizationalRepository<Parametro
 {
     Task<IEnumerable<Parametro>> GetByDenominacionAsync(int denominacionId);
     Task<IEnumerable<Parametro>> GetByClaseAsync(int denominacionId, int claseId);
+    Task<IEnumerable<Parametro>> GetByNombreClaseAsync(int denominacionId, string nombreClase);
 }

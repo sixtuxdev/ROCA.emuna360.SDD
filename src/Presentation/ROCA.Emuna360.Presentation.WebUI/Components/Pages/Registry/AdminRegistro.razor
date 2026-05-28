@@ -119,22 +119,12 @@
 
                 <MudGrid Spacing="2">
                     <MudItem xs="12">
-                        <MudSelect T="int"
-                                   Label="Iglesia"
-                                   Variant="Variant.Outlined"
-                                   Margin="Margin.Dense"
-                                   Required="true"
-                                   Disabled="@ViewModel.EsInterno"
-                                   Value="@ViewModel.RegistroForm.IglesiaId"
-                                   ValueChanged="ViewModel.ChangeIglesiaAsync"
-                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Iglesia))"
-                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Iglesia))"
-                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Iglesia)">
-                            @foreach (var iglesia in ViewModel.Iglesias)
-                            {
-                                <MudSelectItem T="int" Value="@iglesia.IglesiaId">@iglesia.Nombre</MudSelectItem>
-                            }
-                        </MudSelect>
+                        <MudTextField T="string"
+                                      Label="Iglesia"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Disabled="true"
+                                      Value="@ViewModel.IglesiaNombre" />
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
@@ -194,7 +184,7 @@
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int"
+                        <MudSelect T="int?"
                                    Label="Sexo"
                                    Variant="Variant.Outlined"
                                    Margin="Margin.Dense"
@@ -205,9 +195,9 @@
                                    ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Sexo)">
                             @foreach (var sexo in ViewModel.SexoOptions)
                             {
-                                <MudSelectItem T="int" Value="@sexo.ParametroId">@sexo.Descripcion</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@((int?)sexo.ParametroId)">@sexo.Descripcion</MudSelectItem>
                             }
-                        </MudSelect>
+                        </MudSelect>                        
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
@@ -289,7 +279,22 @@
                             }
                         </MudSelect>
                     </MudItem>
-
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Interés"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Required="true"
+                                   @bind-Value="ViewModel.RegistroForm.ParametroIdInteres"
+                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Interes))"
+                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Interes))"
+                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Interes)">
+                            @foreach (var tipo in ViewModel.InteresOptions)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)tipo.ParametroId)">@tipo.Descripcion</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
                     <MudItem xs="12">
                         <MudTextField T="string"
                                       Label="Direccion"

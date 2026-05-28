@@ -23,6 +23,7 @@ public sealed class AdminRegistroViewModel
     private readonly NavigationManager _navigation;
     private readonly IConfiguration _configuration;
     private readonly HashSet<RegistroFormField> _touchedFields = [];
+    private IglesiaDto? _iglesia;
     private string _searchText = string.Empty;
 
     public AdminRegistroViewModel(
@@ -54,9 +55,9 @@ public sealed class AdminRegistroViewModel
     public string? ErrorMessage { get; private set; }
     public IReadOnlyList<RegistroDto> Registros { get; private set; } = [];
     public RegistroDto RegistroForm { get; private set; } = NewRegistro();
-    public IReadOnlyList<IglesiaDto> Iglesias { get; private set; } = [];
     public IReadOnlyList<ParametroDto> TipoDocumentoOptions { get; private set; } = [];
     public IReadOnlyList<ParametroDto> SexoOptions { get; private set; } = [];
+    public IReadOnlyList<ParametroDto> InteresOptions { get; private set; } = [];
     public IReadOnlyList<PaisDto> Paises { get; private set; } = [];
     public IReadOnlyList<DepartamentoDto> Departamentos { get; private set; } = [];
     public IReadOnlyList<CiudadDto> Ciudades { get; private set; } = [];
@@ -76,6 +77,7 @@ public sealed class AdminRegistroViewModel
 
     public bool HasRegistros => Registros.Any();
     public string SourceLabel => EsInterno ? "Registro interno" : "Registro externo";
+    public string IglesiaNombre => string.IsNullOrWhiteSpace(_iglesia?.Nombre) ? "Sin iglesia" : _iglesia.Nombre;
     public bool CanSaveRegistro => !IsSaving && ValidateForm().Count == 0;
 
     public enum RegistroFormField
@@ -86,7 +88,8 @@ public sealed class AdminRegistroViewModel
         Documento,
         TipoDocumento,
         Sexo,
-        Correo
+        Correo,
+        Interes
     }
 
     public async Task InitializeAsync(bool esInterno)
@@ -113,7 +116,7 @@ public sealed class AdminRegistroViewModel
         }
 
         await LoadCatalogsAsync();
-        await LoadIglesiasAsync();
+        await LoadIglesiaAsync();
         StartNewRegistro();
         await LoadRegistrosAsync();
     }
@@ -204,17 +207,6 @@ public sealed class AdminRegistroViewModel
         }
     }
 
-    public async Task ChangeIglesiaAsync(int iglesiaId)
-    {
-        RegistroForm.IglesiaId = iglesiaId;
-
-        if (!EsInterno)
-        {
-            IglesiaId = iglesiaId;
-            await LoadRegistrosAsync();
-        }
-    }
-
     public async Task ChangePaisAsync(int? paisId)
     {
         RegistroForm.PaisId = paisId;
@@ -281,7 +273,7 @@ public sealed class AdminRegistroViewModel
 
     public string GetIglesiaNombre(int iglesiaId)
     {
-        return Iglesias.FirstOrDefault(iglesia => iglesia.IglesiaId == iglesiaId)?.Nombre ?? "Sin iglesia";
+        return _iglesia?.IglesiaId == iglesiaId ? IglesiaNombre : "Sin iglesia";
     }
 
     private async Task LoadCatalogsAsync()
@@ -292,20 +284,12 @@ public sealed class AdminRegistroViewModel
         try
         {
             var clases = await _parametersApiService.GetClasesAsync(DenominacionId);
-            var parametros = await _parametersApiService.GetParametrosByDenominacionAsync(DenominacionId);
-            var tipoDocumentoClaseIds = clases.Where(IsTipoDocumentoClase).Select(clase => clase.ClaseId).ToHashSet();
-            var sexoClaseIds = clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
+            //var parametros = await _parametersApiService.GetParametrosByClaseAsync(1, DenominacionId);
 
-            TipoDocumentoOptions = parametros
-                .Where(parametro => parametro.Estado && tipoDocumentoClaseIds.Contains(parametro.ClaseId))
-                .OrderBy(parametro => parametro.Descripcion)
-                .ToList();
-
-            SexoOptions = parametros
-                .Where(parametro => parametro.Estado && sexoClaseIds.Contains(parametro.ClaseId))
-                .OrderBy(parametro => parametro.Descripcion)
-                .ToList();
-
+            TipoDocumentoOptions = await _parametersApiService.GetParametrosByNombreClase("Tipos de Documentos", DenominacionId);//clases.Where(IsTipoDocumentoClase).Select(clase => clase.ClaseId).ToHashSet();
+            SexoOptions = await _parametersApiService.GetParametrosByNombreClase("Sexo", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
+            InteresOptions = await _parametersApiService.GetParametrosByNombreClase("Interés", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
+            //GetParametrosByNombreClase
             await LoadPaisesAsync();
         }
         catch
@@ -314,22 +298,23 @@ public sealed class AdminRegistroViewModel
         }
     }
 
-    private async Task LoadIglesiasAsync()
+    private async Task LoadIglesiaAsync()
     {
         if (DenominacionId <= 0)
             return;
 
+        _iglesia = null;
+
+        if (IglesiaId <= 0)
+            return;
+
         try
         {
-            Iglesias = (await _iglesiasApiService.GetIglesiasAsync(DenominacionId))
-                .Where(iglesia => iglesia.Activa)
-                .OrderBy(iglesia => iglesia.Nombre)
-                .ToList();
+            _iglesia = await _iglesiasApiService.GetIglesiaAsync(IglesiaId, DenominacionId);
         }
         catch
         {
-            Iglesias = [];
-            _snackbar.Add("No fue posible cargar las iglesias disponibles.", Severity.Error);
+            _snackbar.Add("No fue posible cargar la iglesia asociada.", Severity.Error);
         }
     }
 
