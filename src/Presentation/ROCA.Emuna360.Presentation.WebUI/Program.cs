@@ -70,6 +70,7 @@ builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpC
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new RolApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new UsuariosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));

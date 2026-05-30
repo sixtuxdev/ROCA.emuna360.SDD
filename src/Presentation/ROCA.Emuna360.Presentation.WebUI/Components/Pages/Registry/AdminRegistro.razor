@@ -118,6 +118,54 @@
                 <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">Complete la informacion de la persona</MudText>
 
                 <MudGrid Spacing="2">
+                    
+                    <MudItem xs="12" sm="12">
+                        <MudSelect T="AdminRegistroViewModel.UsuarioCreacionOrigen"
+                                   Label="Crear usuario con"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   @bind-Value="ViewModel.CrearUsuarioCon">
+                            <MudSelectItem T="AdminRegistroViewModel.UsuarioCreacionOrigen"
+                                           Value="@AdminRegistroViewModel.UsuarioCreacionOrigen.Documento">
+                                Documento
+                            </MudSelectItem>
+                            <MudSelectItem T="AdminRegistroViewModel.UsuarioCreacionOrigen"
+                                           Value="@AdminRegistroViewModel.UsuarioCreacionOrigen.Correo">
+                                Correo
+                            </MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?"
+                                   Label="Rol"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Required="true"
+                                   @bind-Value="ViewModel.RolId"
+                                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Rol))"
+                                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Rol))"
+                                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Rol)">
+                            @foreach (var rol in ViewModel.RolOptions)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)rol.RolId)">@rol.Nombre</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Contraseña"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      InputType="InputType.Password"
+                                      Required="true"
+                                      @bind-Value="ViewModel.Contrasena"
+                                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Contrasena))"
+                                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena))"
+                                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena)" />
+                    </MudItem>
                     <MudItem xs="12">
                         <MudTextField T="string"
                                       Label="Iglesia"
@@ -303,7 +351,7 @@
                                       Immediate="true"
                                       Lines="2"
                                       @bind-Value="ViewModel.RegistroForm.Direccion" />
-                    </MudItem>
+                    </MudItem>                    
                 </MudGrid>
 
                 <div class="form-actions mt-4">

@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using ROCA.Emuna360.Application.DTOs.Common;
 using ROCA.Emuna360.Application.DTOs.Security;
 
 namespace ROCA.Emuna360.Presentation.WebUI.Services;
@@ -27,6 +28,21 @@ public sealed class UsuariosApiService
         {
             PropertyNameCaseInsensitive = true
         }) ?? [];
+    }
+
+    public async Task<int?> CreateUsuarioAsync(UsuarioDto usuario)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/v1/usuarios", usuario);
+        return await ReadDataAsync<int>(response);
+    }
+
+    private static async Task<T?> ReadDataAsync<T>(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+            return default;
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponseDto<T>>();
+        return apiResponse is { Success: true } ? apiResponse.Data : default;
     }
 
     private static bool TryGetProperty(JsonElement element, string propertyName, out JsonElement value)

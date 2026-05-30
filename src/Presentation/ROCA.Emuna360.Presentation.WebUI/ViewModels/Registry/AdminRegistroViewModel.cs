@@ -5,6 +5,7 @@ using ROCA.Emuna360.Application.DTOs.Geography;
 using ROCA.Emuna360.Application.DTOs.Organization;
 using ROCA.Emuna360.Application.DTOs.Parameters;
 using ROCA.Emuna360.Application.DTOs.Registry;
+using ROCA.Emuna360.Application.DTOs.Security;
 using ROCA.Emuna360.Presentation.WebUI.Services;
 
 namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry;
@@ -15,6 +16,8 @@ public sealed class AdminRegistroViewModel
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private readonly RegistroApiService _registroApiService;
+    private readonly UsuariosApiService _usuariosApiService;
+    private readonly RolApiService _rolApiService;
     private readonly IglesiasApiService _iglesiasApiService;
     private readonly ParametersApiService _parametersApiService;
     private readonly GeographyApiService _geographyApiService;
@@ -28,6 +31,8 @@ public sealed class AdminRegistroViewModel
 
     public AdminRegistroViewModel(
         RegistroApiService registroApiService,
+        UsuariosApiService usuariosApiService,
+        RolApiService rolApiService,
         IglesiasApiService iglesiasApiService,
         ParametersApiService parametersApiService,
         GeographyApiService geographyApiService,
@@ -37,6 +42,8 @@ public sealed class AdminRegistroViewModel
         IConfiguration configuration)
     {
         _registroApiService = registroApiService;
+        _usuariosApiService = usuariosApiService;
+        _rolApiService = rolApiService;
         _iglesiasApiService = iglesiasApiService;
         _parametersApiService = parametersApiService;
         _geographyApiService = geographyApiService;
@@ -58,10 +65,14 @@ public sealed class AdminRegistroViewModel
     public IReadOnlyList<ParametroDto> TipoDocumentoOptions { get; private set; } = [];
     public IReadOnlyList<ParametroDto> SexoOptions { get; private set; } = [];
     public IReadOnlyList<ParametroDto> InteresOptions { get; private set; } = [];
+    public IReadOnlyList<RolDto> RolOptions { get; private set; } = [];
     public IReadOnlyList<PaisDto> Paises { get; private set; } = [];
     public IReadOnlyList<DepartamentoDto> Departamentos { get; private set; } = [];
     public IReadOnlyList<CiudadDto> Ciudades { get; private set; } = [];
     public IReadOnlyList<CorregimientoDto> Corregimientos { get; private set; } = [];
+    public int? RolId { get; set; }
+    public string? Contrasena { get; set; }
+    public UsuarioCreacionOrigen CrearUsuarioCon { get; set; } = UsuarioCreacionOrigen.Documento;
 
     public string SearchText
     {
@@ -89,7 +100,15 @@ public sealed class AdminRegistroViewModel
         TipoDocumento,
         Sexo,
         Correo,
-        Interes
+        Interes,
+        Rol,
+        Contrasena
+    }
+
+    public enum UsuarioCreacionOrigen
+    {
+        Documento,
+        Correo
     }
 
     public async Task InitializeAsync(bool esInterno)
@@ -154,11 +173,14 @@ public sealed class AdminRegistroViewModel
     public void StartNewRegistro()
     {
         RegistroForm = NewRegistro(DenominacionId, IglesiaId, EsInterno);
+        RolId = null;
+        Contrasena = null;
+        CrearUsuarioCon = UsuarioCreacionOrigen.Documento;
         _touchedFields.Clear();
         Departamentos = [];
         Ciudades = [];
         Corregimientos = [];
-    }
+    }    
 
     public async Task SaveRegistroAsync()
     {
@@ -193,7 +215,13 @@ public sealed class AdminRegistroViewModel
                 return;
             }
 
-            _snackbar.Add("Registro creado correctamente.", Severity.Success);
+            var usuarioCreado = await TryCreateUsuarioAsync(newId.Value);
+            _snackbar.Add(
+                usuarioCreado
+                    ? "Registro y usuario creados correctamente."
+                    : "Registro creado correctamente, pero ocurrio un error creando el usuario.",
+                usuarioCreado ? Severity.Success : Severity.Error);
+
             StartNewRegistro();
             await LoadRegistrosAsync();
         }
@@ -267,6 +295,8 @@ public sealed class AdminRegistroViewModel
             RegistroFormField.TipoDocumento => ValidateTipoDocumento(),
             RegistroFormField.Sexo => ValidateSexo(),
             RegistroFormField.Correo => ValidateCorreo(RegistroForm.Correo),
+            RegistroFormField.Rol => ValidateRol(),
+            RegistroFormField.Contrasena => ValidateContrasena(),
             _ => null
         };
     }
@@ -289,6 +319,10 @@ public sealed class AdminRegistroViewModel
             TipoDocumentoOptions = await _parametersApiService.GetParametrosByNombreClase("Tipos de Documentos", DenominacionId);//clases.Where(IsTipoDocumentoClase).Select(clase => clase.ClaseId).ToHashSet();
             SexoOptions = await _parametersApiService.GetParametrosByNombreClase("Sexo", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
             InteresOptions = await _parametersApiService.GetParametrosByNombreClase("Interés", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
+            RolOptions = (await _rolApiService.GetRolesAsync(DenominacionId))
+                .Where(rol => rol.Activo)
+                .OrderBy(rol => rol.Nombre)
+                .ToList();
             //GetParametrosByNombreClase
             await LoadPaisesAsync();
         }
@@ -417,6 +451,8 @@ public sealed class AdminRegistroViewModel
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Documento, "El documento es obligatorio."));
         AddIfNotNull(errors, ValidateSexo());
         AddIfNotNull(errors, ValidateCorreo(RegistroForm.Correo));
+        AddIfNotNull(errors, ValidateRol());
+        AddIfNotNull(errors, ValidateContrasena());
 
         if (RegistroForm.Interno is null)
             errors.Add("No fue posible determinar si el registro es interno o externo.");
@@ -445,6 +481,16 @@ public sealed class AdminRegistroViewModel
     private string? ValidateSexo()
     {
         return RegistroForm.ParametroIdSexo > 0 ? null : "El sexo es obligatorio.";
+    }
+
+    private string? ValidateRol()
+    {
+        return RolId.HasValue && RolId.Value > 0 ? null : "El rol es obligatorio.";
+    }
+
+    private string? ValidateContrasena()
+    {
+        return string.IsNullOrWhiteSpace(Contrasena) ? "La contrasena es obligatoria." : null;
     }
 
     private static string? ValidateRequired(string? value, string message)
@@ -505,6 +551,42 @@ public sealed class AdminRegistroViewModel
             IglesiaId = iglesiaId,
             Interno = interno
         };
+    }
+
+    private UsuarioDto BuildUsuario(int registroId)
+    {
+        return new UsuarioDto
+        {
+            UsuarioId = 0,
+            DenominacionId = DenominacionId,
+            RegistroId = registroId,
+            Correo = RegistroForm.Correo,
+            PasswordHash = Contrasena,
+            EmailVerificado = false,
+            Bloqueado = false,
+            RolId = RolId,
+            FechaCreacion = DateTime.UtcNow,
+            FechaActualizacion = DateTime.UtcNow
+        };
+    }
+
+    private async Task<bool> TryCreateUsuarioAsync(int registroId)
+    {
+        try
+        {
+            if (CrearUsuarioCon == "Documento")
+            {
+                
+            }
+
+            var usuarioId = await _usuariosApiService.CreateUsuarioAsync(BuildUsuario(registroId));
+            return usuarioId is not null;
+
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static string NormalizeRequired(string? value)
