@@ -39,6 +39,10 @@ public sealed class MenuViewModel
     }
 
     public IEnumerable<AuthMenuDto> Groups => Menus.Where(menu => NormalizarTipo(menu.Tipo) == "G");
+    public IEnumerable<AuthMenuDto> RootMenus => Menus.Where(menu =>
+        NormalizarTipo(menu.Tipo) == "S" &&
+        (!menu.IdGrupo.HasValue || !Groups.Any(group => group.MenuId == menu.IdGrupo.Value)));
+
     public bool CanShowRegistroFallback => !HasRegistroMenu && Roles.Any(IsRegistroRole);
 
     public IReadOnlyList<AuthMenuDto> GetChildren(AuthMenuDto group)

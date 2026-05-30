@@ -63,6 +63,17 @@
             }
         }
 
+        @foreach (var menu in ViewModel.RootMenus)
+        {
+            <MudNavLink Href="@MenuViewModel.NormalizeUrl(menu.Url)"
+                        Icon="@MenuViewModel.GetIcon(menu.Imagen)"
+                        IconColor="Color.Tertiary"
+                        Match="NavLinkMatch.Prefix"
+                        Class="roca-nav-link">
+                @menu.Descripcion
+            </MudNavLink>
+        }
+
         @* @if (ViewModel.CanShowRegistroFallback)
         {
             <MudNavLink Href="registro"
