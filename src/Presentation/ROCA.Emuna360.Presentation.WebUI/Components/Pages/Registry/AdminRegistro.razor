@@ -120,17 +120,15 @@
                 <MudGrid Spacing="2">
                     
                     <MudItem xs="12" sm="12">
-                        <MudSelect T="AdminRegistroViewModel.UsuarioCreacionOrigen"
+                        <MudSelect T="string"
                                    Label="Crear usuario con"
                                    Variant="Variant.Outlined"
                                    Margin="Margin.Dense"
                                    @bind-Value="ViewModel.CrearUsuarioCon">
-                            <MudSelectItem T="AdminRegistroViewModel.UsuarioCreacionOrigen"
-                                           Value="@AdminRegistroViewModel.UsuarioCreacionOrigen.Documento">
+                            <MudSelectItem T="string" Value="@("Documento")">
                                 Documento
                             </MudSelectItem>
-                            <MudSelectItem T="AdminRegistroViewModel.UsuarioCreacionOrigen"
-                                           Value="@AdminRegistroViewModel.UsuarioCreacionOrigen.Correo">
+                            <MudSelectItem T="string" Value="@("Correo")">
                                 Correo
                             </MudSelectItem>
                         </MudSelect>

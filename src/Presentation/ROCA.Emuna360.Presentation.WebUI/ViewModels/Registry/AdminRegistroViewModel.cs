@@ -72,7 +72,7 @@ public sealed class AdminRegistroViewModel
     public IReadOnlyList<CorregimientoDto> Corregimientos { get; private set; } = [];
     public int? RolId { get; set; }
     public string? Contrasena { get; set; }
-    public UsuarioCreacionOrigen CrearUsuarioCon { get; set; } = UsuarioCreacionOrigen.Documento;
+    public string CrearUsuarioCon { get; set; } = "Documento";
 
     public string SearchText
     {
@@ -103,12 +103,6 @@ public sealed class AdminRegistroViewModel
         Interes,
         Rol,
         Contrasena
-    }
-
-    public enum UsuarioCreacionOrigen
-    {
-        Documento,
-        Correo
     }
 
     public async Task InitializeAsync(bool esInterno)
@@ -175,7 +169,7 @@ public sealed class AdminRegistroViewModel
         RegistroForm = NewRegistro(DenominacionId, IglesiaId, EsInterno);
         RolId = null;
         Contrasena = null;
-        CrearUsuarioCon = UsuarioCreacionOrigen.Documento;
+        CrearUsuarioCon = "Documento";
         _touchedFields.Clear();
         Departamentos = [];
         Ciudades = [];
@@ -560,7 +554,7 @@ public sealed class AdminRegistroViewModel
             UsuarioId = 0,
             DenominacionId = DenominacionId,
             RegistroId = registroId,
-            Correo = RegistroForm.Correo,
+            Correo = CrearUsuarioCon == "Correo" ? RegistroForm.Correo : RegistroForm.Documento,
             PasswordHash = Contrasena,
             EmailVerificado = false,
             Bloqueado = false,
@@ -574,11 +568,6 @@ public sealed class AdminRegistroViewModel
     {
         try
         {
-            if (CrearUsuarioCon == "Documento")
-            {
-                
-            }
-
             var usuarioId = await _usuariosApiService.CreateUsuarioAsync(BuildUsuario(registroId));
             return usuarioId is not null;
 

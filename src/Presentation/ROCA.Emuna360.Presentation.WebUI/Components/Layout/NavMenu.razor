@@ -63,7 +63,7 @@
             }
         }
 
-        @if (ViewModel.CanShowRegistroFallback)
+        @* @if (ViewModel.CanShowRegistroFallback)
         {
             <MudNavLink Href="registro"
                         Icon="@Icons.Material.Filled.AppRegistration"
@@ -72,9 +72,9 @@
                         Class="roca-nav-link">
                 Registro
             </MudNavLink>
-        }
+        } *@
     }
-    else if (ViewModel.CanShowRegistroFallback)
+    @* else if (ViewModel.CanShowRegistroFallback)
     {
         <MudNavLink Href="registro"
                     Icon="@Icons.Material.Filled.AppRegistration"
@@ -90,7 +90,7 @@
                  Class="px-4 py-2 mud-text-secondary">
             No hay menús disponibles
         </MudText>
-    }
+    } *@
 </MudNavMenu>
 
 <style>
