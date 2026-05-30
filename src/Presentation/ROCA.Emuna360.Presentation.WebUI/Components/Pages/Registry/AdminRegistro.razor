@@ -116,7 +116,7 @@
             <MudPaper Elevation="1" Class="config-panel pa-4">
                 <MudText Typo="Typo.h6" Color="Color.Primary">Nuevo Registro</MudText>
                 <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">Complete la informacion de la persona</MudText>
-                <RegistroForm ViewModel="ViewModel" />
+                <RegistroForm ViewModel="ViewModel" OnRegistroGuardado="RefrescarRegistrosAsync" />
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -194,6 +194,11 @@
     {
         var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/');
         await ViewModel.InitializeAsync(!relativePath.Equals("register", StringComparison.OrdinalIgnoreCase));
+    }
+    private async Task RefrescarRegistrosAsync()
+    {
+        await ViewModel.LoadRegistrosAsync();
+        StateHasChanged();
     }
 
     private static bool HasError(string? error)
