@@ -1,6 +1,7 @@
 @page "/login"
 @layout Layout.AuthLayout
 @inject LoginViewModel ViewModel
+@inject IDialogService DialogService
 
 <PageTitle>Login - ROCA.Emuna360</PageTitle>
 
@@ -70,7 +71,7 @@
     </MudCardContent>
 
     <MudCardActions Class="d-flex justify-center mt-4">
-        <MudText Typo="Typo.body2">¿No tiene una cuenta? <MudLink href="register">Registrarse aquí</MudLink></MudText>
+        <MudText Typo="Typo.body2">&iquest;No tiene una cuenta? <MudLink Underline="Underline.None" OnClick="OpenRegistroDialogAsync">Registrarse aqui</MudLink></MudText>
     </MudCardActions>
 </MudCard>
 
@@ -97,5 +98,16 @@
             return;
 
         await ViewModel.LoginAsync();
+    }
+    private async Task OpenRegistroDialogAsync()
+    {
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        };
+
+        await DialogService.ShowAsync<RegistroDialog>("Registro de cuenta", options);
     }
 }

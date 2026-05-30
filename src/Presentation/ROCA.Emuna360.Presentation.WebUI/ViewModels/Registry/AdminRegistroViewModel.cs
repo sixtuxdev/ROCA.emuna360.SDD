@@ -59,6 +59,7 @@ public sealed class AdminRegistroViewModel
     public bool IsLoading { get; private set; }
     public bool IsSaving { get; private set; }
     public bool IsLoadingGeography { get; private set; }
+    public bool LastSaveSucceeded { get; private set; }
     public string? ErrorMessage { get; private set; }
     public IReadOnlyList<RegistroDto> Registros { get; private set; } = [];
     public RegistroDto RegistroForm { get; private set; } = NewRegistro();
@@ -178,6 +179,7 @@ public sealed class AdminRegistroViewModel
 
     public async Task SaveRegistroAsync()
     {
+        LastSaveSucceeded = false;
         var validationErrors = ValidateForm();
         if (validationErrors.Count > 0)
         {
@@ -216,6 +218,7 @@ public sealed class AdminRegistroViewModel
                     : "Registro creado correctamente, pero ocurrio un error creando el usuario.",
                 usuarioCreado ? Severity.Success : Severity.Error);
 
+            LastSaveSucceeded = usuarioCreado;
             StartNewRegistro();
             await LoadRegistrosAsync();
         }

@@ -1,0 +1,63 @@
+@inject AdminRegistroViewModel ViewModel
+
+<MudDialog>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="registro-dialog-loading">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Preparando formulario...</MudText>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+        }
+        else
+        {
+            <RegistroForm ViewModel="ViewModel" ShowClearButton="false" OnSaved="CloseSaved" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Default"
+                   Disabled="@ViewModel.IsSaving"
+                   OnClick="Cancel">
+            Cancelar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .registro-dialog-loading {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        min-height: 12rem;
+    }
+</style>
+
+@code {
+    private bool _isLoading = true;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeAsync(esInterno: false);
+        _isLoading = false;
+    }
+
+    private void CloseSaved()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
