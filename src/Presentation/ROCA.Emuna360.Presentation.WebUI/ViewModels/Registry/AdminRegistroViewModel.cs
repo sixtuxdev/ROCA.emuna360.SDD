@@ -13,6 +13,7 @@ namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry;
 public sealed class AdminRegistroViewModel
 {
     private const int DefaultPublicDenominacionId = 1;
+    private const string VisitanteRolNombre = "Visitante";
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private readonly RegistroApiService _registroApiService;
@@ -94,6 +95,11 @@ public sealed class AdminRegistroViewModel
     public string RegistroIglesiaNombre => IglesiaId > 0
         ? IglesiaNombre
         : string.IsNullOrWhiteSpace(_iglesiaSeleccionada?.Nombre) ? "Sin iglesia seleccionada" : _iglesiaSeleccionada.Nombre;
+    public bool IsRegistroPublico => !EsInterno;
+    public bool IsRolBloqueado => IsRegistroPublico;
+    public IReadOnlyList<RolDto> RolOptionsForForm => IsRolBloqueado && RolId.HasValue
+        ? RolOptions.Where(rol => rol.RolId == RolId.Value).ToList()
+        : RolOptions;
     public bool CanSaveRegistro => !IsSaving && ValidateForm().Count == 0;
 
     public enum RegistroFormField
@@ -176,7 +182,7 @@ public sealed class AdminRegistroViewModel
     {
         RegistroForm = NewRegistro(DenominacionId, IglesiaId, EsInterno);
         _iglesiaSeleccionada = null;
-        RolId = null;
+        RolId = EsInterno ? null : GetVisitanteRol()?.RolId;
         Contrasena = null;
         CrearUsuarioCon = "Documento";
         _touchedFields.Clear();
@@ -188,6 +194,7 @@ public sealed class AdminRegistroViewModel
     public async Task SaveRegistroAsync()
     {
         LastSaveSucceeded = false;
+        EnsurePublicRolVisitante();
         var validationErrors = ValidateForm();
         if (validationErrors.Count > 0)
         {
@@ -213,7 +220,7 @@ public sealed class AdminRegistroViewModel
             RegistroForm.FechaActualizacion = DateTime.UtcNow;
 
             var newId = await _registroApiService.CreateRegistroAsync(RegistroForm);
-            if (newId is null)
+            if (newId is null || newId is 0)
             {
                 _snackbar.Add("No fue posible crear el registro.", Severity.Error);
                 return;
@@ -340,6 +347,7 @@ public sealed class AdminRegistroViewModel
                 .Where(rol => rol.Activo)
                 .OrderBy(rol => rol.Nombre)
                 .ToList();
+            EnsurePublicRolVisitante();
             //GetParametrosByNombreClase
             await LoadPaisesAsync();
         }
@@ -502,6 +510,9 @@ public sealed class AdminRegistroViewModel
 
     private string? ValidateRol()
     {
+        if (IsRegistroPublico && GetVisitanteRol() is null)
+            return "No fue posible cargar el rol Visitante para el registro publico.";
+
         return RolId.HasValue && RolId.Value > 0 ? null : "El rol es obligatorio.";
     }
 
@@ -615,5 +626,32 @@ public sealed class AdminRegistroViewModel
     {
         if (!string.IsNullOrWhiteSpace(error))
             errors.Add(error);
+    }
+
+    private RolDto? GetVisitanteRol()
+    {
+        return RolOptions.FirstOrDefault(IsVisitanteRol);
+    }
+
+    private void EnsurePublicRolVisitante()
+    {
+        if (!IsRegistroPublico)
+            return;
+
+        var visitanteRol = GetVisitanteRol();
+        if (visitanteRol is not null)
+        {
+            RolId = visitanteRol.RolId;
+        }
+    }
+
+    private static bool IsVisitanteRol(RolDto rol)
+    {
+        return IsVisitanteText(rol.Nombre) || IsVisitanteText(rol.Codigo);
+    }
+
+    private static bool IsVisitanteText(string? value)
+    {
+        return string.Equals(value?.Trim(), VisitanteRolNombre, StringComparison.OrdinalIgnoreCase);
     }
 }

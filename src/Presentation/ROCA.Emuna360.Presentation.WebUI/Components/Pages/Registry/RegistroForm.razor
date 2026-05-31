@@ -54,11 +54,12 @@
                    Variant="Variant.Outlined"
                    Margin="Margin.Dense"
                    Required="true"
+                   Disabled="@ViewModel.IsRolBloqueado"
                    @bind-Value="ViewModel.RolId"
                    OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Rol))"
                    Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Rol))"
                    ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Rol)">
-            @foreach (var rol in ViewModel.RolOptions)
+            @foreach (var rol in ViewModel.RolOptionsForForm)
             {
                 <MudSelectItem T="int?" Value="@((int?)rol.RolId)">@rol.Nombre</MudSelectItem>
             }
