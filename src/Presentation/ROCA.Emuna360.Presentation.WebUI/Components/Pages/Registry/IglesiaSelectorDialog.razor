@@ -1,0 +1,126 @@
+@using ROCA.Emuna360.Application.DTOs.Organization
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization
+@inject ConfigIglesiasViewModel ViewModel
+
+<MudDialog>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="iglesia-selector-loading">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Cargando iglesias disponibles...</MudText>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@ViewModel.ErrorMessage</MudAlert>
+        }
+        else
+        {
+            <MudTextField T="string"
+                          Label="Buscar iglesia"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Clearable="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Class="pb-2"
+                          @bind-Value="ViewModel.SearchText" />
+
+            @if (!ViewModel.HasIglesias)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-3">
+                    No existen iglesias disponibles para la denominacion seleccionada.
+                </MudAlert>
+            }
+            else if (!ViewModel.FilteredIglesias.Any())
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-3">
+                    No se encontraron iglesias con el criterio de busqueda.
+                </MudAlert>
+            }
+            else
+            {
+                <div class="iglesia-selector-grid">
+                    <MudDataGrid T="IglesiaDto"
+                                 Items="@ViewModel.FilteredIglesias"
+                                 Dense="true"
+                                 Hover="true"
+                                 Striped="false"
+                                 Bordered="false"
+                                 Elevation="0"
+                                 RowsPerPage="8">
+                        <Columns>
+                            <PropertyColumn Property="iglesia => iglesia.Nombre" Title="Nombre de la Iglesia" />
+                            <PropertyColumn Property="iglesia => iglesia.Direccion" Title="Direccion" />
+                            <TemplateColumn Title="Accion">
+                                <CellTemplate>
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="@(context.Item.IglesiaId == SelectedIglesiaId ? Color.Success : Color.Primary)"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.CheckCircle"
+                                               OnClick="@(() => Select(context.Item))">
+                                        Seleccionar
+                                    </MudButton>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="IglesiaDto" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </div>
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .iglesia-selector-loading {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        min-height: 12rem;
+    }
+
+    .iglesia-selector-grid {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        overflow: hidden;
+    }
+</style>
+
+@code {
+    private bool _isLoading = true;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public int DenominacionId { get; set; }
+
+    [Parameter]
+    public int? SelectedIglesiaId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.InitializeSelectorAsync(DenominacionId);
+        _isLoading = false;
+    }
+
+    private void Select(IglesiaDto iglesia)
+    {
+        MudDialog.Close(DialogResult.Ok(iglesia));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

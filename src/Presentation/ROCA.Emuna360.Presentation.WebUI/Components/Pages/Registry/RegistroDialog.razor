@@ -45,9 +45,12 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
+    [Parameter]
+    public int? DenominacionId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        await ViewModel.InitializeAsync(esInterno: false);
+        await ViewModel.InitializeAsync(esInterno: false, DenominacionId);
         _isLoading = false;
     }
 

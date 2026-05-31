@@ -1,6 +1,38 @@
 @using ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry
+@using ROCA.Emuna360.Application.DTOs.Organization
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudGrid Spacing="2">
+    <MudItem xs="12">
+        @if (ViewModel.IglesiaId > 0)
+        {
+            <MudTextField T="string"
+                          Label="Iglesia"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Disabled="true"
+                          Value="@ViewModel.RegistroIglesiaNombre" />
+        }
+        else
+        {
+            <div class="registro-iglesia-selector @(ViewModel.RegistroForm.IglesiaId > 0 ? string.Empty : "selector-required")">
+                <div class="registro-iglesia-selector-content">
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">Iglesia *</MudText>
+                    <MudText Typo="Typo.body1" Class="mud-typography-fontWeightMedium">
+                        @ViewModel.RegistroIglesiaNombre
+                    </MudText>
+                </div>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Church"
+                           Disabled="@ViewModel.IsSaving"
+                           OnClick="OpenIglesiaSelectorAsync">
+                    Seleccionar
+                </MudButton>
+            </div>
+        }
+    </MudItem>
     <MudItem xs="12" sm="12">
         <MudSelect T="string"
                    Label="Crear usuario con"
@@ -45,15 +77,6 @@
                       OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Contrasena))"
                       Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena))"
                       ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena)" />
-    </MudItem>
-
-    <MudItem xs="12">
-        <MudTextField T="string"
-                      Label="Iglesia"
-                      Variant="Variant.Outlined"
-                      Margin="Margin.Dense"
-                      Disabled="true"
-                      Value="@ViewModel.IglesiaNombre" />
     </MudItem>
 
     <MudItem xs="12" sm="6">
@@ -272,8 +295,28 @@
         justify-content: flex-end;
     }
 
+    .registro-iglesia-selector {
+        align-items: center;
+        border: 1px solid var(--mud-palette-lines-inputs);
+        border-radius: var(--mud-default-borderradius);
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: .55rem .75rem;
+    }
+
+    .registro-iglesia-selector.selector-required {
+        border-color: var(--mud-palette-warning);
+    }
+
+    .registro-iglesia-selector-content {
+        min-width: 0;
+    }
+
     @@media (max-width: 600px) {
-        .registro-form-actions {
+        .registro-form-actions,
+        .registro-iglesia-selector {
             align-items: stretch;
             flex-direction: column;
             justify-content: flex-start;
@@ -312,5 +355,38 @@
 
             await OnSaved.InvokeAsync();
         }
+    }
+
+    private async Task OpenIglesiaSelectorAsync()
+    {
+        if (ViewModel.DenominacionId <= 0)
+        {
+            Snackbar.Add("No fue posible determinar la denominacion para seleccionar una iglesia.", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            [nameof(IglesiaSelectorDialog.DenominacionId)] = ViewModel.DenominacionId,
+            [nameof(IglesiaSelectorDialog.SelectedIglesiaId)] = ViewModel.RegistroForm.IglesiaId > 0 ? ViewModel.RegistroForm.IglesiaId : (int?)null
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large
+        };
+
+        var dialog = await DialogService.ShowAsync<IglesiaSelectorDialog>(
+            "Seleccionar iglesia",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not IglesiaDto iglesia)
+            return;
+
+        ViewModel.SelectIglesia(iglesia);
     }
 }

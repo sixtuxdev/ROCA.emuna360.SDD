@@ -53,6 +53,17 @@ public sealed class LoginViewModel
         }
     }
 
+    public void SetDenominacionId(int denominacionId)
+    {
+        if (denominacionId <= 0)
+        {
+            _snackbar.Add("La denominacion recibida no es valida.", Severity.Warning);
+            return;
+        }
+
+        LoginRequest.DenominacionId = denominacionId;
+    }
+
     public void TogglePasswordVisibility()
     {
         if (PasswordInput == InputType.Password)

@@ -1,4 +1,5 @@
 @page "/login"
+@page "/login/{DenominacionId:int}"
 @layout Layout.AuthLayout
 @inject LoginViewModel ViewModel
 @inject IDialogService DialogService
@@ -83,6 +84,17 @@
     private MudForm _form = null!;
     private bool _success;
 
+    [Parameter]
+    public int? DenominacionId { get; set; }
+
+
+    protected override void OnParametersSet()
+    {
+        if (DenominacionId.HasValue)
+        {
+            ViewModel.SetDenominacionId(DenominacionId.Value);
+        }
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -101,6 +113,11 @@
     }
     private async Task OpenRegistroDialogAsync()
     {
+        var parameters = new DialogParameters
+        {
+            [nameof(RegistroDialog.DenominacionId)] = ViewModel.LoginRequest.DenominacionId
+        };
+
         var options = new DialogOptions
         {
             CloseButton = true,
@@ -108,6 +125,6 @@
             MaxWidth = MaxWidth.Medium
         };
 
-        await DialogService.ShowAsync<RegistroDialog>("Registro de cuenta", options);
+        await DialogService.ShowAsync<RegistroDialog>("Registro de cuenta", parameters, options);
     }
 }

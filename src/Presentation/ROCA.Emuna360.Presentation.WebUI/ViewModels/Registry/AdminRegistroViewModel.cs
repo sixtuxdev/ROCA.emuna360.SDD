@@ -27,6 +27,7 @@ public sealed class AdminRegistroViewModel
     private readonly IConfiguration _configuration;
     private readonly HashSet<RegistroFormField> _touchedFields = [];
     private IglesiaDto? _iglesia;
+    private IglesiaDto? _iglesiaSeleccionada;
     private string _searchText = string.Empty;
 
     public AdminRegistroViewModel(
@@ -90,6 +91,9 @@ public sealed class AdminRegistroViewModel
     public bool HasRegistros => Registros.Any();
     public string SourceLabel => EsInterno ? "Registro interno" : "Registro externo";
     public string IglesiaNombre => string.IsNullOrWhiteSpace(_iglesia?.Nombre) ? "Sin iglesia" : _iglesia.Nombre;
+    public string RegistroIglesiaNombre => IglesiaId > 0
+        ? IglesiaNombre
+        : string.IsNullOrWhiteSpace(_iglesiaSeleccionada?.Nombre) ? "Sin iglesia seleccionada" : _iglesiaSeleccionada.Nombre;
     public bool CanSaveRegistro => !IsSaving && ValidateForm().Count == 0;
 
     public enum RegistroFormField
@@ -106,7 +110,7 @@ public sealed class AdminRegistroViewModel
         Contrasena
     }
 
-    public async Task InitializeAsync(bool esInterno)
+    public async Task InitializeAsync(bool esInterno, int? denominacionId = null)
     {
         EsInterno = esInterno;
         ErrorMessage = null;
@@ -125,7 +129,10 @@ public sealed class AdminRegistroViewModel
         }
         else
         {
-            DenominacionId = _configuration.GetValue<int?>("Registro:DefaultDenominacionId") ?? DefaultPublicDenominacionId;
+            var denominacionExterna = denominacionId.GetValueOrDefault();
+            DenominacionId = denominacionExterna > 0
+                ? denominacionExterna
+                : _configuration.GetValue<int?>("Registro:DefaultDenominacionId") ?? DefaultPublicDenominacionId;
             IglesiaId = 0;
         }
 
@@ -168,6 +175,7 @@ public sealed class AdminRegistroViewModel
     public void StartNewRegistro()
     {
         RegistroForm = NewRegistro(DenominacionId, IglesiaId, EsInterno);
+        _iglesiaSeleccionada = null;
         RolId = null;
         Contrasena = null;
         CrearUsuarioCon = "Documento";
@@ -271,6 +279,18 @@ public sealed class AdminRegistroViewModel
     public void ChangeCorregimiento(int? corregimientoId)
     {
         RegistroForm.CorregimientoId = corregimientoId;
+    }
+
+    public void SelectIglesia(IglesiaDto iglesia)
+    {
+        if (iglesia.DenominacionId != DenominacionId)
+        {
+            _snackbar.Add("La iglesia seleccionada no pertenece a la denominacion actual.", Severity.Warning);
+            return;
+        }
+
+        _iglesiaSeleccionada = iglesia;
+        RegistroForm.IglesiaId = iglesia.IglesiaId;
     }
 
     public void TouchField(RegistroFormField field)

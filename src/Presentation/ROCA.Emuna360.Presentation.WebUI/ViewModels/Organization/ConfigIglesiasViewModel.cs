@@ -136,6 +136,25 @@ public class ConfigIglesiasViewModel
         StartNewIglesia();
     }
 
+    public async Task InitializeSelectorAsync(int denominacionId)
+    {
+        DenominacionId = denominacionId;
+        IsAdminDenominacion = false;
+        ErrorMessage = null;
+        SearchText = string.Empty;
+        StatusFilter = AllStatusFilter;
+
+        if (DenominacionId <= 0)
+        {
+            ErrorMessage = "No fue posible determinar la denominacion para cargar las iglesias.";
+            _snackbar.Add(ErrorMessage, Severity.Warning);
+            Iglesias = [];
+            return;
+        }
+
+        await LoadIglesiasAsync();
+    }
+
     public async Task LoadIglesiasAsync()
     {
         if (DenominacionId <= 0)
