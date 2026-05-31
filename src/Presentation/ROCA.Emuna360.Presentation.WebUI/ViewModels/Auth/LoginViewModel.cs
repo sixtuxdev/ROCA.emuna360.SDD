@@ -16,6 +16,7 @@ public sealed class LoginViewModel
     private readonly ISnackbar _snackbar;
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _configuration;
+    private readonly DenominacionesApiService _denominacionesApiService;
 
     public LoginViewModel(
         AuthApiService authApiService,
@@ -24,7 +25,8 @@ public sealed class LoginViewModel
         NavigationManager navigation,
         ISnackbar snackbar,
         IJSRuntime jsRuntime,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        DenominacionesApiService denominacionesApiService)
     {
         _authApiService = authApiService;
         _tokenStorage = tokenStorage;
@@ -33,9 +35,12 @@ public sealed class LoginViewModel
         _snackbar = snackbar;
         _jsRuntime = jsRuntime;
         _configuration = configuration;
+        _denominacionesApiService = denominacionesApiService;
     }
 
     public LoginRequestDto LoginRequest { get; } = new() { DenominacionId = 1 };
+    public string? DenominacionNombre { get; private set; }
+    public bool IsLoadingDenominacion { get; private set; }
     public bool IsLoading { get; private set; }
     public InputType PasswordInput { get; private set; } = InputType.Password;
     public string PasswordInputIcon { get; private set; } = Icons.Material.Filled.VisibilityOff;
@@ -53,7 +58,7 @@ public sealed class LoginViewModel
         }
     }
 
-    public void SetDenominacionId(int denominacionId)
+    public async Task SetDenominacionIdAsync(int denominacionId)
     {
         if (denominacionId <= 0)
         {
@@ -62,6 +67,33 @@ public sealed class LoginViewModel
         }
 
         LoginRequest.DenominacionId = denominacionId;
+        await LoadDenominacionAsync();
+    }
+
+    private async Task LoadDenominacionAsync()
+    {
+        IsLoadingDenominacion = true;
+        DenominacionNombre = null;
+
+        try
+        {
+            var denominacion = await _denominacionesApiService.GetDenominacionAsync(LoginRequest.DenominacionId);
+            if (denominacion is null)
+            {
+                _snackbar.Add("No fue posible obtener la informacion de la denominacion.", Severity.Warning);
+                return;
+            }
+
+            DenominacionNombre = denominacion.Nombre;
+        }
+        catch
+        {
+            _snackbar.Add("Ocurrio un error al consultar la denominacion.", Severity.Error);
+        }
+        finally
+        {
+            IsLoadingDenominacion = false;
+        }
     }
 
     public void TogglePasswordVisibility()

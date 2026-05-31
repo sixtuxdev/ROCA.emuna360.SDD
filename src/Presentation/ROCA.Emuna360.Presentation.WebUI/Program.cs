@@ -67,6 +67,7 @@ builder.Services.AddHttpClient("AuthenticatedApi", client =>
 }).AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"));
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
+builder.Services.AddScoped(sp => new DenominacionesApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));

@@ -3,6 +3,23 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
+@if (ViewModel.IsRegistroPublico)
+{
+    @if (ViewModel.IsLoadingDenominacion)
+    {
+        <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mb-3" />
+    }
+    else
+    {
+        <MudTextField T="string"
+                      Label="Denominacion"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Disabled="true"
+                      Class="mb-3"
+                      Value="@GetDenominacionText()" />
+    }
+}
 <MudGrid Spacing="2">
     <MudItem xs="12">
         @if (ViewModel.IglesiaId > 0)
@@ -343,6 +360,13 @@
         return !string.IsNullOrWhiteSpace(error);
     }
 
+
+    private string GetDenominacionText()
+    {
+        return string.IsNullOrWhiteSpace(ViewModel.DenominacionNombre)
+            ? $"Denominacion {ViewModel.DenominacionId}"
+            : ViewModel.DenominacionNombre;
+    }
     private async Task SaveRegistroAsync()
     {
         await ViewModel.SaveRegistroAsync();

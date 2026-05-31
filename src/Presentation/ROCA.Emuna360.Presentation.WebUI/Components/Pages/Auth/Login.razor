@@ -13,6 +13,16 @@
                 <MudImage Src="image/logo.png" Alt="ROCA Logo" Height="100" Class="mb-4" />
                 <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary" Style="font-weight: 700;">ROCA.Emuna360</MudText>
                 <MudText Typo="Typo.subtitle1" Align="Align.Center" Color="Color.Secondary">Gestión Institucional Integral</MudText>
+                @if (ViewModel.IsLoadingDenominacion)
+                {
+                    <MudProgressCircular Size="Size.Small" Color="Color.Secondary" Indeterminate="true" Class="mt-2" />
+                }
+                else if (!string.IsNullOrWhiteSpace(ViewModel.DenominacionNombre))
+                {
+                    <MudText Typo="Typo.subtitle2" Align="Align.Center" Color="Color.Primary" Class="mt-2">
+                        @ViewModel.DenominacionNombre
+                    </MudText>
+                }
             </div>
         </CardHeaderContent>
     </MudCardHeader>
@@ -88,11 +98,11 @@
     public int? DenominacionId { get; set; }
 
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (DenominacionId.HasValue)
         {
-            ViewModel.SetDenominacionId(DenominacionId.Value);
+            await ViewModel.SetDenominacionIdAsync(DenominacionId.Value);
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)

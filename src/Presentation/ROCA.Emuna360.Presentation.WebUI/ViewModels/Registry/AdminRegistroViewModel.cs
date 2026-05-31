@@ -23,6 +23,7 @@ public sealed class AdminRegistroViewModel
     private readonly ParametersApiService _parametersApiService;
     private readonly GeographyApiService _geographyApiService;
     private readonly TokenStorageService _tokenStorageService;
+    private readonly DenominacionesApiService _denominacionesApiService;
     private readonly ISnackbar _snackbar;
     private readonly NavigationManager _navigation;
     private readonly IConfiguration _configuration;
@@ -39,6 +40,7 @@ public sealed class AdminRegistroViewModel
         ParametersApiService parametersApiService,
         GeographyApiService geographyApiService,
         TokenStorageService tokenStorageService,
+        DenominacionesApiService denominacionesApiService,
         ISnackbar snackbar,
         NavigationManager navigation,
         IConfiguration configuration)
@@ -50,6 +52,7 @@ public sealed class AdminRegistroViewModel
         _parametersApiService = parametersApiService;
         _geographyApiService = geographyApiService;
         _tokenStorageService = tokenStorageService;
+        _denominacionesApiService = denominacionesApiService;
         _snackbar = snackbar;
         _navigation = navigation;
         _configuration = configuration;
@@ -63,6 +66,8 @@ public sealed class AdminRegistroViewModel
     public bool IsLoadingGeography { get; private set; }
     public bool LastSaveSucceeded { get; private set; }
     public string? ErrorMessage { get; private set; }
+    public string? DenominacionNombre { get; private set; }
+    public bool IsLoadingDenominacion { get; private set; }
     public IReadOnlyList<RegistroDto> Registros { get; private set; } = [];
     public RegistroDto RegistroForm { get; private set; } = NewRegistro();
     public IReadOnlyList<ParametroDto> TipoDocumentoOptions { get; private set; } = [];
@@ -142,6 +147,7 @@ public sealed class AdminRegistroViewModel
             IglesiaId = 0;
         }
 
+        await LoadDenominacionAsync();
         await LoadCatalogsAsync();
         await LoadIglesiaAsync();
         StartNewRegistro();
@@ -190,6 +196,36 @@ public sealed class AdminRegistroViewModel
         Ciudades = [];
         Corregimientos = [];
     }    
+
+    private async Task LoadDenominacionAsync()
+    {
+        DenominacionNombre = null;
+
+        if (DenominacionId <= 0)
+            return;
+
+        IsLoadingDenominacion = true;
+
+        try
+        {
+            var denominacion = await _denominacionesApiService.GetDenominacionAsync(DenominacionId);
+            if (denominacion is null)
+            {
+                _snackbar.Add("No fue posible obtener la informacion de la denominacion.", Severity.Warning);
+                return;
+            }
+
+            DenominacionNombre = denominacion.Nombre;
+        }
+        catch
+        {
+            _snackbar.Add("Ocurrio un error al consultar la denominacion.", Severity.Error);
+        }
+        finally
+        {
+            IsLoadingDenominacion = false;
+        }
+    }
 
     public async Task SaveRegistroAsync()
     {
