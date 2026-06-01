@@ -1,0 +1,107 @@
+::deep .main-app-bar {
+    overflow: hidden;
+}
+
+::deep .user-greeting {
+    white-space: nowrap;
+}
+
+::deep .app-logo {
+    display: block;
+    width: auto;
+    height: 1.75rem;
+    max-height: 1.75rem;
+    max-width: 8rem;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+::deep .denomination-tooltip {
+    flex: 1 1 420px;
+    min-width: 0;
+    max-width: min(48vw, 680px);
+    overflow: hidden;
+}
+
+::deep .denomination-summary {
+    min-width: 0;
+    max-width: 100%;
+    margin-left: 2rem;
+    overflow: hidden;
+    line-height: 1;
+}
+
+::deep .denomination-name,
+::deep .denomination-personeria {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+::deep .denomination-text {
+    min-width: 0;
+    letter-spacing: 0;
+}
+
+::deep .denomination-name {
+    flex: 0 1 auto;
+    max-width: 100%;
+    font-weight: 700;
+    color: #fff;
+}
+
+::deep .denomination-chip {
+    min-width: 0;
+    max-width: 62%;
+    color: #fff;
+}
+
+::deep .denomination-chip .mud-chip-content {
+    min-width: 0;
+    color: #fff;
+}
+
+::deep .denomination-personeria {
+    flex: 1 1 auto;
+    max-width: 38%;
+    opacity: .82;
+}
+
+@media (max-width: 960px) {
+    ::deep .denomination-tooltip {
+        max-width: 38vw;
+    }
+
+    ::deep .denomination-summary {
+        margin-left: 1rem;
+    }
+
+    ::deep .denomination-personeria {
+        display: none;
+    }
+
+    ::deep .denomination-chip {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    ::deep .app-logo {
+        height: 1.5rem;
+        max-height: 1.5rem;
+        max-width: 6.5rem;
+    }
+
+    ::deep .denomination-tooltip {
+        flex-basis: auto;
+        max-width: 42vw;
+    }
+
+    ::deep .denomination-summary {
+        margin-left: .75rem;
+    }
+
+    ::deep .user-greeting {
+        display: none;
+    }
+}

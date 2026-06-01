@@ -93,6 +93,21 @@ public class TokenStorageService
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", InfoDenominacionKey, jsonInfoDen);
     }
 
+    public async Task<DenominacionDto?> GetInfoDenominacionAsync()
+    {
+        try
+        {
+            var value = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", InfoDenominacionKey);
+            return string.IsNullOrWhiteSpace(value)
+                ? null
+                : JsonSerializer.Deserialize<DenominacionDto>(value);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async Task<int> GetAuthDenominacionIdAsync()
     {
         try
@@ -273,6 +288,7 @@ public class TokenStorageService
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthDenominacionIdKey);
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthIglesiaIdKey);
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", IsAdminDenominacionKey);
+        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", InfoDenominacionKey);
     }
 }
 

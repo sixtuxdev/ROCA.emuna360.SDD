@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@using ROCA.Emuna360.Application.DTOs.Organization
 @using ROCA.Emuna360.Presentation.WebUI.Security
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject TokenStorageService TokenStorage
@@ -11,14 +12,30 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="1" Class="main-app-bar">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">ROCA.Emuna360</MudText>
+        @* <MudImage Src="/image/logo.png" Alt="Emuna360" Class="app-logo ml-3" /> *@
+
+        @if (HasDenominacionInfo)
+        {
+            <MudTooltip Text="@DenominacionTooltip" Placement="Placement.Bottom" Class="denomination-tooltip">
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="denomination-summary">
+                    <MudChip
+                        T="string"
+                        Icon="@Icons.Material.Filled.Extension"
+                        IconColor="Color.Secondary">
+                        <label style="color: white;">@DenominacionNombre</label>
+                    </MudChip>                    
+                </MudStack>
+            </MudTooltip>
+        }
+
         <MudSpacer />
-        
+
         <AuthorizeView>
             <Authorized>
-                <MudText Class="mr-4">Hola, @context.User.Identity?.Name</MudText>
+                <MudText Class="user-greeting mr-4">Hola, @context.User.Identity?.Name</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
             </Authorized>
         </AuthorizeView>
@@ -36,6 +53,25 @@
 @code {
     private bool _drawerOpen = true;
     private bool _isDarkMode = false;
+    private DenominacionDto? _denominacion;
+
+    private string? DenominacionNombre => Normalize(_denominacion?.Nombre);
+    private string? DenominacionPersoneriaJuridica => Normalize(_denominacion?.IglesiaInfo?.PersoneriaJuridica);
+    private bool HasDenominacionInfo => !string.IsNullOrWhiteSpace(DenominacionNombre);
+    private string DenominacionTooltip => string.Join(" | ", new[]
+    {
+        DenominacionNombre,
+        string.IsNullOrWhiteSpace(DenominacionPersoneriaJuridica) ? null : $"Personería Jurídica: {DenominacionPersoneriaJuridica}",
+    }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _denominacion = await TokenStorage.GetInfoDenominacionAsync();
+        StateHasChanged();
+    }
 
     private void DrawerToggle()
     {
@@ -71,4 +107,9 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    private static string? Normalize(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }
