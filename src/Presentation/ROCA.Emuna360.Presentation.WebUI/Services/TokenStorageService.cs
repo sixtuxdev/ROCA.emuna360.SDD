@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.JSInterop;
 using ROCA.Emuna360.Application.DTOs.Auth;
+using ROCA.Emuna360.Application.DTOs.Organization;
+using ROCA.Emuna360.Application.DTOs.Security;
+using System.Text.Json;
 
 namespace ROCA.Emuna360.Presentation.WebUI.Services;
 
@@ -19,6 +22,7 @@ public class TokenStorageService
     private const string AuthDenominacionIdKey = "authDenominacionId";
     private const string AuthIglesiaIdKey = "authIglesiaId";
     private const string IsAdminDenominacionKey = "IsAdminDenominacion";
+    private const string InfoDenominacionKey = "InfoDenominacionKey";
 
     public TokenStorageService(ProtectedLocalStorage localStorage, ProtectedSessionStorage sessionStorage, IJSRuntime jsRuntime)
     {
@@ -81,6 +85,12 @@ public class TokenStorageService
     public async Task SetIsAdminDenominacionAsync(bool isAdminDenominacion)
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", IsAdminDenominacionKey, isAdminDenominacion.ToString().ToLowerInvariant());
+    }
+
+    public async Task SetInfoDenominacionAsync(DenominacionDto? info)
+    {
+        var jsonInfoDen = JsonSerializer.Serialize(info);
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", InfoDenominacionKey, jsonInfoDen);
     }
 
     public async Task<int> GetAuthDenominacionIdAsync()

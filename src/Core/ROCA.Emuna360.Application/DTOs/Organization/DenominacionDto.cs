@@ -9,4 +9,6 @@ public class DenominacionDto : BaseAuditDto
     public string Slug { get; set; } = string.Empty;
     public bool Activa { get; set; }
     public int IglesiaPrincipalId { get; set; }
+
+    public IglesiaDto? IglesiaInfo { get; set; }
 }

@@ -1,9 +1,11 @@
-using ROCA.Emuna360.Domain.Common.Results;
-using ROCA.Emuna360.Domain.Entities.Organization;
-using System.Data;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Organization;
+using ROCA.Emuna360.Domain.Common.Results;
+using ROCA.Emuna360.Domain.Entities.Organization;
+using ROCA.Emuna360.Domain.Entities.Registry;
+using ROCA.Emuna360.Domain.Entities.Security;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.Organization;
@@ -43,6 +45,7 @@ public class DenominacionRepository : BaseRepository<Denominacion>, IDenominacio
         return await connection.QueryAsync<Denominacion>("usp_Denominacion_Listar", parameters, commandType: System.Data.CommandType.StoredProcedure);
     }
 
+    /*
     public async Task<Denominacion?> GetByIdAsync(int id, int denominacionId)
     {
         using var connection = CreateConnection();
@@ -50,6 +53,30 @@ public class DenominacionRepository : BaseRepository<Denominacion>, IDenominacio
         parameters.Add("@DenominacionId", id); // For Denominacion, id IS denominacionId?
         // Actually, if we are filtering by denominacionId, and the entity is Denominacion, then id must be denominacionId.
         return await connection.QueryFirstOrDefaultAsync<Denominacion>("usp_Denominacion_Obtener", parameters, commandType: System.Data.CommandType.StoredProcedure);
+    }
+    */
+
+    public async Task<Denominacion?> GetByIdAsync(int id, int denominacionId)
+    {
+        using var connection = CreateConnection();
+
+        var p = new DynamicParameters();
+        p.Add("@DenominacionId", id);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "usp_Denominacion_Obtener",
+            p,
+            commandType: CommandType.StoredProcedure);
+
+        // Usuario principal
+        var denominacion = await multi.ReadFirstOrDefaultAsync<Denominacion>();
+
+        if (denominacion is null)
+            return null;
+
+        denominacion.IglesiaInfo = await multi.ReadFirstOrDefaultAsync<Iglesia>();
+
+        return denominacion;
     }
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)

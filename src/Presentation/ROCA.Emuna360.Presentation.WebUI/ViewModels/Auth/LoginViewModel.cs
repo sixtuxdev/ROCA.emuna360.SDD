@@ -16,7 +16,7 @@ public sealed class LoginViewModel
     private readonly ISnackbar _snackbar;
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _configuration;
-    private readonly DenominacionesApiService _denominacionesApiService;
+    private readonly DenominacionesApiService _denominacionesApiService;    
 
     public LoginViewModel(
         AuthApiService authApiService,
@@ -158,8 +158,12 @@ public sealed class LoginViewModel
                     return;
                 }
 
+                var infoDenominacion = await _denominacionesApiService.GetDenominacionAsync(response.User.DenominacionId);
+
                 await _tokenStorage.SetLoginSessionAsync(response);
                 await _tokenStorage.SetIsAdminDenominacionAsync(isAdminDenominacion.Value);
+                await _tokenStorage.SetInfoDenominacionAsync(infoDenominacion);
+                
                 await _authStateProvider.NotifyUserAuthenticationAsync(response.AccessToken);
                 _snackbar.Add("Bienvenido a ROCA.Emuna360", Severity.Success);
                 _navigation.NavigateTo("/dashboard", replace: true);

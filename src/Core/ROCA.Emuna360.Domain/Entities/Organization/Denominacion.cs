@@ -8,4 +8,7 @@ public class Denominacion
     public bool Activa { get; set; }
     public int IglesiaPrincipalId { get; set; }
     public DateTime? FechaCreacion { get; set; }
+
+    public Iglesia? IglesiaInfo { get; set; }
+
 }
