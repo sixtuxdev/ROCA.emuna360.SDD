@@ -30,6 +30,7 @@ public class ConfigIglesiasViewModel
     private readonly Dictionary<int, string> _ciudadesPorId = new();
     private readonly Dictionary<int, string> _corregimientosPorId = new();
     private readonly HashSet<IglesiaFormField> _touchedIglesiaFields = [];
+    private DenominacionDto? _infoDenominacion;
     private string _searchText = string.Empty;
     private int _statusFilter = AllStatusFilter;       
 
@@ -133,6 +134,7 @@ public class ConfigIglesiasViewModel
         await LoadIglesiasAsync();
         await LoadEstructurasDisponiblesAsync();
         await LoadPastoresDisponiblesAsync();
+        await LoadInfoDenominacionAsync();
         StartNewIglesia();
     }
 
@@ -195,6 +197,7 @@ public class ConfigIglesiasViewModel
     {
         SelectedIglesia = null;
         IglesiaForm = NewIglesia(DenominacionId);
+        ApplyInfoDenominacionToForm();
         IsEditing = false;
         ResetIglesiaFormInteraction();
         Departamentos = [];
@@ -209,6 +212,7 @@ public class ConfigIglesiasViewModel
 
         SelectedIglesia = refreshedIglesia;
         IglesiaForm = CloneIglesia(refreshedIglesia);
+        ApplyInfoDenominacionToForm();
         IsEditing = true;
         ResetIglesiaFormInteraction();
         await LoadGeographyForFormAsync();
@@ -345,6 +349,7 @@ public class ConfigIglesiasViewModel
 
             IglesiaForm.DenominacionId = DenominacionId;
             IglesiaForm.Nombre = IglesiaForm.Nombre.Trim();
+            ApplyInfoDenominacionToForm();
             IglesiaForm.Slug = IglesiaForm.Slug.Trim();
             IglesiaForm.Correo = NormalizeOptional(IglesiaForm.Correo);
             IglesiaForm.PersoneriaJuridica = NormalizeOptional(IglesiaForm.PersoneriaJuridica);
@@ -631,6 +636,21 @@ public class ConfigIglesiasViewModel
 
         var estructura = await _estructuraOrganizacionalApiService.GetEstructuraAsync(relation.EstructuraId, denominacionId);
         iglesia.EstructuraOrg = estructura is null ? null : CloneEstructura(estructura);
+    }
+
+    protected async Task LoadInfoDenominacionAsync()
+    {
+        _infoDenominacion = await _tokenStorageService.GetInfoDenominacionAsync();
+    }
+
+    protected void ApplyInfoDenominacionToForm()
+    {
+        if (_infoDenominacion is null)
+            return;
+
+        IglesiaForm.Slug = NormalizeOptional(_infoDenominacion.IglesiaInfo?.Slug) ?? IglesiaForm.Slug;
+        IglesiaForm.PersoneriaJuridica = NormalizeOptional(_infoDenominacion.IglesiaInfo?.PersoneriaJuridica) ?? IglesiaForm.PersoneriaJuridica;
+        IglesiaForm.Slogan = NormalizeOptional(_infoDenominacion.IglesiaInfo?.Slogan) ?? IglesiaForm.Slogan;
     }
 
     protected List<string> ValidateForm()

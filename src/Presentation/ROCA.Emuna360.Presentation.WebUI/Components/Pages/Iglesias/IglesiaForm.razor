@@ -33,6 +33,7 @@
                           Margin="Margin.Dense"
                           Immediate="true"
                           Required="true"
+                          ReadOnly="true"
                           OnBlur="@(() => ViewModel.TouchIglesiaFormField(ConfigIglesiasViewModel.IglesiaFormField.Slug))"
                           Error="@HasError(ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Slug))"
                           ErrorText="@ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.Slug)"
@@ -46,6 +47,7 @@
                           Margin="Margin.Dense"
                           Immediate="true"
                           Required="true"
+                          ReadOnly="true"
                           OnBlur="@(() => ViewModel.TouchIglesiaFormField(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica))"
                           Error="@HasError(ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica))"
                           ErrorText="@ViewModel.GetIglesiaFormFieldError(ConfigIglesiasViewModel.IglesiaFormField.PersoneriaJuridica)"
@@ -158,6 +160,7 @@
                           Margin="Margin.Dense"
                           Lines="2"
                           Immediate="true"
+                          ReadOnly="true"
                           @bind-Value="ViewModel.IglesiaForm.Slogan" />
         </MudItem>
 

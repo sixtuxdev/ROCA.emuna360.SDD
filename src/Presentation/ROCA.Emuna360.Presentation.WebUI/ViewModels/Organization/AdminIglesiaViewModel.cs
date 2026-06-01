@@ -65,6 +65,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
         await LoadPaisesAsync();
         await LoadEstructurasDisponiblesAsync();
         await LoadPastoresDisponiblesAsync();
+        await LoadInfoDenominacionAsync();
         await LoadAdminIglesiaAsync();
     }
 
@@ -92,6 +93,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
             Iglesias = [iglesia];
             SelectedIglesia = iglesia;
             IglesiaForm = CloneIglesia(iglesia);
+            ApplyInfoDenominacionToForm();
             IsEditing = true;
             await LoadGeographyForFormAsync();
         }
