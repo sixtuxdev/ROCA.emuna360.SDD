@@ -55,7 +55,12 @@
                    Label="Crear usuario con"
                    Variant="Variant.Outlined"
                    Margin="Margin.Dense"
-                   @bind-Value="ViewModel.CrearUsuarioCon">
+                   Required="true"
+                   Clearable="true"
+                   @bind-Value="ViewModel.CrearUsuarioCon"
+                   OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.CrearUsuarioCon))"
+                   Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.CrearUsuarioCon))"
+                   ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.CrearUsuarioCon)">
             <MudSelectItem T="string" Value="@("Documento")">
                 Documento
             </MudSelectItem>
@@ -95,6 +100,20 @@
                       OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.Contrasena))"
                       Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena))"
                       ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.Contrasena)" />
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudTextField T="string"
+                      Label="Repetir contraseÃ±a"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Immediate="true"
+                      InputType="InputType.Password"
+                      Required="true"
+                      @bind-Value="ViewModel.ConfirmarContrasena"
+                      OnBlur="@(() => ViewModel.TouchField(AdminRegistroViewModel.RegistroFormField.ConfirmarContrasena))"
+                      Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.ConfirmarContrasena))"
+                      ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.ConfirmarContrasena)" />
     </MudItem>
 
     <MudItem xs="12" sm="6">
@@ -291,7 +310,7 @@
     <MudButton Variant="Variant.Filled"
                Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Save"
-               Disabled="@(!ViewModel.CanSaveRegistro)"
+               Disabled="@ViewModel.IsSaving"
                OnClick="SaveRegistroAsync">
         @if (ViewModel.IsSaving)
         {

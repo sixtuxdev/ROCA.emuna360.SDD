@@ -200,9 +200,9 @@
         </MudItem>
 
         <MudItem xs="12">
-            <div class="estructura-selector">
+            <div class="estructura-selector @(ViewModel.IglesiaForm.EstructuraOrg is not null ? string.Empty : "selector-required")">
                 <div class="estructura-selector-content">
-                    <MudText Typo="Typo.caption" Class="mud-text-secondary">Estructura organizacional</MudText>
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">Estructura organizacional *</MudText>
                     @if (ViewModel.IglesiaForm.EstructuraOrg is null)
                     {
                         <MudText Typo="Typo.body2" Class="mud-text-secondary">Sin estructura seleccionada</MudText>
@@ -249,7 +249,7 @@
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Save"
-                   Disabled="@(!ViewModel.CanSaveIglesia)"
+                   Disabled="@ViewModel.IsSaving"
                    OnClick="SaveIglesiaAsync">
             @ViewModel.SaveButtonText
         </MudButton>
@@ -298,6 +298,7 @@
         gap: .25rem;
     }
 
+    .estructura-selector.selector-required,
     .pastor-selector.selector-required {
         border-color: var(--mud-palette-warning);
     }

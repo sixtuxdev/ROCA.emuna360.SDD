@@ -80,7 +80,8 @@ public sealed class AdminRegistroViewModel
     public IReadOnlyList<CorregimientoDto> Corregimientos { get; private set; } = [];
     public int? RolId { get; set; }
     public string? Contrasena { get; set; }
-    public string CrearUsuarioCon { get; set; } = "Documento";
+    public string? ConfirmarContrasena { get; set; }
+    public string? CrearUsuarioCon { get; set; }
 
     public string SearchText
     {
@@ -118,7 +119,9 @@ public sealed class AdminRegistroViewModel
         Correo,
         Interes,
         Rol,
-        Contrasena
+        Contrasena,
+        ConfirmarContrasena,
+        CrearUsuarioCon
     }
 
     public async Task InitializeAsync(bool esInterno, int? denominacionId = null)
@@ -190,7 +193,8 @@ public sealed class AdminRegistroViewModel
         _iglesiaSeleccionada = null;
         RolId = EsInterno ? null : GetVisitanteRol()?.RolId;
         Contrasena = null;
-        CrearUsuarioCon = "Documento";
+        ConfirmarContrasena = null;
+        CrearUsuarioCon = null;
         _touchedFields.Clear();
         Departamentos = [];
         Ciudades = [];
@@ -234,7 +238,8 @@ public sealed class AdminRegistroViewModel
         var validationErrors = ValidateForm();
         if (validationErrors.Count > 0)
         {
-            _snackbar.Add(validationErrors[0], Severity.Warning);
+            TouchRequiredFields();
+            _snackbar.Add($"Complete los campos obligatorios: {string.Join(" ", validationErrors)}", Severity.Warning);
             return;
         }
 
@@ -355,8 +360,11 @@ public sealed class AdminRegistroViewModel
             RegistroFormField.TipoDocumento => ValidateTipoDocumento(),
             RegistroFormField.Sexo => ValidateSexo(),
             RegistroFormField.Correo => ValidateCorreo(RegistroForm.Correo),
+            RegistroFormField.Interes => ValidateInteres(),
             RegistroFormField.Rol => ValidateRol(),
             RegistroFormField.Contrasena => ValidateContrasena(),
+            RegistroFormField.ConfirmarContrasena => ValidateConfirmarContrasena(),
+            RegistroFormField.CrearUsuarioCon => ValidateCrearUsuarioCon(),
             _ => null
         };
     }
@@ -506,14 +514,17 @@ public sealed class AdminRegistroViewModel
 
         AddIfNotNull(errors, ValidateDenominacion());
         AddIfNotNull(errors, ValidateIglesia());
+        AddIfNotNull(errors, ValidateCrearUsuarioCon());
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Nombres, "Los nombres son obligatorios."));
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Apellidos, "Los apellidos son obligatorios."));
         AddIfNotNull(errors, ValidateTipoDocumento());
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Documento, "El documento es obligatorio."));
         AddIfNotNull(errors, ValidateSexo());
         AddIfNotNull(errors, ValidateCorreo(RegistroForm.Correo));
+        AddIfNotNull(errors, ValidateInteres());
         AddIfNotNull(errors, ValidateRol());
         AddIfNotNull(errors, ValidateContrasena());
+        AddIfNotNull(errors, ValidateConfirmarContrasena());
 
         if (RegistroForm.Interno is null)
             errors.Add("No fue posible determinar si el registro es interno o externo.");
@@ -544,6 +555,13 @@ public sealed class AdminRegistroViewModel
         return RegistroForm.ParametroIdSexo > 0 ? null : "El sexo es obligatorio.";
     }
 
+    private string? ValidateInteres()
+    {
+        return RegistroForm.ParametroIdInteres.HasValue && RegistroForm.ParametroIdInteres.Value > 0
+            ? null
+            : "El interes es obligatorio.";
+    }
+
     private string? ValidateRol()
     {
         if (IsRegistroPublico && GetVisitanteRol() is null)
@@ -552,9 +570,35 @@ public sealed class AdminRegistroViewModel
         return RolId.HasValue && RolId.Value > 0 ? null : "El rol es obligatorio.";
     }
 
+    private string? ValidateCrearUsuarioCon()
+    {
+        return string.IsNullOrWhiteSpace(CrearUsuarioCon)
+            ? "Debe seleccionar si el usuario se crea con documento o correo."
+            : null;
+    }
+
     private string? ValidateContrasena()
     {
-        return string.IsNullOrWhiteSpace(Contrasena) ? "La contrasena es obligatoria." : null;
+        if (string.IsNullOrWhiteSpace(Contrasena))
+            return "La contrasena es obligatoria.";
+
+        if (Contrasena.Length < 7)
+            return "La contrasena debe tener al menos 7 caracteres.";
+
+        if (Contrasena.Length > 25)
+            return "La contrasena no debe exceder los 25 caracteres.";
+
+        return null;
+    }
+
+    private string? ValidateConfirmarContrasena()
+    {
+        if (string.IsNullOrWhiteSpace(ConfirmarContrasena))
+            return "Debe repetir la contrasena.";
+
+        return string.Equals(Contrasena, ConfirmarContrasena, StringComparison.Ordinal)
+            ? null
+            : "Las contrasenas no coinciden.";
     }
 
     private static string? ValidateRequired(string? value, string message)
@@ -562,8 +606,14 @@ public sealed class AdminRegistroViewModel
         return string.IsNullOrWhiteSpace(value) ? message : null;
     }
 
-    private static string? ValidateCorreo(string? value)
+    private string? ValidateCorreo(string? value)
     {
+        if (string.Equals(CrearUsuarioCon, "Correo", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(value))
+        {
+            return "El correo es obligatorio cuando el usuario se crea con correo.";
+        }
+
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
@@ -624,7 +674,7 @@ public sealed class AdminRegistroViewModel
             UsuarioId = 0,
             DenominacionId = DenominacionId,
             RegistroId = registroId,
-            Correo = CrearUsuarioCon == "Correo" ? RegistroForm.Correo : RegistroForm.Documento,
+            Correo = string.Equals(CrearUsuarioCon, "Correo", StringComparison.OrdinalIgnoreCase) ? RegistroForm.Correo : RegistroForm.Documento,
             PasswordHash = Contrasena,
             EmailVerificado = false,
             Bloqueado = false,
@@ -662,6 +712,22 @@ public sealed class AdminRegistroViewModel
     {
         if (!string.IsNullOrWhiteSpace(error))
             errors.Add(error);
+    }
+
+    private void TouchRequiredFields()
+    {
+        _touchedFields.Add(RegistroFormField.Iglesia);
+        _touchedFields.Add(RegistroFormField.CrearUsuarioCon);
+        _touchedFields.Add(RegistroFormField.Rol);
+        _touchedFields.Add(RegistroFormField.Contrasena);
+        _touchedFields.Add(RegistroFormField.ConfirmarContrasena);
+        _touchedFields.Add(RegistroFormField.Nombres);
+        _touchedFields.Add(RegistroFormField.Apellidos);
+        _touchedFields.Add(RegistroFormField.TipoDocumento);
+        _touchedFields.Add(RegistroFormField.Documento);
+        _touchedFields.Add(RegistroFormField.Sexo);
+        _touchedFields.Add(RegistroFormField.Correo);
+        _touchedFields.Add(RegistroFormField.Interes);
     }
 
     private RolDto? GetVisitanteRol()

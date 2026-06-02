@@ -88,11 +88,11 @@
                             </TemplateColumn>
                             <PropertyColumn Property="registro => registro.Documento" Title="Documento" />
                             <PropertyColumn Property="registro => registro.Correo" Title="Correo" />
-                            <TemplateColumn Title="Iglesia">
+                            @* <TemplateColumn Title="Iglesia">
                                 <CellTemplate>
                                     @ViewModel.GetIglesiaNombre(context.Item.IglesiaId)
                                 </CellTemplate>
-                            </TemplateColumn>
+                            </TemplateColumn> *@
                             <TemplateColumn Title="Origen">
                                 <CellTemplate>
                                     <MudChip T="string"

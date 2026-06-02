@@ -335,7 +335,7 @@ public class ConfigIglesiasViewModel
         var validationErrors = ValidateForm();
         if (validationErrors.Count > 0)
         {
-            _snackbar.Add(validationErrors[0], Severity.Warning);
+            _snackbar.Add($"Complete los campos obligatorios: {string.Join(" ", validationErrors)}", Severity.Warning);
             return;
         }
 
@@ -662,6 +662,7 @@ public class ConfigIglesiasViewModel
         AddIfNotNull(errors, ValidatePersoneriaJuridica(IglesiaForm.PersoneriaJuridica));
         AddIfNotNull(errors, ValidateCorreo(IglesiaForm.Correo));
         AddIfNotNull(errors, ValidatePastorResponsable());
+        AddIfNotNull(errors, ValidateEstructuraOrganizacional());
 
         if (DenominacionId <= 0)
             errors.Add("La denominación es obligatoria.");
@@ -937,6 +938,13 @@ public class ConfigIglesiasViewModel
         return IglesiaForm.PastorResponsableRegistroId.HasValue && IglesiaForm.PastorResponsableRegistroId.Value > 0
             ? null
             : "El pastor responsable es obligatorio.";
+    }
+
+    private string? ValidateEstructuraOrganizacional()
+    {
+        return IglesiaForm.EstructuraOrg?.EstructuraOrganizacionalId > 0
+            ? null
+            : "La estructura organizacional es obligatoria.";
     }
 
     private void EnsurePastorResponsableForSave()
