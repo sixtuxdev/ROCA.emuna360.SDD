@@ -172,10 +172,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="8">
-            <div class="estructura-selector pastor-selector @(ViewModel.IglesiaForm.PastorResponsableRegistroId.HasValue ? string.Empty : "selector-required")">
+            <div class="estructura-selector pastor-selector @(ViewModel.IglesiaForm.PastorResponsableRegistroId is > 0 ? string.Empty : "selector-required")">
                 <div class="estructura-selector-content">
                     <MudText Typo="Typo.caption" Class="mud-text-secondary">Pastor Responsable *</MudText>
-                    @if (!ViewModel.IglesiaForm.PastorResponsableRegistroId.HasValue)
+                    @if (ViewModel.IglesiaForm.PastorResponsableRegistroId is not > 0)
                     {
                         <MudText Typo="Typo.body2" Class="mud-text-secondary">Sin pastor seleccionado</MudText>
                     }

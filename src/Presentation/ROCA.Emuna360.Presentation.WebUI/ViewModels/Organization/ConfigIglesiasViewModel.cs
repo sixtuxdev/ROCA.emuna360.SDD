@@ -757,7 +757,7 @@ public class ConfigIglesiasViewModel
     public string GetPastorResponsableNombre(IglesiaDto iglesia)
     {
         var pastor = iglesia.PastorResponsable;
-        if (pastor is null && iglesia.PastorResponsableRegistroId.HasValue)
+        if (pastor is null && iglesia.PastorResponsableRegistroId is > 0)
         {
             pastor = PastoresDisponibles.FirstOrDefault(item => item.UsuarioId == iglesia.PastorResponsableRegistroId.Value);
         }
@@ -949,14 +949,15 @@ public class ConfigIglesiasViewModel
 
     private void SyncPastorResponsable(IglesiaDto iglesia)
     {
-        if (!iglesia.PastorResponsableRegistroId.HasValue)
+        if (iglesia.PastorResponsableRegistroId is not > 0)
         {
             iglesia.PastorResponsable = null;
             return;
         }
 
         var pastor = PastoresDisponibles.FirstOrDefault(item => item.UsuarioId == iglesia.PastorResponsableRegistroId.Value);
-        iglesia.PastorResponsable = pastor is null ? null : ClonePastor(pastor);
+        if (pastor is not null)
+            iglesia.PastorResponsable = ClonePastor(pastor);
     }
 
     private void ResetIglesiaFormInteraction()

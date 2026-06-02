@@ -19,6 +19,7 @@ public class Iglesia
     public string? Correo { get; set; }
     public string? Slogan { get; set; }
     public int? PastorResponsableRegistroId { get; set; }
+    public string? PastorResponsable { get; set; }
     public bool Activa { get; set; }
     public DateTime FechaCreacion { get; set; }
     public EstructuraOrganizacional? EstructuraOrg { get; set; }

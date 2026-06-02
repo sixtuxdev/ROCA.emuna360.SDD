@@ -12,25 +12,32 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT
-        IglesiaId,
-        DenominacionId,
-        Nombre,
-        Slug,
-        PersoneriaJuridica,
-        PaisId,
-        DepartamentoId,
-        CiudadId,
-        CorregimientoId,
-        Direccion,
-        Telefono,
-        Correo,
-        Slogan,
-        PastorResponsableRegistroId,
-        Activa,
-        FechaCreacion
-    FROM dbo.Iglesias
-    WHERE DenominacionId = @DenominacionId
-    ORDER BY Nombre;
+        i.IglesiaId,
+        i.DenominacionId,
+        i.Nombre,
+        i.Slug,
+        i.PersoneriaJuridica,
+        i.PaisId,
+        i.DepartamentoId,
+        i.CiudadId,
+        i.CorregimientoId,
+        i.Direccion,
+        i.Telefono,
+        i.Correo,
+        i.Slogan,
+        i.PastorResponsableRegistroId,
+        LTRIM(RTRIM(CONCAT(r.Nombres, ' ', r.Apellidos))) AS PastorResponsable,
+        i.Activa,
+        i.FechaCreacion
+    FROM dbo.Iglesias i
+    LEFT JOIN dbo.Usuarios u
+        ON u.UsuarioId = i.PastorResponsableRegistroId
+       AND u.DenominacionId = i.DenominacionId
+    LEFT JOIN dbo.Registro r
+        ON r.RegistroId = u.RegistroId
+       AND r.DenominacionId = u.DenominacionId
+    WHERE i.DenominacionId = @DenominacionId
+    ORDER BY i.Nombre;
 END;
 GO
 
@@ -42,25 +49,32 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT TOP (1)
-        IglesiaId,
-        DenominacionId,
-        Nombre,
-        Slug,
-        PersoneriaJuridica,
-        PaisId,
-        DepartamentoId,
-        CiudadId,
-        CorregimientoId,
-        Direccion,
-        Telefono,
-        Correo,
-        Slogan,
-        PastorResponsableRegistroId,
-        Activa,
-        FechaCreacion
-    FROM dbo.Iglesias
-    WHERE IglesiaId = @IglesiaId
-      AND DenominacionId = @DenominacionId;
+        i.IglesiaId,
+        i.DenominacionId,
+        i.Nombre,
+        i.Slug,
+        i.PersoneriaJuridica,
+        i.PaisId,
+        i.DepartamentoId,
+        i.CiudadId,
+        i.CorregimientoId,
+        i.Direccion,
+        i.Telefono,
+        i.Correo,
+        i.Slogan,
+        i.PastorResponsableRegistroId,
+        LTRIM(RTRIM(CONCAT(r.Nombres, ' ', r.Apellidos))) AS PastorResponsable,
+        i.Activa,
+        i.FechaCreacion
+    FROM dbo.Iglesias i
+    LEFT JOIN dbo.Usuarios u
+        ON u.UsuarioId = i.PastorResponsableRegistroId
+       AND u.DenominacionId = i.DenominacionId
+    LEFT JOIN dbo.Registro r
+        ON r.RegistroId = u.RegistroId
+       AND r.DenominacionId = u.DenominacionId
+    WHERE i.IglesiaId = @IglesiaId
+      AND i.DenominacionId = @DenominacionId;
 END;
 GO
 

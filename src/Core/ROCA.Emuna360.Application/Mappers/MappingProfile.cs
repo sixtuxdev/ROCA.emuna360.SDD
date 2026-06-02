@@ -24,7 +24,10 @@ public class MappingProfile : Profile
         CreateMap<ConfiguracionIglesiaColor, ConfiguracionIglesiaColorDto>().ReverseMap();
         CreateMap<ConfiguracionIglesia, ConfiguracionIglesiaDto>().ReverseMap();
         CreateMap<Denominacion, DenominacionDto>().ReverseMap();
-        CreateMap<Iglesia, IglesiaDto>().ReverseMap();
+        CreateMap<Iglesia, IglesiaDto>()
+            .ForMember(dest => dest.PastorResponsable, opt => opt.MapFrom(src => MapPastorResponsable(src.PastorResponsableRegistroId, src.PastorResponsable)));
+        CreateMap<IglesiaDto, Iglesia>()
+            .ForMember(dest => dest.PastorResponsable, opt => opt.Ignore());
         CreateMap<Ciudad, CiudadDto>().ReverseMap();
         CreateMap<Corregimiento, CorregimientoDto>().ReverseMap();
         CreateMap<Departamento, DepartamentoDto>().ReverseMap();
@@ -55,5 +58,21 @@ public class MappingProfile : Profile
         CreateMap<AuthRole, AuthRoleDto>().ReverseMap();
         CreateMap<AuthMenu, AuthMenuDto>().ReverseMap();
         CreateMap<Registro, AuthRegistroDto>().ReverseMap();
+    }
+
+    private static UsuarioPastorResponseDTO? MapPastorResponsable(int? pastorResponsableRegistroId, string? pastorResponsable)
+    {
+        var nombre = string.IsNullOrWhiteSpace(pastorResponsable)
+            ? null
+            : pastorResponsable.Trim();
+
+        if ((!pastorResponsableRegistroId.HasValue || pastorResponsableRegistroId.Value <= 0) && nombre is null)
+            return null;
+
+        return new UsuarioPastorResponseDTO
+        {
+            UsuarioId = pastorResponsableRegistroId.GetValueOrDefault(),
+            Nombres = nombre
+        };
     }
 }
