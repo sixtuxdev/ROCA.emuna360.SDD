@@ -37,6 +37,7 @@
                           Hover="true"
                           Bordered="false"
                           Elevation="0"
+                          RowsPerPage="8"
                           Breakpoint="Breakpoint.Sm">
                     <HeaderContent>
                         <MudTh>UsuarioId</MudTh>
@@ -65,6 +66,11 @@
                             No se encontraron pastores con ese criterio.
                         </MudText>
                     </NoRecordsContent>
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[] { 8, 15, 25 }"
+                                       RowsPerPageString="Filas por pagina"
+                                       InfoFormat="{first_item}-{last_item} de {all_items}" />
+                    </PagerContent>
                 </MudTable>
             </div>
         }
