@@ -70,6 +70,8 @@ public sealed class AdminRegistroViewModel
     public bool IsLoadingDenominacion { get; private set; }
     public IReadOnlyList<RegistroDto> Registros { get; private set; } = [];
     public RegistroDto RegistroForm { get; private set; } = NewRegistro();
+    public RegistroDto? SelectedRegistro { get; private set; }
+    public bool IsEditing { get; private set; }
     public IReadOnlyList<ParametroDto> TipoDocumentoOptions { get; private set; } = [];
     public IReadOnlyList<ParametroDto> SexoOptions { get; private set; } = [];
     public IReadOnlyList<ParametroDto> InteresOptions { get; private set; } = [];
@@ -97,6 +99,8 @@ public sealed class AdminRegistroViewModel
 
     public bool HasRegistros => Registros.Any();
     public string SourceLabel => EsInterno ? "Registro interno" : "Registro externo";
+    public string FormTitle => IsEditing ? "Editar Registro" : "Nuevo Registro";
+    public string FormSubtitle => IsEditing ? "Actualice la informacion de la persona" : "Complete la informacion de la persona";
     public string IglesiaNombre => string.IsNullOrWhiteSpace(_iglesia?.Nombre) ? "Sin iglesia" : _iglesia.Nombre;
     public string RegistroIglesiaNombre => IglesiaId > 0
         ? IglesiaNombre
@@ -190,6 +194,8 @@ public sealed class AdminRegistroViewModel
     public void StartNewRegistro()
     {
         RegistroForm = NewRegistro(DenominacionId, IglesiaId, EsInterno);
+        SelectedRegistro = null;
+        IsEditing = false;
         _iglesiaSeleccionada = null;
         RolId = EsInterno ? null : GetVisitanteRol()?.RolId;
         Contrasena = null;
@@ -200,6 +206,26 @@ public sealed class AdminRegistroViewModel
         Ciudades = [];
         Corregimientos = [];
     }    
+
+    public async Task StartEditRegistroAsync(RegistroDto registro)
+    {
+        SelectedRegistro = registro;
+        IsEditing = true;
+        RegistroForm = CloneRegistro(registro);
+        _iglesiaSeleccionada = null;
+        RolId = null;
+        Contrasena = null;
+        ConfirmarContrasena = null;
+        CrearUsuarioCon = null;
+        _touchedFields.Clear();
+
+        if (IglesiaId <= 0 && RegistroForm.IglesiaId > 0)
+        {
+            _iglesiaSeleccionada = await _iglesiasApiService.GetIglesiaAsync(RegistroForm.IglesiaId, DenominacionId);
+        }
+
+        await LoadGeographyForFormAsync();
+    }
 
     private async Task LoadDenominacionAsync()
     {
@@ -247,7 +273,12 @@ public sealed class AdminRegistroViewModel
 
         try
         {
-            RegistroForm.RegistroId = 0;
+            var wasEditing = IsEditing;
+            var selectedId = RegistroForm.RegistroId;
+
+            if (!wasEditing)
+                RegistroForm.RegistroId = 0;
+
             RegistroForm.DenominacionId = DenominacionId;
             RegistroForm.IglesiaId = IglesiaId > 0 ? IglesiaId : RegistroForm.IglesiaId;
             RegistroForm.Interno = EsInterno;
@@ -257,9 +288,30 @@ public sealed class AdminRegistroViewModel
             RegistroForm.Correo = NormalizeOptional(RegistroForm.Correo);
             RegistroForm.Direccion = NormalizeOptional(RegistroForm.Direccion);
             RegistroForm.Telefono = NormalizeOptional(RegistroForm.Telefono);
-            RegistroForm.FechaCreacion = DateTime.UtcNow;
             RegistroForm.FechaActualizacion = DateTime.UtcNow;
 
+            if (wasEditing)
+            {
+                var updated = await _registroApiService.UpdateRegistroAsync(RegistroForm);
+                if (!updated)
+                {
+                    _snackbar.Add("No fue posible actualizar el registro.", Severity.Error);
+                    return;
+                }
+
+                _snackbar.Add("Registro actualizado correctamente.", Severity.Success);
+                LastSaveSucceeded = true;
+                await LoadRegistrosAsync();
+                SelectedRegistro = Registros.FirstOrDefault(registro => registro.RegistroId == selectedId);
+                if (SelectedRegistro is not null)
+                {
+                    RegistroForm = CloneRegistro(SelectedRegistro);
+                    await LoadGeographyForFormAsync();
+                }
+                return;
+            }
+
+            RegistroForm.FechaCreacion = DateTime.UtcNow;
             var newId = await _registroApiService.CreateRegistroAsync(RegistroForm);
             if (newId is null || newId is 0)
             {
@@ -514,7 +566,8 @@ public sealed class AdminRegistroViewModel
 
         AddIfNotNull(errors, ValidateDenominacion());
         AddIfNotNull(errors, ValidateIglesia());
-        AddIfNotNull(errors, ValidateCrearUsuarioCon());
+        if (!IsEditing)
+            AddIfNotNull(errors, ValidateCrearUsuarioCon());
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Nombres, "Los nombres son obligatorios."));
         AddIfNotNull(errors, ValidateRequired(RegistroForm.Apellidos, "Los apellidos son obligatorios."));
         AddIfNotNull(errors, ValidateTipoDocumento());
@@ -522,9 +575,12 @@ public sealed class AdminRegistroViewModel
         AddIfNotNull(errors, ValidateSexo());
         AddIfNotNull(errors, ValidateCorreo(RegistroForm.Correo));
         AddIfNotNull(errors, ValidateInteres());
-        AddIfNotNull(errors, ValidateRol());
-        AddIfNotNull(errors, ValidateContrasena());
-        AddIfNotNull(errors, ValidateConfirmarContrasena());
+        if (!IsEditing)
+        {
+            AddIfNotNull(errors, ValidateRol());
+            AddIfNotNull(errors, ValidateContrasena());
+            AddIfNotNull(errors, ValidateConfirmarContrasena());
+        }
 
         if (RegistroForm.Interno is null)
             errors.Add("No fue posible determinar si el registro es interno o externo.");
@@ -665,6 +721,64 @@ public sealed class AdminRegistroViewModel
             IglesiaId = iglesiaId,
             Interno = interno
         };
+    }
+
+    private static RegistroDto CloneRegistro(RegistroDto registro)
+    {
+        return new RegistroDto
+        {
+            RegistroId = registro.RegistroId,
+            DenominacionId = registro.DenominacionId,
+            IglesiaId = registro.IglesiaId,
+            Nombres = registro.Nombres,
+            Apellidos = registro.Apellidos,
+            ParametroIdTipoDocumento = registro.ParametroIdTipoDocumento,
+            Documento = registro.Documento,
+            PaisId = registro.PaisId,
+            DepartamentoId = registro.DepartamentoId,
+            CiudadId = registro.CiudadId,
+            CorregimientoId = registro.CorregimientoId,
+            Direccion = registro.Direccion,
+            Correo = registro.Correo,
+            Telefono = registro.Telefono,
+            ParametroIdSexo = registro.ParametroIdSexo,
+            Interno = registro.Interno,
+            ParametroIdInteres = registro.ParametroIdInteres,
+            FechaCreacion = registro.FechaCreacion,
+            FechaActualizacion = registro.FechaActualizacion
+        };
+    }
+
+    private async Task LoadGeographyForFormAsync()
+    {
+        var paisId = RegistroForm.PaisId;
+        var departamentoId = RegistroForm.DepartamentoId;
+        var ciudadId = RegistroForm.CiudadId;
+        var corregimientoId = RegistroForm.CorregimientoId;
+
+        RegistroForm.PaisId = null;
+        RegistroForm.DepartamentoId = null;
+        RegistroForm.CiudadId = null;
+        RegistroForm.CorregimientoId = null;
+        Departamentos = [];
+        Ciudades = [];
+        Corregimientos = [];
+
+        await LoadPaisesAsync();
+
+        RegistroForm.PaisId = paisId;
+        if (paisId.HasValue)
+            await LoadDepartamentosAsync(paisId.Value);
+
+        RegistroForm.DepartamentoId = departamentoId;
+        if (departamentoId.HasValue)
+            await LoadCiudadesAsync(departamentoId.Value);
+
+        RegistroForm.CiudadId = ciudadId;
+        if (ciudadId.HasValue)
+            await LoadCorregimientosAsync(ciudadId.Value);
+
+        RegistroForm.CorregimientoId = corregimientoId;
     }
 
     private UsuarioDto BuildUsuario(int registroId)

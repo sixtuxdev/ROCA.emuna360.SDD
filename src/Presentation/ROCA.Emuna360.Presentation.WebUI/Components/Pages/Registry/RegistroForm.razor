@@ -50,6 +50,8 @@
             </div>
         }
     </MudItem>
+    @if (!ViewModel.IsEditing)
+    {
     <MudItem xs="12" sm="12">
         <MudSelect T="string"
                    Label="Crear usuario con"
@@ -115,6 +117,8 @@
                       Error="@HasError(ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.ConfirmarContrasena))"
                       ErrorText="@ViewModel.GetFieldError(AdminRegistroViewModel.RegistroFormField.ConfirmarContrasena)" />
     </MudItem>
+
+    }
 
     <MudItem xs="12" sm="6">
         <MudTextField T="string"
@@ -319,7 +323,7 @@
         }
         else
         {
-            <MudText>Guardar</MudText>
+            <MudText>@(ViewModel.IsEditing ? "Actualizar" : "Guardar")</MudText>
         }
     </MudButton>
 </div>

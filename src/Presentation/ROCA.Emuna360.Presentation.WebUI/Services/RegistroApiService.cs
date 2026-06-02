@@ -31,6 +31,12 @@ public sealed class RegistroApiService
         return await ReadDataAsync<int>(response);
     }
 
+    public async Task<bool> UpdateRegistroAsync(RegistroDto registro)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/v1/registros/{registro.RegistroId}", registro);
+        return response.IsSuccessStatusCode && await ReadDataAsync<bool>(response);
+    }
+
     private static async Task<T?> ReadDataAsync<T>(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)

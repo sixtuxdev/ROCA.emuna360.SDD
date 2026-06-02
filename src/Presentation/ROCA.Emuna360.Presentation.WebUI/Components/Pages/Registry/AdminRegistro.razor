@@ -79,6 +79,7 @@
                                  Bordered="false"
                                  Elevation="0"
                                  RowsPerPage="10"
+                                 RowClassFunc="@GetRegistroRowClass"
                                  Class="registros-grid mt-4">
                         <Columns>
                             <TemplateColumn Title="Nombre">
@@ -103,6 +104,17 @@
                                     </MudChip>
                                 </CellTemplate>
                             </TemplateColumn>
+                            <TemplateColumn Title="Acciones">
+                                <CellTemplate>
+                                    <div class="grid-actions">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       title="Editar registro"
+                                                       OnClick="@(() => ViewModel.StartEditRegistroAsync(context.Item))" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
                         </Columns>
                         <PagerContent>
                             <MudDataGridPager T="RegistroDto" />
@@ -114,8 +126,8 @@
 
         <MudItem xs="12" lg="5">
             <MudPaper Elevation="1" Class="config-panel pa-4">
-                <MudText Typo="Typo.h6" Color="Color.Primary">Nuevo Registro</MudText>
-                <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">Complete la informacion de la persona</MudText>
+                <MudText Typo="Typo.h6" Color="Color.Primary">@ViewModel.FormTitle</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary mb-3">@ViewModel.FormSubtitle</MudText>
                 <RegistroForm ViewModel="ViewModel" OnRegistroGuardado="RefrescarRegistrosAsync" />
             </MudPaper>
         </MudItem>
@@ -133,7 +145,8 @@
     .panel-toolbar,
     .toolbar-actions,
     .filter-row,
-    .form-actions {
+    .form-actions,
+    .grid-actions {
         display: flex;
         align-items: center;
         gap: .75rem;
@@ -164,7 +177,8 @@
     }
 
     .toolbar-actions,
-    .form-actions {
+    .form-actions,
+    .grid-actions {
         justify-content: flex-end;
     }
 
@@ -172,6 +186,10 @@
         border: 1px solid var(--mud-palette-divider);
         border-radius: var(--mud-default-borderradius);
         overflow: hidden;
+    }
+
+    .registro-row-selected {
+        background-color: var(--mud-palette-action-disabled-background);
     }
 
     @@media (max-width: 600px) {
@@ -204,5 +222,12 @@
     private static bool HasError(string? error)
     {
         return !string.IsNullOrWhiteSpace(error);
+    }
+
+    private string GetRegistroRowClass(RegistroDto registro, int rowNumber)
+    {
+        return ViewModel.SelectedRegistro?.RegistroId == registro.RegistroId
+            ? "registro-row-selected"
+            : string.Empty;
     }
 }

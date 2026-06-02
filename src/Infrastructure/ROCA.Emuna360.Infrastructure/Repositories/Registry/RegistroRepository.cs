@@ -40,6 +40,7 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
         parameters.Add("@Interno", entity.Interno);
+        parameters.Add("@ParametroIdInteres", entity.ParametroIdInteres);
 
         return await ExecuteCreateAsync("usp_Registro_Insertar", parameters, "@OutRegistroId");
     }
@@ -62,7 +63,9 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
-        return await ExecuteUpdateAsync("usp_Registro_Actualizar", parameters, "@OutRegistroId");
+        parameters.Add("@ParametroIdInteres", entity.ParametroIdInteres);
+
+        return await ExecuteUpdateAsync("usp_Registro_Actualizar", parameters, "");
     }
     
     public async Task<IEnumerable<Registro>> GetAllAsync(int denominacionId)
