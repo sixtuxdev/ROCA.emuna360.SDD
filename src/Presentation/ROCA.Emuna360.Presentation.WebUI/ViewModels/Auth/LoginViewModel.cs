@@ -62,7 +62,7 @@ public sealed class LoginViewModel
     {
         if (denominacionId <= 0)
         {
-            _snackbar.Add("La denominacion recibida no es valida.", Severity.Warning);
+            _snackbar.Add("La denominación recibida no es válida.", Severity.Warning);
             return;
         }
 
@@ -80,7 +80,7 @@ public sealed class LoginViewModel
             var denominacion = await _denominacionesApiService.GetDenominacionAsync(LoginRequest.DenominacionId);
             if (denominacion is null)
             {
-                _snackbar.Add("No fue posible obtener la informacion de la denominacion.", Severity.Warning);
+                _snackbar.Add("No fue posible obtener la información de la denominación.", Severity.Warning);
                 return;
             }
 
@@ -88,7 +88,7 @@ public sealed class LoginViewModel
         }
         catch
         {
-            _snackbar.Add("Ocurrio un error al consultar la denominacion.", Severity.Error);
+            _snackbar.Add("Ocurrió un error al consultar la denominación.", Severity.Error);
         }
         finally
         {

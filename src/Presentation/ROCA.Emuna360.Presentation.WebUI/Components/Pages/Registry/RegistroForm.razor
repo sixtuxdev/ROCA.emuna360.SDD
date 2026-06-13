@@ -12,7 +12,7 @@
     else
     {
         <MudTextField T="string"
-                      Label="Denominacion"
+                      Label="Denominación"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       Disabled="true"
@@ -106,7 +106,7 @@
 
     <MudItem xs="12" sm="6">
         <MudTextField T="string"
-                      Label="Repetir contraseÃ±a"
+                      Label="Repetir contraseña"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       Immediate="true"
@@ -207,7 +207,7 @@
 
     <MudItem xs="12" sm="6">
         <MudTextField T="string"
-                      Label="Telefono"
+                      Label="Teléfono"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       Immediate="true"
@@ -216,7 +216,7 @@
 
     <MudItem xs="12" sm="6">
         <MudSelect T="int?"
-                   Label="Pais"
+                   Label="País"
                    Variant="Variant.Outlined"
                    Margin="Margin.Dense"
                    Value="@ViewModel.RegistroForm.PaisId"
@@ -292,7 +292,7 @@
 
     <MudItem xs="12">
         <MudTextField T="string"
-                      Label="Direccion"
+                      Label="Dirección"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       Immediate="true"
@@ -387,7 +387,7 @@
     private string GetDenominacionText()
     {
         return string.IsNullOrWhiteSpace(ViewModel.DenominacionNombre)
-            ? $"Denominacion {ViewModel.DenominacionId}"
+            ? $"Denominación {ViewModel.DenominacionId}"
             : ViewModel.DenominacionNombre;
     }
     private async Task SaveRegistroAsync()
@@ -409,7 +409,7 @@
     {
         if (ViewModel.DenominacionId <= 0)
         {
-            Snackbar.Add("No fue posible determinar la denominacion para seleccionar una iglesia.", Severity.Warning);
+            Snackbar.Add("No fue posible determinar la denominación para seleccionar una iglesia.", Severity.Warning);
             return;
         }
 

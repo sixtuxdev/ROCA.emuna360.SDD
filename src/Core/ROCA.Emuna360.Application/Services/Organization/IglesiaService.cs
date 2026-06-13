@@ -45,12 +45,19 @@ public class IglesiaService : MultiOrganizationalBaseService<IglesiaDto, Iglesia
         return Result<IglesiaDto>.Success(dto);
     }
 
-    public async System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetByDenominacionAsync(int denominacionId)
+    public async Task<Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetByDenominacionAsync(int denominacionId)
     {
         var entities = await _specificRepository.GetByDenominacionAsync(denominacionId);
         var dtos = _mapper.Map<IEnumerable<IglesiaDto>>(entities).ToList();
         await PopulateEstructurasAsync(dtos, denominacionId);
-        return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaDto>>.Success(dtos);
+        return Result<System.Collections.Generic.IEnumerable<IglesiaDto>>.Success(dtos);
+    }
+
+    public async Task<Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId)
+    {
+        var entities = await _specificRepository.GetAllPorUsuarioIdDenIdAsync(usuarioId, denominacionId);
+        var dtos = _mapper.Map<IEnumerable<IglesiaDto>>(entities).ToList();
+        return Result<System.Collections.Generic.IEnumerable<IglesiaDto>>.Success(dtos);
     }
 
     public override async Task<Result<int>> CreateAsync(IglesiaDto dto)

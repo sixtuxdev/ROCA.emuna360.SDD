@@ -13,7 +13,7 @@
                     No hay estructuras organizacionales disponibles
                 </MudText>
                 <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                    Verifique la estructura asociada a la iglesia o la denominacion actual
+                    Verifique la estructura asociada a la iglesia o la denominación actual
                 </MudText>
             </MudPaper>
         }
@@ -21,7 +21,7 @@
         {
             <div class="tree-filter pb-2">
                 <MudTextField T="string"
-                              Label="Buscar por descripcion o responsable"
+                              Label="Buscar por descripción o responsable"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               Immediate="true"
@@ -51,7 +51,7 @@
                             No se encontraron estructuras
                         </MudText>
                         <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                            Ajuste el texto de busqueda para ver resultados
+                            Ajuste el texto de búsqueda para ver resultados
                         </MudText>
                     </MudPaper>
                 }
@@ -132,7 +132,7 @@
     private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0, false);
 
     /// <summary>
-    /// Renderiza recursivamente un item del arbol y sus hijos.
+    /// Renderiza recursivamente un item del árbol y sus hijos.
     /// </summary>
     private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel, bool ancestorMatchesSearch) => builder =>
     {

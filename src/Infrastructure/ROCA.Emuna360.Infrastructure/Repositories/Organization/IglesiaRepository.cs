@@ -18,6 +18,29 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         return await GetAllAsync(denominacionId);
     }
 
+    public async Task<IEnumerable<Iglesia>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new Dapper.DynamicParameters();
+        parameters.Add("@UsuarioId", usuarioId);
+        parameters.Add("@DenominacionId", denominacionId);
+
+        var rows = await connection.QueryAsync<IglesiaPermitidaResult>(
+            "dbo.usp_Usuarios_ObtenerIglesiasPermitidas",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        foreach (var row in rows)
+        {
+            if (string.IsNullOrWhiteSpace(row.Nombre) && !string.IsNullOrWhiteSpace(row.Iglesia))
+            {
+                row.Nombre = row.Iglesia;
+            }
+        }
+
+        return rows;
+    }
+
     public async Task<OperationResult<int>> CreateAsync(Iglesia entity)
     {
         var parameters = new Dapper.DynamicParameters();
@@ -86,6 +109,11 @@ public class IglesiaRepository : BaseRepository<Iglesia>, IIglesiaRepository
         parameters.Add("@DenominacionId", denominacionId);
         var rows = await connection.ExecuteAsync("usp_Iglesias_Eliminar", parameters, commandType: CommandType.StoredProcedure);
         return rows > 0;
+    }
+
+    private sealed class IglesiaPermitidaResult : Iglesia
+    {
+        public string? Iglesia { get; set; }
     }
 }
 

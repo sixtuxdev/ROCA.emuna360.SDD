@@ -21,6 +21,9 @@ public class IglesiaDto : BaseAuditDto
     public string? Correo { get; set; }
     public string? Slogan { get; set; }
     public int? PastorResponsableRegistroId { get; set; }
+    public string? Iglesia { get; set; }
+    public int? EstructuraId { get; set; }
+    public string? EstructuraOrganizacional { get; set; }
     public bool Activa { get; set; }
 
     public EstructuraOrganizacionalDto? EstructuraOrg { get; set; }

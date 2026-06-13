@@ -36,7 +36,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
     public EstructuraOrganizacionalDto? SelectedPadre { get; set; }
     public bool IsEditing { get; private set; }
 
-    public string DenominacionLabel => DenominacionId > 0 ? DenominacionId.ToString() : "Sin denominacion";
+    public string DenominacionLabel => DenominacionId > 0 ? DenominacionId.ToString() : "Sin denominación";
     public string FormTitle => IsEditing ? "Editar Estructura Organizacional" : "Nueva Estructura Organizacional";
     public string SaveButtonText => IsSaving ? "Guardando..." : "Guardar";
     public bool HasEstructuras => Estructuras.Any();
@@ -68,7 +68,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
 
         if (DenominacionId <= 0)
         {
-            ErrorMessage = "No fue posible obtener la denominacion del usuario autenticado.";
+            ErrorMessage = "No fue posible obtener la denominación del usuario autenticado.";
             _snackbar.Add(ErrorMessage, Severity.Error);
             return;
         }
@@ -279,7 +279,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
         }
         catch
         {
-            _snackbar.Add("Ocurrio un error al guardar la estructura organizacional.", Severity.Error);
+            _snackbar.Add("Ocurrió un error al guardar la estructura organizacional.", Severity.Error);
         }
         finally
         {
@@ -294,7 +294,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
 
         var confirmed = await _dialogService.ShowMessageBox(
             "Eliminar estructura",
-            $"Desea eliminar la estructura {SelectedEstructura.Descripcion}?",
+            $"¿Desea eliminar la estructura {SelectedEstructura.Descripcion}?",
             yesText: "Eliminar",
             cancelText: "Cancelar");
 
@@ -321,7 +321,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
         }
         catch
         {
-            _snackbar.Add("Ocurrio un error al eliminar la estructura organizacional.", Severity.Error);
+            _snackbar.Add("Ocurrió un error al eliminar la estructura organizacional.", Severity.Error);
         }
         finally
         {
@@ -331,7 +331,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
 
     public string? ValidateDescripcion(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? "La descripcion es obligatoria." : null;
+        return string.IsNullOrWhiteSpace(value) ? "La descripción es obligatoria." : null;
     }
 
     public string? ValidateResponsable(string? value)
@@ -345,7 +345,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
             return null;
 
         if (IsEditing && SelectedPadre.EstructuraOrganizacionalId == EstructuraForm.EstructuraOrganizacionalId)
-            return "Una estructura no puede ser padre de si misma.";
+            return "Una estructura no puede ser padre de sí misma.";
 
         if (IsEditing && IsDescendantOf(SelectedPadre.EstructuraOrganizacionalId, EstructuraForm.EstructuraOrganizacionalId))
             return "Una estructura no puede ser hija de uno de sus descendientes.";
@@ -387,7 +387,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
             parentId = parent.GrupoEstructuraOrganizacionalId;
         }
 
-        return parentNames.Count == 0 ? "Nodo raiz" : string.Join(" / ", parentNames);
+        return parentNames.Count == 0 ? "Nodo raíz" : string.Join(" / ", parentNames);
     }
 
     private List<string> ValidateForm()
@@ -399,7 +399,7 @@ public sealed class ConfigEstructuraOrganizacionalViewModel
         AddIfNotNull(errors, ValidateParent());
 
         if (DenominacionId <= 0)
-            errors.Add("La denominacion es obligatoria.");
+            errors.Add("La denominación es obligatoria.");
 
         return errors;
     }

@@ -8,4 +8,5 @@ namespace ROCA.Emuna360.Application.Interfaces.Repositories.Organization;
 public interface IIglesiaRepository : IMultiOrganizationalRepository<Iglesia>
 {
     Task<IEnumerable<Iglesia>> GetByDenominacionAsync(int denominacionId);
+    Task<IEnumerable<Iglesia>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId);
 }

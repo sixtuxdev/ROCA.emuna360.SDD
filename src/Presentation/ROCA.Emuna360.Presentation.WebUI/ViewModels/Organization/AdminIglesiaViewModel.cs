@@ -76,7 +76,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
 
         try
         {
-            var iglesia = await _iglesiasApiService.GetIglesiaAsync(IglesiaId, DenominacionId);
+            var iglesia = await _iglesiasApiService.GetIglesiaAsync(IglesiaId, DenominacionId);            
             if (iglesia is null)
             {
                 ErrorMessage = "No fue posible cargar la iglesia asignada.";

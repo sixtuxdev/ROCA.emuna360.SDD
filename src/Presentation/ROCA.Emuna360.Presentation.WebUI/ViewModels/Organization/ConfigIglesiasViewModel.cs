@@ -87,6 +87,7 @@ public class ConfigIglesiasViewModel
         get => _searchText;
         set => _searchText = value ?? string.Empty;
     }
+    public int usuarioId { get; set; }
 
     public int StatusFilter
     {
@@ -116,6 +117,7 @@ public class ConfigIglesiasViewModel
     {
         DenominacionId = await _tokenStorageService.GetAuthDenominacionIdAsync();
         IsAdminDenominacion = await _tokenStorageService.GetIsAdminDenominacionAsync();
+
 
         if (DenominacionId <= 0)
         {
@@ -148,7 +150,7 @@ public class ConfigIglesiasViewModel
 
         if (DenominacionId <= 0)
         {
-            ErrorMessage = "No fue posible determinar la denominacion para cargar las iglesias.";
+            ErrorMessage = "No fue posible determinar la denominación para cargar las iglesias.";
             _snackbar.Add(ErrorMessage, Severity.Warning);
             Iglesias = [];
             return;
@@ -167,7 +169,8 @@ public class ConfigIglesiasViewModel
 
         try
         {
-            Iglesias = await _iglesiasApiService.GetIglesiasAsync(DenominacionId);
+            //Iglesias = await _iglesiasApiService.GetIglesiasAsync(DenominacionId);
+            Iglesias = await _iglesiasApiService.GetAllPorUsuarioIdDenIdAsync(usuarioId, DenominacionId);
             await LoadUbicacionesDelListadoAsync();
             if (PastoresDisponibles.Any())
             {
@@ -293,7 +296,7 @@ public class ConfigIglesiasViewModel
     {
         var confirmed = await _dialogService.ShowMessageBox(
             "Eliminar Estructura Organizacional",
-            $"¿Desea eliminar la Estructura Organizacional Seleccionada?",
+            $"¿Desea eliminar la estructura organizacional seleccionada?",
             yesText: "Eliminar",
             cancelText: "Cancelar");
 

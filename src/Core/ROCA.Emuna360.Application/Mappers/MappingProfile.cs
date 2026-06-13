@@ -25,8 +25,10 @@ public class MappingProfile : Profile
         CreateMap<ConfiguracionIglesia, ConfiguracionIglesiaDto>().ReverseMap();
         CreateMap<Denominacion, DenominacionDto>().ReverseMap();
         CreateMap<Iglesia, IglesiaDto>()
+            .ForMember(dest => dest.Iglesia, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.PastorResponsable, opt => opt.MapFrom(src => MapPastorResponsable(src.PastorResponsableRegistroId, src.PastorResponsable)));
         CreateMap<IglesiaDto, Iglesia>()
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Nombre) ? src.Iglesia ?? string.Empty : src.Nombre))
             .ForMember(dest => dest.PastorResponsable, opt => opt.Ignore());
         CreateMap<Ciudad, CiudadDto>().ReverseMap();
         CreateMap<Corregimiento, CorregimientoDto>().ReverseMap();

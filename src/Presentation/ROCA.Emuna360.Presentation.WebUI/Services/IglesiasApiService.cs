@@ -19,6 +19,12 @@ public sealed class IglesiasApiService
         return response?.Data ?? [];
     }
 
+    public async Task<IReadOnlyList<IglesiaDto>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId)
+    {
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<IglesiaDto>>>($"api/v1/iglesias/GetAllPorUsuarioIdDenId/{usuarioId}/{denominacionId}");
+        return response?.Data ?? [];
+    }
+
     public async Task<IglesiaDto?> GetIglesiaAsync(int iglesiaId, int denominacionId)
     {
         var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<IglesiaDto>>($"api/v1/iglesias/{iglesiaId}/denominacion/{denominacionId}");

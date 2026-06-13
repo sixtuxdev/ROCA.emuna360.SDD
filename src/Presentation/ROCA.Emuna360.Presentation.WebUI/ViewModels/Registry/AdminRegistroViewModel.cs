@@ -100,7 +100,7 @@ public sealed class AdminRegistroViewModel
     public bool HasRegistros => Registros.Any();
     public string SourceLabel => EsInterno ? "Registro interno" : "Registro externo";
     public string FormTitle => IsEditing ? "Editar Registro" : "Nuevo Registro";
-    public string FormSubtitle => IsEditing ? "Actualice la informacion de la persona" : "Complete la informacion de la persona";
+    public string FormSubtitle => IsEditing ? "Actualice la información de la persona" : "Complete la información de la persona";
     public string IglesiaNombre => string.IsNullOrWhiteSpace(_iglesia?.Nombre) ? "Sin iglesia" : _iglesia.Nombre;
     public string RegistroIglesiaNombre => IglesiaId > 0
         ? IglesiaNombre
@@ -140,7 +140,7 @@ public sealed class AdminRegistroViewModel
 
             if (DenominacionId <= 0)
             {
-                ErrorMessage = "No fue posible obtener la denominacion del usuario autenticado.";
+                ErrorMessage = "No fue posible obtener la denominación del usuario autenticado.";
                 _snackbar.Add(ErrorMessage, Severity.Error);
                 return;
             }
@@ -241,7 +241,7 @@ public sealed class AdminRegistroViewModel
             var denominacion = await _denominacionesApiService.GetDenominacionAsync(DenominacionId);
             if (denominacion is null)
             {
-                _snackbar.Add("No fue posible obtener la informacion de la denominacion.", Severity.Warning);
+                _snackbar.Add("No fue posible obtener la información de la denominación.", Severity.Warning);
                 return;
             }
 
@@ -249,7 +249,7 @@ public sealed class AdminRegistroViewModel
         }
         catch
         {
-            _snackbar.Add("Ocurrio un error al consultar la denominacion.", Severity.Error);
+            _snackbar.Add("Ocurrió un error al consultar la denominación.", Severity.Error);
         }
         finally
         {
@@ -323,7 +323,7 @@ public sealed class AdminRegistroViewModel
             _snackbar.Add(
                 usuarioCreado
                     ? "Registro y usuario creados correctamente."
-                    : "Registro creado correctamente, pero ocurrio un error creando el usuario.",
+                    : "Registro creado correctamente, pero ocurrió un error creando el usuario.",
                 usuarioCreado ? Severity.Success : Severity.Error);
 
             LastSaveSucceeded = usuarioCreado;
@@ -332,7 +332,7 @@ public sealed class AdminRegistroViewModel
         }
         catch
         {
-            _snackbar.Add("Ocurrio un error al guardar el registro.", Severity.Error);
+            _snackbar.Add("Ocurrió un error al guardar el registro.", Severity.Error);
         }
         finally
         {
@@ -385,7 +385,7 @@ public sealed class AdminRegistroViewModel
     {
         if (iglesia.DenominacionId != DenominacionId)
         {
-            _snackbar.Add("La iglesia seleccionada no pertenece a la denominacion actual.", Severity.Warning);
+            _snackbar.Add("La iglesia seleccionada no pertenece a la denominación actual.", Severity.Warning);
             return;
         }
 
@@ -449,7 +449,7 @@ public sealed class AdminRegistroViewModel
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar los catalogos del registro.", Severity.Error);
+            _snackbar.Add("No fue posible cargar los catálogos del registro.", Severity.Error);
         }
     }
 
@@ -489,7 +489,7 @@ public sealed class AdminRegistroViewModel
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar los paises.", Severity.Error);
+            _snackbar.Add("No fue posible cargar los países.", Severity.Error);
         }
         finally
         {
@@ -590,7 +590,7 @@ public sealed class AdminRegistroViewModel
 
     private string? ValidateDenominacion()
     {
-        return DenominacionId > 0 ? null : "La denominacion es obligatoria.";
+        return DenominacionId > 0 ? null : "La denominación es obligatoria.";
     }
 
     private string? ValidateIglesia()
@@ -615,13 +615,13 @@ public sealed class AdminRegistroViewModel
     {
         return RegistroForm.ParametroIdInteres.HasValue && RegistroForm.ParametroIdInteres.Value > 0
             ? null
-            : "El interes es obligatorio.";
+            : "El interés es obligatorio.";
     }
 
     private string? ValidateRol()
     {
         if (IsRegistroPublico && GetVisitanteRol() is null)
-            return "No fue posible cargar el rol Visitante para el registro publico.";
+            return "No fue posible cargar el rol Visitante para el registro público.";
 
         return RolId.HasValue && RolId.Value > 0 ? null : "El rol es obligatorio.";
     }
@@ -636,13 +636,13 @@ public sealed class AdminRegistroViewModel
     private string? ValidateContrasena()
     {
         if (string.IsNullOrWhiteSpace(Contrasena))
-            return "La contrasena es obligatoria.";
+            return "La contraseña es obligatoria.";
 
         if (Contrasena.Length < 7)
-            return "La contrasena debe tener al menos 7 caracteres.";
+            return "La contraseña debe tener al menos 7 caracteres.";
 
         if (Contrasena.Length > 25)
-            return "La contrasena no debe exceder los 25 caracteres.";
+            return "La contraseña no debe exceder los 25 caracteres.";
 
         return null;
     }
@@ -650,11 +650,11 @@ public sealed class AdminRegistroViewModel
     private string? ValidateConfirmarContrasena()
     {
         if (string.IsNullOrWhiteSpace(ConfirmarContrasena))
-            return "Debe repetir la contrasena.";
+            return "Debe repetir la contraseña.";
 
         return string.Equals(Contrasena, ConfirmarContrasena, StringComparison.Ordinal)
             ? null
-            : "Las contrasenas no coinciden.";
+            : "Las contraseñas no coinciden.";
     }
 
     private static string? ValidateRequired(string? value, string message)
@@ -673,7 +673,7 @@ public sealed class AdminRegistroViewModel
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
-        return EmailRegex.IsMatch(value.Trim()) ? null : "Ingrese un correo valido.";
+        return EmailRegex.IsMatch(value.Trim()) ? null : "Ingrese un correo válido.";
     }
 
     private bool MatchesSearch(RegistroDto registro)

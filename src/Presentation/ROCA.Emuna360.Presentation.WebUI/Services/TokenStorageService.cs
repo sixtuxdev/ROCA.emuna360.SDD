@@ -16,6 +16,7 @@ public class TokenStorageService
     private const string RefreshTokenKey = "RefreshToken";
     private const string TokenExpirationKey = "TokenExpiration";
     private const string InfoUserKey = "InfoUser";
+    private const string InfoUserIdKey = "InfoUserId";
     private const string InfoRegisterKey = "InfoRegister";
     private const string RolesKey = "Roles";
     private const string MenusKey = "Menus";
@@ -54,6 +55,8 @@ public class TokenStorageService
         {
             await SetAuthIglesiaIdAsync(response.User.IglesiaId);
         }
+
+        await _localStorage.SetAsync(InfoUserIdKey, response.User.UsuarioId.ToString());
 
         await _localStorage.SetAsync(InfoUserKey, new StoredUserInfo(
             response.User.UsuarioId,
@@ -211,6 +214,20 @@ public class TokenStorageService
         {
             var result = await _localStorage.GetAsync<StoredUserInfo>(InfoUserKey);
             if (result.Success) return result.Value;
+        }
+        catch
+        {
+            // Storage is unavailable during prerendering.
+        }
+
+        return null;
+    }
+    public async Task<int?> GetUserIdInfoAsync()
+    {
+        try
+        {
+            var result = await _localStorage.GetAsync<int?>(InfoUserIdKey);
+            if (result.Success) return int.Parse(result!.Value!.ToString());
         }
         catch
         {

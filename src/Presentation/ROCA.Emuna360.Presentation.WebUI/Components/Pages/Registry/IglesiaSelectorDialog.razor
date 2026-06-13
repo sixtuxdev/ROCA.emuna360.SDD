@@ -31,13 +31,13 @@
             @if (!ViewModel.HasIglesias)
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-3">
-                    No existen iglesias disponibles para la denominacion seleccionada.
+                    No existen iglesias disponibles para la denominación seleccionada.
                 </MudAlert>
             }
             else if (!ViewModel.FilteredIglesias.Any())
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-3">
-                    No se encontraron iglesias con el criterio de busqueda.
+                    No se encontraron iglesias con el criterio de búsqueda.
                 </MudAlert>
             }
             else
@@ -53,8 +53,8 @@
                                  RowsPerPage="8">
                         <Columns>
                             <PropertyColumn Property="iglesia => iglesia.Nombre" Title="Nombre de la Iglesia" />
-                            <PropertyColumn Property="iglesia => iglesia.Direccion" Title="Direccion" />
-                            <TemplateColumn Title="Accion">
+                            <PropertyColumn Property="iglesia => iglesia.Direccion" Title="Dirección" />
+                            <TemplateColumn Title="Acción">
                                 <CellTemplate>
                                     <MudButton Variant="Variant.Outlined"
                                                Color="@(context.Item.IglesiaId == SelectedIglesiaId ? Color.Success : Color.Primary)"

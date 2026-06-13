@@ -10,7 +10,7 @@
     <div class="estructura-header">
         <div>
             <MudText Typo="Typo.h4" Color="Color.Primary" Class="estructura-title">Estructura Organizacional</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary">Administre jerarquias organizacionales multinivel</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Administre jerarquías organizacionales multinivel</MudText>
         </div>
     </div>
 
@@ -52,7 +52,7 @@
                         {
                             <div class="tree-filter px-4 pb-2">
                                 <MudTextField T="string"
-                                              Label="Buscar por descripcion o responsable"
+                                              Label="Buscar por descripción o responsable"
                                               Variant="Variant.Outlined"
                                               Margin="Margin.Dense"
                                               Immediate="true"
@@ -82,7 +82,7 @@
                                             No se encontraron estructuras
                                         </MudText>
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
-                                            Ajuste el texto de busqueda para ver resultados
+                                            Ajuste el texto de búsqueda para ver resultados
                                         </MudText>
                                     </MudPaper>
                                 }
@@ -116,7 +116,7 @@
                                    Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.Add"
                                    OnClick="ViewModel.StartNewRoot">
-                            Nueva raiz
+                            Nueva raíz
                         </MudButton>
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Secondary"
@@ -144,17 +144,17 @@
                         <MudGrid Spacing="2">
                             @* <MudItem xs="12" Style="display: none;">
                                 <MudTextField T="string"
-                                              Label="Denominacion ID"
+                                              Label="Denominación ID"
                                               Value="@ViewModel.DenominacionLabel"
                                               Variant="Variant.Outlined"
                                               Margin="Margin.Dense"
                                               ReadOnly="true"
-                                              HelperText="Se obtiene automaticamente del sistema" />
+                                              HelperText="Se obtiene automáticamente del sistema" />
                             </MudItem> *@
 
                             <MudItem xs="12">
                                 <MudTextField T="string"
-                                              Label="Descripcion *"
+                                              Label="Descripción *"
                                               Variant="Variant.Outlined"
                                               Margin="Margin.Dense"
                                               Lines="4"
@@ -186,7 +186,7 @@
                                                  Variant="Variant.Outlined"
                                                  Margin="Margin.Dense"
                                                  Clearable="true"
-                                                 HelperText="Seleccione una estructura padre desde el arbol o busquela aqui (opcional)"
+                                                 HelperText="Seleccione una estructura padre desde el árbol o búsquela aquí (opcional)"
                                                  ToStringFunc="@(estructura => estructura is null ? string.Empty : estructura.Descripcion)"
                                                  SearchFunc="ViewModel.SearchParentAsync"
                                                  Value="@ViewModel.SelectedPadre"
@@ -345,7 +345,7 @@
     private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura) => RenderTreeItem(estructura, 0, false);
 
     /// <summary>
-    /// Renderiza recursivamente un item del arbol y sus hijos.
+    /// Renderiza recursivamente un item del árbol y sus hijos.
     /// </summary>
     private RenderFragment RenderTreeItem(EstructuraOrganizacionalDto estructura, int nivel, bool ancestorMatchesSearch) => builder =>
     {
