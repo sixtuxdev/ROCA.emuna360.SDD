@@ -1,5 +1,4 @@
 @page "/login"
-@page "/login/{DenominacionId:int}"
 @layout Layout.AuthLayout
 @inject LoginViewModel ViewModel
 @inject IDialogService DialogService
@@ -22,6 +21,17 @@
                     <MudText Typo="Typo.subtitle2" Align="Align.Center" Color="Color.Primary" Class="mt-2">
                         @ViewModel.DenominacionNombre
                     </MudText>
+                }
+                @if (ViewModel.MostrarHostConsultado && !string.IsNullOrWhiteSpace(ViewModel.HostConsultado))
+                {
+                    <MudChip T="string"
+                             Icon="@Icons.Material.Filled.Language"
+                             Color="Color.Info"
+                             Variant="Variant.Outlined"
+                             Size="Size.Small"
+                             Class="mt-3">
+                        Host consultado: @ViewModel.HostConsultado
+                    </MudChip>
                 }
             </div>
         </CardHeaderContent>
@@ -94,23 +104,13 @@
     private MudForm _form = null!;
     private bool _success;
 
-    [Parameter]
-    public int? DenominacionId { get; set; }
-
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (DenominacionId.HasValue)
-        {
-            await ViewModel.SetDenominacionIdAsync(DenominacionId.Value);
-        }
-    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        await ViewModel.RedirectIfSessionActiveAsync();
+        await ViewModel.InitializeAsync();
+        StateHasChanged();
     }
 
     private async Task HandleLogin()

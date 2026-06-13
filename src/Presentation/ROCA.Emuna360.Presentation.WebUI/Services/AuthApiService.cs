@@ -13,6 +13,19 @@ public class AuthApiService
         _httpClient = httpClient;
     }
 
+    public async Task<DenominacionDominioDto?> ObtenerDenominacionPorDominioAsync(string dominio)
+    {
+        var url = $"api/v1/auth/obtener-denominacion-por-dominio?dominio={Uri.EscapeDataString(dominio)}";
+        var response = await _httpClient.GetAsync(url);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<DenominacionDominioDto>();
+        }
+
+        return null;
+    }
+
     public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/v1/auth/login", request);

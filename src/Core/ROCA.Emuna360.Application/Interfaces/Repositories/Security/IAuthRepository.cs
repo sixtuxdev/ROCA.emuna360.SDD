@@ -1,5 +1,6 @@
 using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Registry;
+using ROCA.Emuna360.Domain.Entities.Organization;
 using ROCA.Emuna360.Domain.Entities.Security;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace ROCA.Emuna360.Application.Interfaces.Repositories.Security;
 
 public interface IAuthRepository
 {
+    Task<DenominacionDominio?> ObtenerDenominacionPorDominioAsync(string dominio);
     Task<AuthUser?> GetUserByEmailAsync(int denominacionId, string correo);
     Task<AuthUser?> GetUserByDocumentAsync(int denominacionId, string documento);
     Task<Registro?> GetRegistroByDocumentoAsync(int denominacionId, string documento);

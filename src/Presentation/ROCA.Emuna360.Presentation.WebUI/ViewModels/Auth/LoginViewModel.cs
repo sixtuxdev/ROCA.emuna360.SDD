@@ -16,6 +16,7 @@ public sealed class LoginViewModel
     private readonly ISnackbar _snackbar;
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly DenominacionesApiService _denominacionesApiService;    
 
     public LoginViewModel(
@@ -26,6 +27,7 @@ public sealed class LoginViewModel
         ISnackbar snackbar,
         IJSRuntime jsRuntime,
         IConfiguration configuration,
+        IHostEnvironment hostEnvironment,
         DenominacionesApiService denominacionesApiService)
     {
         _authApiService = authApiService;
@@ -35,12 +37,16 @@ public sealed class LoginViewModel
         _snackbar = snackbar;
         _jsRuntime = jsRuntime;
         _configuration = configuration;
+        _hostEnvironment = hostEnvironment;
         _denominacionesApiService = denominacionesApiService;
     }
 
-    public LoginRequestDto LoginRequest { get; } = new() { DenominacionId = 1 };
+    public LoginRequestDto LoginRequest { get; } = new();
     public string? DenominacionNombre { get; private set; }
+    public string? HostConsultado { get; private set; }
+    public bool MostrarHostConsultado => _configuration.GetValue<bool>("Login:MostrarHostConsultado");
     public bool IsLoadingDenominacion { get; private set; }
+    public bool DenominacionResuelta { get; private set; }
     public bool IsLoading { get; private set; }
     public InputType PasswordInput { get; private set; } = InputType.Password;
     public string PasswordInputIcon { get; private set; } = Icons.Material.Filled.VisibilityOff;
@@ -48,26 +54,74 @@ public sealed class LoginViewModel
         !string.IsNullOrWhiteSpace(LoginRequest.Login) &&
         !string.IsNullOrWhiteSpace(LoginRequest.Password) &&
         LoginRequest.Password.Length >= 7 &&
-        LoginRequest.Password.Length <= 25;
+        LoginRequest.Password.Length <= 25 &&
+        DenominacionResuelta &&
+        LoginRequest.DenominacionId > 0 &&
+        !IsLoadingDenominacion;
 
-    public async Task RedirectIfSessionActiveAsync()
+    public async Task InitializeAsync()
     {
         if (await _tokenStorage.HasActiveSessionAsync())
         {
             _navigation.NavigateTo("/dashboard", replace: true);
-        }
-    }
-
-    public async Task SetDenominacionIdAsync(int denominacionId)
-    {
-        if (denominacionId <= 0)
-        {
-            _snackbar.Add("La denominación recibida no es válida.", Severity.Warning);
             return;
         }
 
-        LoginRequest.DenominacionId = denominacionId;
-        await LoadDenominacionAsync();
+        await ResolverDenominacionAsync();
+    }
+
+    private async Task ResolverDenominacionAsync()
+    {
+        IsLoadingDenominacion = true;
+        DenominacionResuelta = false;
+        LoginRequest.DenominacionId = 0;
+        DenominacionNombre = null;
+        HostConsultado = null;
+
+        try
+        {
+            var host = new Uri(_navigation.Uri).Host.Trim().ToLowerInvariant();
+            HostConsultado = host;
+
+            if (EsEntornoLocal(host))
+            {
+                LoginRequest.DenominacionId = 1;
+                DenominacionResuelta = true;
+                await LoadDenominacionAsync();
+                return;
+            }
+            
+            var denominacion = await _authApiService.ObtenerDenominacionPorDominioAsync(host);
+            if (denominacion is null || denominacion.DenominacionId <= 0)
+            {
+                _snackbar.Add("La URL actual no está configurada para ninguna denominación.", Severity.Warning);
+                return;
+            }
+
+            LoginRequest.DenominacionId = denominacion.DenominacionId;
+            DenominacionNombre = denominacion.NombreDenominacion;
+            DenominacionResuelta = true;
+        }
+        catch
+        {
+            _snackbar.Add("Ocurrió un error al identificar la denominación de la URL.", Severity.Error);
+        }
+        finally
+        {
+            IsLoadingDenominacion = false;
+        }
+    }
+
+    private bool EsEntornoLocal(string host)
+    {
+#if DEBUG
+        return true;
+#else
+        return _hostEnvironment.IsDevelopment() ||
+            host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+            host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+            host.Equals("::1", StringComparison.OrdinalIgnoreCase);
+#endif
     }
 
     private async Task LoadDenominacionAsync()
@@ -125,6 +179,12 @@ public sealed class LoginViewModel
 
     public async Task LoginAsync()
     {
+        if (!DenominacionResuelta || LoginRequest.DenominacionId <= 0)
+        {
+            _snackbar.Add("No se pudo identificar una denominación válida para iniciar sesión.", Severity.Warning);
+            return;
+        }
+
         IsLoading = true;
 
         try

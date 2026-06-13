@@ -40,8 +40,30 @@ public class AuthService : IAuthService
         _recaptchaService = recaptchaService;
     }
 
+    public async Task<Result<DenominacionDominioDto>> ObtenerDenominacionPorDominioAsync(string dominio)
+    {
+        var dominioNormalizado = NormalizarDominio(dominio);
+        if (string.IsNullOrWhiteSpace(dominioNormalizado))
+            return Result<DenominacionDominioDto>.Failure("El dominio es obligatorio.");
+
+        var denominacion = await _authRepository.ObtenerDenominacionPorDominioAsync(dominioNormalizado);
+        if (denominacion is null || denominacion.DenominacionId <= 0)
+            return Result<DenominacionDominioDto>.Failure("La URL no está configurada para ninguna denominación.");
+
+        return Result<DenominacionDominioDto>.Success(new DenominacionDominioDto
+        {
+            DenominacionId = denominacion.DenominacionId,
+            Dominio = denominacion.Dominio,
+            Subdominio = denominacion.Subdominio,
+            NombreDenominacion = denominacion.NombreDenominacion
+        });
+    }
+
     public async Task<Result<LoginResponseDto>> LoginAsync(LoginRequestDto request)
     {
+        if (request.DenominacionId <= 0)
+            return Result<LoginResponseDto>.Failure("La denominación es obligatoria.");
+
         // Validación reCAPTCHA
         if (!await _recaptchaService.VerifyAsync(request.RecaptchaToken ?? string.Empty))
         {
@@ -284,5 +306,19 @@ public class AuthService : IAuthService
         using var sha256 = SHA256.Create();
         var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(bytes);
+    }
+
+    private static string NormalizarDominio(string dominio)
+    {
+        var valor = (dominio ?? string.Empty).Trim().ToLowerInvariant().TrimEnd('.');
+
+        if (Uri.TryCreate(valor, UriKind.Absolute, out var uri) && !string.IsNullOrWhiteSpace(uri.Host))
+            valor = uri.Host;
+
+        var separadorPuerto = valor.LastIndexOf(':');
+        if (separadorPuerto > -1 && valor.Count(c => c == ':') == 1)
+            valor = valor[..separadorPuerto];
+
+        return valor.Trim().TrimEnd('.');
     }
 }

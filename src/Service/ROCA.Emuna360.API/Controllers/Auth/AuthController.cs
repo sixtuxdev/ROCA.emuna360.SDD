@@ -16,6 +16,14 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [HttpGet("obtener-denominacion-por-dominio")]
+    public async Task<IActionResult> ObtenerDenominacionPorDominio([FromQuery] string dominio = "")
+    {
+        var result = await _authService.ObtenerDenominacionPorDominioAsync(dominio);
+        if (result.IsFailure) return NotFound(new { error = result.Error });
+        return Ok(result.Value);
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
