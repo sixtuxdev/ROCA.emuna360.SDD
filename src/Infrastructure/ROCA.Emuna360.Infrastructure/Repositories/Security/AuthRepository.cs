@@ -39,7 +39,7 @@ public class AuthRepository : BaseRepository<Usuario>, IAuthRepository
     public async Task<AuthUser?> GetUserByEmailAsync(int denominacionId, string correo)
     {
         using var connection = CreateConnection();
-
+        
         var p = new DynamicParameters();
         p.Add("@DenominacionId", denominacionId);
         p.Add("@Correo", correo);

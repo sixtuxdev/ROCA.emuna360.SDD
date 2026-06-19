@@ -87,7 +87,7 @@ public class ConfigIglesiasViewModel
         get => _searchText;
         set => _searchText = value ?? string.Empty;
     }
-    public int usuarioId { get; set; }
+    public int UsuarioId { get; set; }
 
     public int StatusFilter
     {
@@ -118,6 +118,12 @@ public class ConfigIglesiasViewModel
         DenominacionId = await _tokenStorageService.GetAuthDenominacionIdAsync();
         IsAdminDenominacion = await _tokenStorageService.GetIsAdminDenominacionAsync();
 
+        var respInfoUser = await _tokenStorageService.GetUserInfoAsync();
+
+        if (respInfoUser != null)
+        {
+            UsuarioId = respInfoUser.UsuarioId;
+        }
 
         if (DenominacionId <= 0)
         {
@@ -170,7 +176,7 @@ public class ConfigIglesiasViewModel
         try
         {
             //Iglesias = await _iglesiasApiService.GetIglesiasAsync(DenominacionId);
-            Iglesias = await _iglesiasApiService.GetAllPorUsuarioIdDenIdAsync(usuarioId, DenominacionId);
+            Iglesias = await _iglesiasApiService.GetAllPorUsuarioIdDenIdAsync(UsuarioId, DenominacionId);
             await LoadUbicacionesDelListadoAsync();
             if (PastoresDisponibles.Any())
             {
