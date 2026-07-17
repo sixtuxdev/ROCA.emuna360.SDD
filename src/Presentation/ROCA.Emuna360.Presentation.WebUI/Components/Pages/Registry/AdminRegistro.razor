@@ -81,7 +81,8 @@
                                  RowsPerPage="10"
                                  RowClassFunc="@GetRegistroRowClass"
                                  Class="registros-grid mt-4">
-                        <Columns>
+                        <Columns>                            
+                            <PropertyColumn Property="registro => registro.RegistroId" Title="ID" />
                             <TemplateColumn Title="Nombre">
                                 <CellTemplate>
                                     @($"{context.Item.Nombres} {context.Item.Apellidos}".Trim())
