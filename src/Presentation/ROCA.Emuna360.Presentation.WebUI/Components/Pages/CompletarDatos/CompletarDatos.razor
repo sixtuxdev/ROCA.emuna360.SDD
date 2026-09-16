@@ -1,0 +1,106 @@
+﻿
+@page "/completar-datos"
+@page "/complete-data"
+
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos
+
+@inject CompletarDatosViewModel CompletarVm
+
+<PageTitle>Completar Datos - ROCA.Emuna360</PageTitle>
+
+<section class="completar-datos-shell">
+
+    <div class="completar-datos-header">
+        <div>
+            <MudText Typo="Typo.h4"
+                     Color="Color.Primary"
+                     Class="completar-datos-title">
+                Completar Datos
+            </MudText>
+
+            <MudText Typo="Typo.body1"
+                     Color="Color.Secondary">
+                Complete o actualice los datos asociados a un registro
+            </MudText>
+        </div>
+    </div>
+
+    <MudGrid Spacing="3">
+
+        <MudItem xs="12">
+
+            <MudPaper Elevation="1"
+                      Class="config-panel pa-4">
+
+                <MudText Typo="Typo.h6"
+                         Color="Color.Primary">
+                    Formulario Completar Datos
+                </MudText>
+
+                <MudText Typo="Typo.body2"
+                         Class="mud-text-secondary mb-3">
+                    Complete o actualice los datos personales del registro seleccionado
+                </MudText>
+
+
+
+
+                <CompletarDatosForm ViewModel="CompletarVm"
+                                    OnSaved="OnSavedAsync" />
+
+                @if (CompletarVm.IsLoading)
+                {
+                    <MudProgressLinear Color="Color.Secondary"
+                                       Indeterminate="true"
+                                       Class="my-4" />
+                }
+                else
+                {
+    
+                }
+
+            </MudPaper>
+
+        </MudItem>
+
+    </MudGrid>
+
+</section>
+
+<style>
+    .completar-datos-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .completar-datos-header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .completar-datos-title {
+        font-weight: 700;
+    }
+
+    .config-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+</style>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CompletarVm.InitializeAsync();
+    }
+
+    private async Task OnSavedAsync()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+}
+

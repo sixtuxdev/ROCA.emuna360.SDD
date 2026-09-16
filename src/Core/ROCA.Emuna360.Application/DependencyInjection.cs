@@ -13,6 +13,8 @@ using ROCA.Emuna360.Application.Interfaces.Services.Parameters;
 using ROCA.Emuna360.Application.Services.Parameters;
 using ROCA.Emuna360.Application.Interfaces.Services.Structure;
 using ROCA.Emuna360.Application.Services.Structure;
+using ROCA.Emuna360.Application.Interfaces.Services.CompletarDatos;
+using ROCA.Emuna360.Application.Services.CompletarDatos;
 
 namespace ROCA.Emuna360.Application;
 
@@ -46,6 +48,9 @@ public static class DependencyInjection
 
         // Registry
         services.AddScoped<IRegistroService, RegistroService>();
+
+        // CompletarDatos - service separado
+        services.AddScoped<ROCA.Emuna360.Application.Interfaces.Services.CompletarDatos.ICompletarDatosService, ROCA.Emuna360.Application.Services.CompletarDatos.CompletarDatosService>();
 
         // Menus
         services.AddScoped<IMenuService, MenuService>();
