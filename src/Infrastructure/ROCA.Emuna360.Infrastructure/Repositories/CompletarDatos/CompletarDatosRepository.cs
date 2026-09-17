@@ -1,65 +1,99 @@
+using Dapper;
+using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.DTOs.Registry;
 using ROCA.Emuna360.Application.Interfaces.Repositories.CompletarDatos;
-using Microsoft.Extensions.Configuration;
-using Dapper;
 using System.Data;
-using Microsoft.Data.SqlClient;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.CompletarDatos;
 
 public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosRepository
 {
-    public CompletarDatosRepository(IConfiguration configuration) : base(configuration) { }
+    public CompletarDatosRepository(IConfiguration configuration) : base(configuration)
+    {
+    }
 
     public async Task<CompletarDatosDto?> GetByRegistroAsync(int registroId)
     {
-        using var conn = CreateConnection();
-        var sql = "SELECT TOP 1 * FROM CompletarDatos WHERE RegistroId = @registroId ORDER BY CompletarDatosId DESC";
-        var item = await conn.QueryFirstOrDefaultAsync<CompletarDatosDto>(sql, new { registroId });
-        return item;
+        using var connection = CreateConnection();
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@RegistroId", registroId);
+
+        return await connection.QueryFirstOrDefaultAsync<CompletarDatosDto>(
+            "usp_CompletarDatos_ObtenerPorRegistro",
+            parameters,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<int> CreateAsync(CompletarDatosDto dto)
     {
-        using var conn = CreateConnection();
-        var sql = @"
-INSERT INTO CompletarDatos
-(RegistroId,PaisResidenciaId,DepartamentoResidenciaId,CiudadResidenciaId,FechaNacimiento,ParametroIdEstadoCivil,ParametroIdEstudiosAcademicos,ParametroIdEstudiosTeologicos,ParametroIdSituacionLaboral,ParametroIdTipoMiembro,ParametroIdTipoPoblacion,FechaBautismo,PersonaContacto,TelefonoContacto,FechaCreacion,IglesiaId,DenominacionId,IglesiaBautismo,PastorBautismo)
-VALUES
-(@RegistroId,@PaisResidenciaId,@DepartamentoResidenciaId,@CiudadResidenciaId,@FechaNacimiento,@ParametroIdEstadoCivil,@ParametroIdEstudiosAcademicos,@ParametroIdEstudiosTeologicos,@ParametroIdSituacionLaboral,@ParametroIdTipoMiembro,@ParametroIdTipoPoblacion,@FechaBautismo,@PersonaContacto,@TelefonoContacto,GETUTCDATE(),@IglesiaId,@DenominacionId,@IglesiaBautismo,@PastorBautismo);
-SELECT CAST(SCOPE_IDENTITY() as int);
-";
-        var id = await conn.QuerySingleAsync<int>(sql, dto);
-        return id;
+        using var connection = CreateConnection();
+
+        var parameters = new DynamicParameters();
+
+        parameters.Add("@RegistroId", dto.RegistroId);
+        parameters.Add("@PaisResidenciaId", dto.PaisResidenciaId);
+        parameters.Add("@DepartamentoResidenciaId", dto.DepartamentoResidenciaId);
+        parameters.Add("@CiudadResidenciaId", dto.CiudadResidenciaId);
+        parameters.Add("@FechaNacimiento", dto.FechaNacimiento);
+        parameters.Add("@ParametroIdEstadoCivil", dto.ParametroIdEstadoCivil);
+        parameters.Add("@ParametroIdEstudiosAcademicos", dto.ParametroIdEstudiosAcademicos);
+        parameters.Add("@ParametroIdEstudiosTeologicos", dto.ParametroIdEstudiosTeologicos);
+        parameters.Add("@ParametroIdSituacionLaboral", dto.ParametroIdSituacionLaboral);
+        parameters.Add("@ParametroIdTipoMiembro", dto.ParametroIdTipoMiembro);
+        parameters.Add("@ParametroIdTipoPoblacion", dto.ParametroIdTipoPoblacion);
+        parameters.Add("@FechaBautismo", dto.FechaBautismo);
+        parameters.Add("@PersonaContacto", dto.PersonaContacto);
+        parameters.Add("@TelefonoContacto", dto.TelefonoContacto);
+        parameters.Add("@IglesiaId", dto.IglesiaId);
+        parameters.Add("@DenominacionId", dto.DenominacionId);
+        parameters.Add("@IglesiaBautismo", dto.IglesiaBautismo);
+        parameters.Add("@PastorBautismo", dto.PastorBautismo);
+
+        parameters.Add(
+            "@OutCompletarDatosId",
+            dbType: DbType.Int32,
+            direction: ParameterDirection.Output);
+
+        await connection.ExecuteAsync(
+            "usp_CompletarDatos_Insertar",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        return parameters.Get<int>("@OutCompletarDatosId");
     }
 
     public async Task<bool> UpdateAsync(int id, CompletarDatosDto dto)
     {
-        using var conn = CreateConnection();
-        var sql = @"
-UPDATE CompletarDatos SET
-PaisResidenciaId=@PaisResidenciaId,
-DepartamentoResidenciaId=@DepartamentoResidenciaId,
-CiudadResidenciaId=@CiudadResidenciaId,
-FechaNacimiento=@FechaNacimiento,
-ParametroIdEstadoCivil=@ParametroIdEstadoCivil,
-ParametroIdEstudiosAcademicos=@ParametroIdEstudiosAcademicos,
-ParametroIdEstudiosTeologicos=@ParametroIdEstudiosTeologicos,
-ParametroIdSituacionLaboral=@ParametroIdSituacionLaboral,
-ParametroIdTipoMiembro=@ParametroIdTipoMiembro,
-ParametroIdTipoPoblacion=@ParametroIdTipoPoblacion,
-FechaBautismo=@FechaBautismo,
-PersonaContacto=@PersonaContacto,
-TelefonoContacto=@TelefonoContacto,
-FechaModificacion=GETUTCDATE(),
-IglesiaId=@IglesiaId,
-DenominacionId=@DenominacionId,
-IglesiaBautismo=@IglesiaBautismo,
-PastorBautismo=@PastorBautismo
-WHERE CompletarDatosId = @CompletarDatosId;
-";
-        dto.CompletarDatosId = id;
-        var affected = await conn.ExecuteAsync(sql, dto);
-        return affected > 0;
+        using var connection = CreateConnection();
+
+        var parameters = new DynamicParameters();
+
+        parameters.Add("@CompletarDatosId", id);
+        parameters.Add("@RegistroId", dto.RegistroId);
+        parameters.Add("@PaisResidenciaId", dto.PaisResidenciaId);
+        parameters.Add("@DepartamentoResidenciaId", dto.DepartamentoResidenciaId);
+        parameters.Add("@CiudadResidenciaId", dto.CiudadResidenciaId);
+        parameters.Add("@FechaNacimiento", dto.FechaNacimiento);
+        parameters.Add("@ParametroIdEstadoCivil", dto.ParametroIdEstadoCivil);
+        parameters.Add("@ParametroIdEstudiosAcademicos", dto.ParametroIdEstudiosAcademicos);
+        parameters.Add("@ParametroIdEstudiosTeologicos", dto.ParametroIdEstudiosTeologicos);
+        parameters.Add("@ParametroIdSituacionLaboral", dto.ParametroIdSituacionLaboral);
+        parameters.Add("@ParametroIdTipoMiembro", dto.ParametroIdTipoMiembro);
+        parameters.Add("@ParametroIdTipoPoblacion", dto.ParametroIdTipoPoblacion);
+        parameters.Add("@FechaBautismo", dto.FechaBautismo);
+        parameters.Add("@PersonaContacto", dto.PersonaContacto);
+        parameters.Add("@TelefonoContacto", dto.TelefonoContacto);
+        parameters.Add("@IglesiaId", dto.IglesiaId);
+        parameters.Add("@DenominacionId", dto.DenominacionId);
+        parameters.Add("@IglesiaBautismo", dto.IglesiaBautismo);
+        parameters.Add("@PastorBautismo", dto.PastorBautismo);
+
+        var rows = await connection.ExecuteAsync(
+            "usp_CompletarDatos_Actualizar",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        return rows > 0;
     }
 }

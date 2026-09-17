@@ -52,51 +52,110 @@ public sealed class CompletarDatosViewModel
     public async Task InitializeAsync()
     {
         IsLoading = true;
+
         try
         {
             System.Diagnostics.Debug.WriteLine("PASO 1: antes de GetRegisterInfoAsync");
 
             var reg = await _tokenStorageService.GetRegisterInfoAsync();
+
             System.Diagnostics.Debug.WriteLine("PASO 2: despues de GetRegisterInfoAsync");
 
             var registroId = reg?.RegistroId ?? 0;
+
             if (registroId > 0)
             {
                 var existing = await _completarService.GetByRegistroAsync(registroId);
+
                 if (existing is not null)
+                {
                     Model = existing;
+                }
                 else
-                    Model = new CompletarDatosDto { RegistroId = registroId };
+                {
+                    Model = new CompletarDatosDto
+                    {
+                        RegistroId = registroId
+                    };
+                }
+            }
+            else
+            {
+                Model = new CompletarDatosDto();
             }
 
-            // Asegurar que la denominación esté presente (se necesita para el INSERT/UPDATE)
+            // =========================================================
+            // DENOMINACIÓN
+            // =========================================================
+
             try
             {
                 var denom = await _tokenStorageService.GetAuthDenominacionIdAsync();
+
                 if (denom > 0)
                     Model.DenominacionId = denom;
             }
             catch
             {
-                // ignore, la validación al guardar mostrará error si falta
+                // La validación al guardar mostrará el error si falta.
             }
 
-            // Cargar catálogos geográficos e iglesias
+            // =========================================================
+            // IGLESIA
+            //
+            // Si CompletarDatos ya tiene una iglesia, se conserva.
+            // Si no tiene iglesia, se toma la iglesia del usuario
+            // autenticado, igual que AdminRegistroViewModel.
+            // =========================================================
+
+            if (!Model.IglesiaId.HasValue || Model.IglesiaId.Value <= 0)
+            {
+                try
+                {
+                    var iglesiaId = await _tokenStorageService.GetAuthIglesiaIdAsync();
+
+                    if (iglesiaId > 0)
+                        Model.IglesiaId = iglesiaId;
+                }
+                catch
+                {
+                    // Si no se puede obtener, se mantiene sin iglesia.
+                }
+            }
+
+            // =========================================================
+            // CATÁLOGOS
+            // =========================================================
+
             await LoadPaisesAsync();
+
             System.Diagnostics.Debug.WriteLine("PASO 3: antes de LoadIglesiasAsync");
+
             await LoadIglesiasAsync();
+
             System.Diagnostics.Debug.WriteLine("PASO 4: despues de LoadIglesiasAsync");
+
+            // =========================================================
+            // GEOGRAFÍA
+            // =========================================================
+
             if (Model.PaisResidenciaId.HasValue)
                 await LoadDepartamentosAsync(Model.PaisResidenciaId.Value);
+
             if (Model.DepartamentoResidenciaId.HasValue)
                 await LoadCiudadesAsync(Model.DepartamentoResidenciaId.Value);
 
-            // Cargar parámetros y valores por defecto
+            // =========================================================
+            // PARÁMETROS
+            // =========================================================
+
             await EnsureDefaultParametrosAsync();
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar los datos personales.", Severity.Error);
+            _snackbar.Add(
+                "No fue posible cargar los datos personales.",
+                Severity.Error);
         }
         finally
         {
@@ -179,44 +238,102 @@ public sealed class CompletarDatosViewModel
     public async Task LoadForRegistroAsync(int registroId)
     {
         IsLoading = true;
+
         try
         {
             if (registroId > 0)
             {
-                var existing = await _completarService.GetByRegistroAsync(registroId);
+                var existing =
+                    await _completarService.GetByRegistroAsync(registroId);
+
                 if (existing is not null)
+                {
                     Model = existing;
+                }
                 else
-                    Model = new CompletarDatosDto { RegistroId = registroId };
+                {
+                    Model = new CompletarDatosDto
+                    {
+                        RegistroId = registroId
+                    };
+                }
             }
             else
             {
                 Model = new CompletarDatosDto();
             }
 
+            // =========================================================
+            // DENOMINACIÓN
+            // =========================================================
+
             try
             {
-                var denom = await _tokenStorageService.GetAuthDenominacionIdAsync();
-                if (denom > 0 && (!Model.DenominacionId.HasValue || Model.DenominacionId == 0))
+                var denom =
+                    await _tokenStorageService.GetAuthDenominacionIdAsync();
+
+                if (denom > 0)
                     Model.DenominacionId = denom;
             }
             catch
             {
-                // ignore
+                // Se valida al guardar.
             }
 
+            // =========================================================
+            // IGLESIA
+            //
+            // Si ya existe en CompletarDatos, NO la reemplazamos.
+            // Si no existe, tomamos la iglesia del usuario autenticado.
+            // =========================================================
+
+            if (!Model.IglesiaId.HasValue || Model.IglesiaId.Value <= 0)
+            {
+                try
+                {
+                    var iglesiaId =
+                        await _tokenStorageService.GetAuthIglesiaIdAsync();
+
+                    if (iglesiaId > 0)
+                        Model.IglesiaId = iglesiaId;
+                }
+                catch
+                {
+                    // Se mantiene null si no se puede determinar.
+                }
+            }
+
+            // =========================================================
+            // CATÁLOGOS
+            // =========================================================
+
             await LoadPaisesAsync();
+
             await LoadIglesiasAsync();
+
+            // =========================================================
+            // GEOGRAFÍA
+            // =========================================================
+
             if (Model.PaisResidenciaId.HasValue)
-                await LoadDepartamentosAsync(Model.PaisResidenciaId.Value);
+                await LoadDepartamentosAsync(
+                    Model.PaisResidenciaId.Value);
+
             if (Model.DepartamentoResidenciaId.HasValue)
-                await LoadCiudadesAsync(Model.DepartamentoResidenciaId.Value);
+                await LoadCiudadesAsync(
+                    Model.DepartamentoResidenciaId.Value);
+
+            // =========================================================
+            // PARÁMETROS
+            // =========================================================
 
             await EnsureDefaultParametrosAsync();
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar los datos personales.", Severity.Error);
+            _snackbar.Add(
+                "No fue posible cargar los datos personales.",
+                Severity.Error);
         }
         finally
         {
@@ -228,20 +345,38 @@ public sealed class CompletarDatosViewModel
     {
         try
         {
-            var denominacionId = await _tokenStorageService.GetAuthDenominacionIdAsync();
+            var denominacionId =
+                await _tokenStorageService.GetAuthDenominacionIdAsync();
+
             if (denominacionId <= 0)
             {
                 Iglesias = [];
                 return;
             }
+
             Iglesias = (await _iglesiasApiService.GetIglesiasAsync(denominacionId))
                 .Where(i => i.Activa)
                 .OrderBy(i => i.Nombre)
                 .ToList();
+
+            // Si ya tenemos una iglesia seleccionada,
+            // conservarla automáticamente.
+            if (Model.IglesiaId.HasValue && Model.IglesiaId.Value > 0)
+            {
+                var iglesiaExiste = Iglesias.Any(
+                    i => i.IglesiaId == Model.IglesiaId.Value);
+
+                if (!iglesiaExiste)
+                {
+                    Model.IglesiaId = null;
+                }
+            }
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar las iglesias.", Severity.Error);
+            _snackbar.Add(
+                "No fue posible cargar las iglesias.",
+                Severity.Error);
         }
     }
 

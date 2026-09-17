@@ -91,28 +91,15 @@
 
         <MudItem xs="12" sm="6">
 
-            <MudSelect T="int?"
-                       Label="Iglesia"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Dense"
-                       Required="true"
-                       RequiredError="La iglesia es obligatoria."
-                       Value="@ViewModel.Model.IglesiaId"
-                       ValueChanged="@(EventCallback.Factory.Create<int?>(this, async (int? v) =>
-                                       {
-                                           ViewModel.Model.IglesiaId = v;
-                                           await ViewModel.SelectIglesiaAsync(v);
-                                       }))">
-
-                @foreach (var ig in ViewModel.Iglesias)
-                {
-                    <MudSelectItem T="int?"
-                                   Value="@((int?)ig.IglesiaId)">
-                        @ig.Nombre
-                    </MudSelectItem>
-                }
-
-            </MudSelect>
+            <MudTextField T="string"
+                          Label="Iglesia"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Value="@GetIglesiaNombre()"
+                          Disabled="true"
+                          Required="true"
+                          RequiredError="La iglesia es obligatoria."
+                          FullWidth="true" />
 
         </MudItem>
 
@@ -363,7 +350,6 @@
         </MudItem>
 
 
-
         <!-- BOTONES -->
 
         <MudItem xs="12">
@@ -471,30 +457,21 @@
     private async Task ChangePaisAsync(int? value)
     {
         ViewModel.Model.PaisResidenciaId = value;
-
         await ViewModel.ChangePaisAsync(value);
-
-        await ValidateFormAsync();
     }
 
 
     private async Task ChangeDepartamentoAsync(int? value)
     {
         ViewModel.Model.DepartamentoResidenciaId = value;
-
         await ViewModel.ChangeDepartamentoAsync(value);
-
-        await ValidateFormAsync();
     }
 
 
     private async Task ChangeCiudadAsync(int? value)
     {
         ViewModel.Model.CiudadResidenciaId = value;
-
         await ViewModel.ChangeCiudadAsync(value);
-
-        await ValidateFormAsync();
     }
 
 
@@ -503,15 +480,15 @@
         if (ViewModel.Model.IglesiaId is null ||
             ViewModel.Model.IglesiaId <= 0)
         {
-            return "Seleccione una iglesia";
+            return "Cargando iglesia...";
         }
 
         var iglesia = ViewModel.Iglesias
-            .FirstOrDefault(x => x.IglesiaId == ViewModel.Model.IglesiaId);
+            .FirstOrDefault(x =>
+                x.IglesiaId == ViewModel.Model.IglesiaId.Value);
 
-        return iglesia?.Nombre ?? "Seleccione una iglesia";
+        return iglesia?.Nombre ?? "Cargando iglesia...";
     }
-
 
 
     private async Task SaveAsync()
@@ -556,21 +533,26 @@
 
     private async Task ClearForm()
     {
+        /*
+         * La iglesia NO debe limpiarse.
+         * Guardamos el ID actual, reiniciamos el formulario
+         * y luego restauramos la iglesia.
+         */
+        var iglesiaId = ViewModel.Model.IglesiaId;
+
         await ViewModel.InitializeAsync();
+
+        if (iglesiaId.HasValue && iglesiaId.Value > 0)
+        {
+            ViewModel.Model.IglesiaId = iglesiaId.Value;
+        }
 
         if (_form is not null)
         {
             _form.ResetValidation();
         }
-    }
 
-
-    private async Task ValidateFormAsync()
-    {
-        if (_form is not null)
-        {
-            await _form.Validate();
-        }
+        StateHasChanged();
     }
 
 
