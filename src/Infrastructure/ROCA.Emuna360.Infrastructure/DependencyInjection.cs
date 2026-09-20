@@ -61,6 +61,9 @@ public static class DependencyInjection
         // Registry
         services.AddScoped<IRegistroRepository, RegistroRepository>();
 
+        // CompletarDatos - separada de Registry
+        services.AddScoped<ROCA.Emuna360.Application.Interfaces.Repositories.CompletarDatos.ICompletarDatosRepository, ROCA.Emuna360.Infrastructure.Repositories.CompletarDatos.CompletarDatosRepository>();
+
         // Menus
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<IMenuRolRepository, MenuRolRepository>();

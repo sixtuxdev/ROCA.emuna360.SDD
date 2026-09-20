@@ -1,0 +1,110 @@
+﻿@using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos
+
+@inject CompletarDatosViewModel CompletarVm
+
+<MudDialog>
+
+    <DialogContent>
+
+        @if (_isLoading)
+        {
+            <div class="completar-dialog-loading">
+
+                <MudProgressCircular Color="Color.Primary"
+                                     Indeterminate="true" />
+
+                <MudText Typo="Typo.body2"
+                         Class="mud-text-secondary">
+
+                    Preparando formulario...
+
+                </MudText>
+
+            </div>
+        }
+        else
+        {
+            <CompletarDatosForm ViewModel="CompletarVm"
+                                ShowClearButton="false"
+                                OnSaved="CloseSaved" />
+        }
+
+    </DialogContent>
+
+
+    <DialogActions>
+
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Default"
+                   Disabled="@CompletarVm.IsSaving"
+                   OnClick="Cancel">
+
+            Cancelar
+
+        </MudButton>
+
+    </DialogActions>
+
+</MudDialog>
+
+
+<style>
+
+    .completar-dialog-loading {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        min-height: 12rem;
+    }
+
+</style>
+
+
+@code
+{
+    private bool _isLoading = true;
+
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+
+    [Parameter]
+    public int? RegistroId { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (RegistroId.HasValue &&
+                RegistroId.Value > 0)
+            {
+                await CompletarVm.LoadForRegistroAsync(
+                    RegistroId.Value);
+            }
+            else
+            {
+                await CompletarVm.InitializeAsync();
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+
+    private void CloseSaved()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

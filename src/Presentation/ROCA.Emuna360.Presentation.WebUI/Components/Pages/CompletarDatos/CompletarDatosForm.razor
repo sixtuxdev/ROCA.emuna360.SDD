@@ -1,0 +1,571 @@
+﻿@using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos
+
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudForm @ref="_form">
+
+    <MudGrid Spacing="2">
+
+        <!-- PAÍS -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="País de residencia"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="El país de residencia es obligatorio."
+                       Value="@ViewModel.Model.PaisResidenciaId"
+                       ValueChanged="ChangePaisAsync">
+
+                @foreach (var pais in ViewModel.Paises)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)pais.PaisId)">
+                        @pais.PaisNombre
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- DEPARTAMENTO -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Departamento"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="El departamento es obligatorio."
+                       Disabled="@(!ViewModel.Departamentos.Any())"
+                       Value="@ViewModel.Model.DepartamentoResidenciaId"
+                       ValueChanged="ChangeDepartamentoAsync">
+
+                @foreach (var departamento in ViewModel.Departamentos)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)departamento.DepartamentoId)">
+                        @departamento.DepartamentoNombre
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- CIUDAD -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Ciudad"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="La ciudad es obligatoria."
+                       Disabled="@(!ViewModel.Ciudades.Any())"
+                       Value="@ViewModel.Model.CiudadResidenciaId"
+                       ValueChanged="ChangeCiudadAsync">
+
+                @foreach (var ciudad in ViewModel.Ciudades)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)ciudad.CiudadId)">
+                        @ciudad.CiudadNombre
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- IGLESIA -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudTextField T="string"
+                          Label="Iglesia"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Value="@GetIglesiaNombre()"
+                          Disabled="true"
+                          Required="true"
+                          RequiredError="La iglesia es obligatoria."
+                          FullWidth="true" />
+
+        </MudItem>
+
+
+        <!-- FECHA NACIMIENTO -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudDatePicker Label="Fecha de nacimiento"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Required="true"
+                           RequiredError="La fecha de nacimiento es obligatoria."
+                           @bind-Date="ViewModel.Model.FechaNacimiento" />
+
+        </MudItem>
+
+
+        <!-- ESTADO CIVIL -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Estado civil"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="El estado civil es obligatorio."
+                       @bind-Value="ViewModel.Model.ParametroIdEstadoCivil">
+
+                @foreach (var parametro in ViewModel.EstadoCivil)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- ESTUDIOS ACADÉMICOS -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Estudios realizados"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="Los estudios realizados son obligatorios."
+                       @bind-Value="ViewModel.Model.ParametroIdEstudiosAcademicos">
+
+                @foreach (var parametro in ViewModel.EstudiosAcademicos)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- ESTUDIOS TEOLÓGICOS -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Estudios teológicos"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="Los estudios teológicos son obligatorios."
+                       @bind-Value="ViewModel.Model.ParametroIdEstudiosTeologicos">
+
+                @foreach (var parametro in ViewModel.EstudiosTeologicos)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- SITUACIÓN LABORAL -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Situación laboral"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="La situación laboral es obligatoria."
+                       @bind-Value="ViewModel.Model.ParametroIdSituacionLaboral">
+
+                @foreach (var parametro in ViewModel.SituacionLaboral)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- TIPO POBLACIÓN -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Tipo de población"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="El tipo de población es obligatorio."
+                       @bind-Value="ViewModel.Model.ParametroIdTipoPoblacion">
+
+                @foreach (var parametro in ViewModel.TipoPoblacion)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- TIPO MIEMBRO -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudSelect T="int?"
+                       Label="Tipo de miembro"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Required="true"
+                       RequiredError="El tipo de miembro es obligatorio."
+                       @bind-Value="ViewModel.Model.ParametroIdTipoMiembro">
+
+                @foreach (var parametro in ViewModel.TipoMiembro)
+                {
+                    <MudSelectItem T="int?"
+                                   Value="@((int?)parametro.ParametroId)">
+                        @parametro.Descripcion
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+        </MudItem>
+
+
+        <!-- FECHA BAUTISMO -->
+        @if (EsBautizado)
+        {
+
+            <MudItem xs="12" sm="6">
+
+                <MudDatePicker Label="Fecha de bautismo"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Required="@EsBautizado"
+                               RequiredError="La fecha de bautismo es obligatoria."
+                               @bind-Date="ViewModel.Model.FechaBautismo" />
+
+            </MudItem>
+
+
+            <!-- IGLESIA BAUTISMO -->
+
+            <MudItem xs="12" sm="6">
+
+                <MudTextField T="string"
+                              Label="Iglesia bautismo"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Immediate="true"
+                              Required="@EsBautizado"
+                              RequiredError="La iglesia de bautismo es obligatoria."
+                              @bind-Value="ViewModel.Model.IglesiaBautismo" />
+
+            </MudItem>
+
+
+            <!-- PASTOR BAUTISMO -->
+
+            <MudItem xs="12" sm="6">
+
+                <MudTextField T="string"
+                              Label="Pastor bautismo"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Immediate="true"
+                              Required="@EsBautizado"
+                              RequiredError="El pastor de bautismo es obligatorio."
+                              @bind-Value="ViewModel.Model.PastorBautismo" />
+
+            </MudItem>
+
+        }
+
+
+        <!-- PERSONA CONTACTO -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudTextField T="string"
+                          Label="Persona de contacto"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          RequiredError="La persona de contacto es obligatoria."
+                          @bind-Value="ViewModel.Model.PersonaContacto" />
+
+        </MudItem>
+
+
+        <!-- TELÉFONO CONTACTO -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudTextField T="string"
+                          Label="Teléfono de contacto"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true"
+                          RequiredError="El teléfono de contacto es obligatorio."
+                          @bind-Value="ViewModel.Model.TelefonoContacto" />
+
+        </MudItem>
+
+
+        <!-- BOTONES -->
+
+        <MudItem xs="12">
+
+            <div class="completar-form-actions">
+
+                @if (ShowClearButton)
+                {
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               Disabled="@(!PuedeGuardar || ViewModel.IsSaving)"
+                               OnClick="ClearForm">
+
+                        Limpiar
+
+                    </MudButton>
+                }
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           Disabled="@(!PuedeGuardar || ViewModel.IsSaving)"
+                           OnClick="SaveAsync">
+
+                    @if (ViewModel.IsSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1"
+                                             Size="Size.Small"
+                                             Indeterminate="true" />
+
+                        <MudText Class="ms-2">
+                            Guardando...
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudText>
+                            @(ViewModel.HasData ? "Actualizar" : "Guardar")
+                        </MudText>
+                    }
+
+                </MudButton>
+
+            </div>
+
+        </MudItem>
+
+    </MudGrid>
+
+</MudForm>
+
+
+<style>
+
+    .completar-form-actions {
+        align-items: center;
+        display: flex;
+        gap: .75rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+
+    .completar-iglesia-selector {
+        align-items: center;
+        border: 1px solid var(--mud-palette-lines-inputs);
+        border-radius: var(--mud-default-borderradius);
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: .55rem .75rem;
+    }
+
+    .completar-iglesia-content {
+        min-width: 0;
+    }
+
+    @@media (max-width: 600px) {
+
+        .completar-form-actions,
+        .completar-iglesia-selector {
+            align-items: stretch;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+    }
+
+</style>
+
+
+@code
+{
+    [Parameter, EditorRequired]
+    public CompletarDatosViewModel ViewModel { get; set; } = default!;
+
+    [Parameter]
+    public bool ShowClearButton { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    private MudForm? _form;
+
+
+    private async Task ChangePaisAsync(int? value)
+    {
+        ViewModel.Model.PaisResidenciaId = value;
+        await ViewModel.ChangePaisAsync(value);
+    }
+
+
+    private async Task ChangeDepartamentoAsync(int? value)
+    {
+        ViewModel.Model.DepartamentoResidenciaId = value;
+        await ViewModel.ChangeDepartamentoAsync(value);
+    }
+
+
+    private async Task ChangeCiudadAsync(int? value)
+    {
+        ViewModel.Model.CiudadResidenciaId = value;
+        await ViewModel.ChangeCiudadAsync(value);
+    }
+
+
+    private string GetIglesiaNombre()
+    {
+        if (ViewModel.Model.IglesiaId is null ||
+            ViewModel.Model.IglesiaId <= 0)
+        {
+            return "Cargando iglesia...";
+        }
+
+        var iglesia = ViewModel.Iglesias
+            .FirstOrDefault(x =>
+                x.IglesiaId == ViewModel.Model.IglesiaId.Value);
+
+        return iglesia?.Nombre ?? "Cargando iglesia...";
+    }
+
+
+    private async Task SaveAsync()
+    {
+        if (_form is not null)
+        {
+            await _form.Validate();
+
+            if (!_form.IsValid)
+            {
+                Snackbar.Add(
+                    "Por favor complete todos los campos obligatorios.",
+                    Severity.Error);
+
+                return;
+            }
+        }
+
+        if (!PuedeGuardar)
+        {
+            Snackbar.Add(
+                "Complete la información de bautismo requerida.",
+                Severity.Error);
+
+            return;
+        }
+
+        var ok = await ViewModel.SaveAsync();
+
+        if (ok)
+        {
+            await OnSaved.InvokeAsync();
+        }
+        else
+        {
+            Snackbar.Add(
+                "No fue posible guardar los datos.",
+                Severity.Error);
+        }
+    }
+
+
+    private async Task ClearForm()
+    {
+        /*
+         * La iglesia NO debe limpiarse.
+         * Guardamos el ID actual, reiniciamos el formulario
+         * y luego restauramos la iglesia.
+         */
+        var iglesiaId = ViewModel.Model.IglesiaId;
+
+        await ViewModel.InitializeAsync();
+
+        if (iglesiaId.HasValue && iglesiaId.Value > 0)
+        {
+            ViewModel.Model.IglesiaId = iglesiaId.Value;
+        }
+
+        if (_form is not null)
+        {
+            _form.ResetValidation();
+        }
+
+        StateHasChanged();
+    }
+
+
+    private bool EsBautizado =>
+        ViewModel.TipoMiembro
+            .FirstOrDefault(x =>
+                x.ParametroId == ViewModel.Model.ParametroIdTipoMiembro)
+            ?.Descripcion == "Bautizado";
+
+
+    private bool PuedeGuardar =>
+        !EsBautizado ||
+        (ViewModel.Model.FechaBautismo.HasValue &&
+         !string.IsNullOrWhiteSpace(ViewModel.Model.IglesiaBautismo) &&
+         !string.IsNullOrWhiteSpace(ViewModel.Model.PastorBautismo));
+}

@@ -45,16 +45,26 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">
-    <Project Path="src/Core/ROCA.Emuna360.Application/ROCA.Emuna360.Application.csproj" />
-    <Project Path="src/Core/ROCA.Emuna360.Domain/ROCA.Emuna360.Domain.csproj" />
+    <Project Path="src/Core/ROCA.Emuna360.Application/ROCA.Emuna360.Application.csproj">
+      <BuildType Project="Debug" />
+    </Project>
+    <Project Path="src/Core/ROCA.Emuna360.Domain/ROCA.Emuna360.Domain.csproj">
+      <BuildType Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/src/Infrastructure/">
-    <Project Path="src/Infrastructure/ROCA.Emuna360.Infrastructure/ROCA.Emuna360.Infrastructure.csproj" />
+    <Project Path="src/Infrastructure/ROCA.Emuna360.Infrastructure/ROCA.Emuna360.Infrastructure.csproj">
+      <BuildType Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/src/Presentation/">
-    <Project Path="src/Presentation/ROCA.Emuna360.Presentation.WebUI/ROCA.Emuna360.Presentation.WebUI.csproj" />
+    <Project Path="src/Presentation/ROCA.Emuna360.Presentation.WebUI/ROCA.Emuna360.Presentation.WebUI.csproj">
+      <BuildType Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/src/Service/">
-    <Project Path="src/Service/ROCA.Emuna360.API/ROCA.Emuna360.API.csproj" />
+    <Project Path="src/Service/ROCA.Emuna360.API/ROCA.Emuna360.API.csproj">
+      <BuildType Project="Debug" />
+    </Project>
   </Folder>
 </Solution>

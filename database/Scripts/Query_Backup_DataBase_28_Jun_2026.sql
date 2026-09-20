@@ -1008,6 +1008,8 @@ INSERT [dbo].[Menu] ([MenuId], [DenominacionId], [Descripcion], [IdGrupo], [Tipo
 GO
 INSERT [dbo].[Menu] ([MenuId], [DenominacionId], [Descripcion], [IdGrupo], [Tipo], [Estado], [Url], [Imagen], [Fecha], [Orden], [NuevaVentana]) VALUES (6, 1, N'Registro', 4, N'S', 1, N'/registro', N'Deck', CAST(N'2026-05-30T19:56:47.410' AS DateTime), 1, 0)
 GO
+INSERT [dbo].[Menu] ([MenuId], [DenominacionId], [Descripcion], [IdGrupo], [Tipo], [Estado], [Url], [Imagen], [Fecha], [Orden], [NuevaVentana]) VALUES (7, 1, N'Completar Datos', 4, N'S', 1, N'/completar-datos', N'Deck', CAST(N'2026-09-01T00:00:00.000' AS DateTime), 2, 0)
+GO
 SET IDENTITY_INSERT [dbo].[Menu] OFF
 GO
 SET IDENTITY_INSERT [dbo].[EstructuraOrganizacional] ON 

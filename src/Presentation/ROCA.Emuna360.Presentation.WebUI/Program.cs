@@ -6,13 +6,13 @@ using ROCA.Emuna360.Presentation.WebUI.Security;
 using ROCA.Emuna360.Presentation.WebUI.Services;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.App;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Auth;
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos; // <-- AGREGADO
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Parameters;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Registry;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Structure;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +28,7 @@ builder.Services.AddInfrastructure();
 
 // Security and Authentication
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme;
@@ -40,10 +41,13 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<TokenStorageService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped(sp => (CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
 builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
+
+// ViewModels
 builder.Services.AddScoped<AppStartupViewModel>();
 builder.Services.AddScoped<LoginViewModel>();
 builder.Services.AddScoped<MenuViewModel>();
@@ -53,24 +57,31 @@ builder.Services.AddScoped<ConfigClasesViewModel>();
 builder.Services.AddScoped<ConfigIglesiasViewModel>();
 builder.Services.AddScoped<AdminIglesiaViewModel>();
 builder.Services.AddScoped<AdminRegistroViewModel>();
+builder.Services.AddScoped<CompletarDatosViewModel>(); // <-- AGREGADO
 builder.Services.AddScoped<ConfigEstructuraOrganizacionalViewModel>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
+
 builder.Services.AddHttpClient("PublicApi", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
 });
+
 builder.Services.AddHttpClient("AuthenticatedApi", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-}).AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+})
+.AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"));
+
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 builder.Services.AddScoped(sp => new DenominacionesApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new CompletarDatosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"))); // <-- AGREGADO
 builder.Services.AddScoped(sp => new RolApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new UsuariosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
 builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
@@ -83,7 +94,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -94,6 +104,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
