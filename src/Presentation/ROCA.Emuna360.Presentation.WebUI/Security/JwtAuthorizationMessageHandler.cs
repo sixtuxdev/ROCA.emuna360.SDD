@@ -17,16 +17,16 @@ public sealed class JwtAuthorizationMessageHandler : DelegatingHandler
     };
 
     private readonly TokenStorageService _tokenStorage;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly BrowserApiClientFactory _browserApiClientFactory;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
 
     public JwtAuthorizationMessageHandler(
         TokenStorageService tokenStorage,
-        IHttpClientFactory httpClientFactory,
+        BrowserApiClientFactory browserApiClientFactory,
         AuthenticationStateProvider authenticationStateProvider)
     {
         _tokenStorage = tokenStorage;
-        _httpClientFactory = httpClientFactory;
+        _browserApiClientFactory = browserApiClientFactory;
         _authenticationStateProvider = authenticationStateProvider;
     }
 
@@ -92,7 +92,7 @@ public sealed class JwtAuthorizationMessageHandler : DelegatingHandler
         if (string.IsNullOrWhiteSpace(refreshToken) || userInfo is null)
             return false;
 
-        var publicClient = _httpClientFactory.CreateClient("PublicApi");
+        var publicClient = _browserApiClientFactory.CreatePublicClient();
         var response = await publicClient.PostAsJsonAsync(
             "api/v1/auth/refresh-token",
             new RefreshTokenRequestDto

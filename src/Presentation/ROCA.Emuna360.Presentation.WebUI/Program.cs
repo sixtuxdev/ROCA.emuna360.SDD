@@ -2,6 +2,7 @@ using ROCA.Emuna360.Application;
 using ROCA.Emuna360.Infrastructure;
 using MudBlazor.Services;
 using ROCA.Emuna360.Presentation.WebUI.Components;
+using ROCA.Emuna360.Presentation.WebUI.Infrastructure;
 using ROCA.Emuna360.Presentation.WebUI.Security;
 using ROCA.Emuna360.Presentation.WebUI.Services;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.App;
@@ -45,7 +46,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenStorageService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped(sp => (CustomAuthenticationStateProvider)sp.GetRequiredService<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>());
-builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
+builder.Services.AddScoped<BrowserApiClientFactory>();
 
 // ViewModels
 builder.Services.AddScoped<AppStartupViewModel>();
@@ -62,31 +63,28 @@ builder.Services.AddScoped<ConfigEstructuraOrganizacionalViewModel>();
 
 // API Client
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7178";
+apiBaseUrl = $"{apiBaseUrl.TrimEnd('/')}/";
 
-builder.Services.AddHttpClient("PublicApi", client =>
+// Este cliente se ejecuta en el servidor exclusivamente para reenviar las
+// solicitudes que el navegador realiza contra /_api-proxy.
+builder.Services.AddHttpClient("ApiProxyUpstream", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
 });
 
-builder.Services.AddHttpClient("AuthenticatedApi", client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+builder.Services.AddScoped(sp => sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient());
 
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"));
-
-builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
-builder.Services.AddScoped(sp => new DenominacionesApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicApi")));
-builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new CompletarDatosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi"))); // <-- AGREGADO
-builder.Services.AddScoped(sp => new RolApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new UsuariosApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
-builder.Services.AddScoped(sp => new EstructuraOrganizacionalApiService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedApi")));
+builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreatePublicClient()));
+builder.Services.AddScoped(sp => new DenominacionesApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreatePublicClient()));
+builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new CompletarDatosApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient())); // <-- AGREGADO
+builder.Services.AddScoped(sp => new RolApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new UsuariosApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new IglesiasEstructurasApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new GeographyApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
+builder.Services.AddScoped(sp => new EstructuraOrganizacionalApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
 
 var app = builder.Build();
 
@@ -104,6 +102,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapApiProxy();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

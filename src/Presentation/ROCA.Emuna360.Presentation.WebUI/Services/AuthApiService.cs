@@ -1,4 +1,5 @@
 using ROCA.Emuna360.Application.DTOs.Auth;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -15,16 +16,46 @@ public class AuthApiService
 
     public async Task<DenominacionDominioDto?> ObtenerDenominacionPorDominioAsync(string dominio)
     {
-        var url = $"api/v1/auth/obtener-denominacion-por-dominio?dominio={Uri.EscapeDataString(dominio)}";
-        var response = await _httpClient.GetAsync(url);
+        var consulta = await ConsultarDenominacionPorDominioAsync(dominio);
+        return consulta.Denominacion;
+    }
+
+    public string ObtenerUrlConsultaDenominacion(string dominio)
+    {
+        var urlRelativa = $"api/v1/auth/obtener-denominacion-por-dominio?dominio={Uri.EscapeDataString(dominio)}";
+        return _httpClient.BaseAddress is null
+            ? urlRelativa
+            : new Uri(_httpClient.BaseAddress, urlRelativa).ToString();
+    }
+
+    public async Task<DenominacionDominioConsultaResult> ConsultarDenominacionPorDominioAsync(string dominio)
+    {
+        var url = ObtenerUrlConsultaDenominacion(dominio);
+        using var response = await _httpClient.GetAsync(url);
+        DenominacionDominioDto? denominacion = null;
+        string? detalleError = null;
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<DenominacionDominioDto>();
+            denominacion = await response.Content.ReadFromJsonAsync<DenominacionDominioDto>();
+        }
+        else
+        {
+            detalleError = await response.Content.ReadAsStringAsync();
         }
 
-        return null;
+        return new DenominacionDominioConsultaResult(
+            denominacion,
+            url,
+            response.StatusCode,
+            detalleError);
     }
+
+    public sealed record DenominacionDominioConsultaResult(
+        DenominacionDominioDto? Denominacion,
+        string Url,
+        HttpStatusCode EstadoHttp,
+        string? DetalleError);
 
     public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
     {

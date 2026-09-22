@@ -22,17 +22,6 @@
                         @ViewModel.DenominacionNombre
                     </MudText>
                 }
-                @if (ViewModel.MostrarHostConsultado && !string.IsNullOrWhiteSpace(ViewModel.HostConsultado))
-                {
-                    <MudChip T="string"
-                             Icon="@Icons.Material.Filled.Language"
-                             Color="Color.Info"
-                             Variant="Variant.Outlined"
-                             Size="Size.Small"
-                             Class="mt-3">
-                        Host consultado: @ViewModel.HostConsultado
-                    </MudChip>
-                }
             </div>
         </CardHeaderContent>
     </MudCardHeader>

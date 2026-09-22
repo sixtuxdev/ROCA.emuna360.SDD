@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\Infrastructure\ROCA.Emuna360.Infrastructure\ROCA.Emuna360.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Scripts\" />
+  </ItemGroup>
+
 </Project>

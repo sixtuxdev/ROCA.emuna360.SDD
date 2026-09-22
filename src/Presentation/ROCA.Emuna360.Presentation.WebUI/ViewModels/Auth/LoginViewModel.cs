@@ -4,6 +4,7 @@ using MudBlazor;
 using ROCA.Emuna360.Application.DTOs.Auth;
 using ROCA.Emuna360.Presentation.WebUI.Security;
 using ROCA.Emuna360.Presentation.WebUI.Services;
+using System.Net;
 
 namespace ROCA.Emuna360.Presentation.WebUI.ViewModels.Auth;
 
@@ -16,7 +17,6 @@ public sealed class LoginViewModel
     private readonly ISnackbar _snackbar;
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _configuration;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly DenominacionesApiService _denominacionesApiService;    
 
     public LoginViewModel(
@@ -27,7 +27,6 @@ public sealed class LoginViewModel
         ISnackbar snackbar,
         IJSRuntime jsRuntime,
         IConfiguration configuration,
-        IHostEnvironment hostEnvironment,
         DenominacionesApiService denominacionesApiService)
     {
         _authApiService = authApiService;
@@ -37,13 +36,15 @@ public sealed class LoginViewModel
         _snackbar = snackbar;
         _jsRuntime = jsRuntime;
         _configuration = configuration;
-        _hostEnvironment = hostEnvironment;
         _denominacionesApiService = denominacionesApiService;
     }
 
     public LoginRequestDto LoginRequest { get; } = new();
     public string? DenominacionNombre { get; private set; }
     public string? HostConsultado { get; private set; }
+    public string? ApiConsultada { get; private set; }
+    public int? EstadoHttpConsulta { get; private set; }
+    public string? DiagnosticoConsulta { get; private set; }
     public bool MostrarHostConsultado => _configuration.GetValue<bool>("Login:MostrarHostConsultado");
     public bool IsLoadingDenominacion { get; private set; }
     public bool DenominacionResuelta { get; private set; }
@@ -77,6 +78,9 @@ public sealed class LoginViewModel
         LoginRequest.DenominacionId = 0;
         DenominacionNombre = null;
         HostConsultado = null;
+        ApiConsultada = null;
+        EstadoHttpConsulta = null;
+        DiagnosticoConsulta = null;
 
         try
         {
@@ -85,15 +89,47 @@ public sealed class LoginViewModel
 
             if (EsEntornoLocal(host))
             {
+                DiagnosticoConsulta = "Consulta por subdominio omitida: se está usando la denominación local predeterminada (ID 1).";
+                await EscribirDiagnosticoNavegadorAsync("warn", new
+                {
+                    Evento = "Resolución de denominación omitida",
+                    HostEnviado = host,
+                    Motivo = DiagnosticoConsulta
+                });
+
                 LoginRequest.DenominacionId = 1;
                 DenominacionResuelta = true;
                 await LoadDenominacionAsync();
                 return;
             }
-            
-            var denominacion = await _authApiService.ObtenerDenominacionPorDominioAsync(host);
+
+            ApiConsultada = _authApiService.ObtenerUrlConsultaDenominacion(host);
+            await EscribirDiagnosticoNavegadorAsync("info", new
+            {
+                Evento = "Consultando denominación por subdominio",
+                Api = ApiConsultada,
+                HostEnviado = host
+            });
+
+            var consulta = await _authApiService.ConsultarDenominacionPorDominioAsync(host);
+            EstadoHttpConsulta = (int)consulta.EstadoHttp;
+            var denominacion = consulta.Denominacion;
+
             if (denominacion is null || denominacion.DenominacionId <= 0)
             {
+                DiagnosticoConsulta = string.IsNullOrWhiteSpace(consulta.DetalleError)
+                    ? "La API no devolvió una denominación válida."
+                    : consulta.DetalleError;
+
+                await EscribirDiagnosticoNavegadorAsync("warn", new
+                {
+                    Evento = "Denominación no resuelta",
+                    Api = consulta.Url,
+                    HostEnviado = host,
+                    EstadoHttp = EstadoHttpConsulta,
+                    Detalle = DiagnosticoConsulta
+                });
+
                 _snackbar.Add("La URL actual no está configurada para ninguna denominación.", Severity.Warning);
                 return;
             }
@@ -101,9 +137,30 @@ public sealed class LoginViewModel
             LoginRequest.DenominacionId = denominacion.DenominacionId;
             DenominacionNombre = denominacion.NombreDenominacion;
             DenominacionResuelta = true;
+            DiagnosticoConsulta = $"Denominación resuelta: {denominacion.DenominacionId} - {denominacion.NombreDenominacion}";
+
+            await EscribirDiagnosticoNavegadorAsync("info", new
+            {
+                Evento = "Denominación resuelta",
+                Api = consulta.Url,
+                HostEnviado = host,
+                EstadoHttp = EstadoHttpConsulta,
+                denominacion.DenominacionId,
+                denominacion.NombreDenominacion,
+                denominacion.Subdominio
+            });
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticoConsulta = ex.Message;
+            await EscribirDiagnosticoNavegadorAsync("error", new
+            {
+                Evento = "Error al resolver la denominación",
+                Api = ApiConsultada,
+                HostEnviado = HostConsultado,
+                Error = ex.Message
+            });
+
             _snackbar.Add("Ocurrió un error al identificar la denominación de la URL.", Severity.Error);
         }
         finally
@@ -112,16 +169,36 @@ public sealed class LoginViewModel
         }
     }
 
-    private bool EsEntornoLocal(string host)
+    private async Task EscribirDiagnosticoNavegadorAsync(string nivel, object datos)
     {
-#if DEBUG
-        return true;
-#else
-        return _hostEnvironment.IsDevelopment() ||
-            host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-            host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
-            host.Equals("::1", StringComparison.OrdinalIgnoreCase);
-#endif
+        if (!MostrarHostConsultado)
+            return;
+
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync($"console.{nivel}", "[Login][Denominación]", datos);
+        }
+        catch
+        {
+            // El diagnóstico nunca debe interrumpir el flujo de autenticación.
+        }
+    }
+
+    private static bool EsEntornoLocal(string host)
+    {
+        if (string.IsNullOrWhiteSpace(host))
+            return false;
+
+        var hostNormalizado = host.Trim().Trim('[', ']').TrimEnd('.');
+
+        if (hostNormalizado.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+            hostNormalizado.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return IPAddress.TryParse(hostNormalizado, out var direccionIp) &&
+            IPAddress.IsLoopback(direccionIp);
     }
 
     private async Task LoadDenominacionAsync()
