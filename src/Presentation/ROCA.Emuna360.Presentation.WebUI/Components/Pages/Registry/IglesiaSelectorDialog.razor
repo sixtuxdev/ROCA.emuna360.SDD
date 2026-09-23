@@ -110,8 +110,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await ViewModel.InitializeSelectorAsync(DenominacionId);
-        _isLoading = false;
+        _isLoading = true;
+
+        try
+        {
+            await ViewModel.InitializeSelectorAsync(DenominacionId);
+        }
+        finally
+        {
+            // Evita que el diálogo quede indefinidamente en el indicador de carga
+            // si ocurre una excepción inesperada durante la inicialización.
+            _isLoading = false;
+        }
     }
 
     private void Select(IglesiaDto iglesia)

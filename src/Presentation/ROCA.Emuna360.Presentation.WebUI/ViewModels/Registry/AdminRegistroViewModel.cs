@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -14,53 +16,59 @@ public sealed class AdminRegistroViewModel
 {
     private const int DefaultPublicDenominacionId = 1;
     private const string VisitanteRolNombre = "Visitante";
+    private static readonly TimeSpan CatalogLoadTimeout = TimeSpan.FromSeconds(20);
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private readonly RegistroApiService _registroApiService;
     private readonly UsuariosApiService _usuariosApiService;
-    private readonly RolApiService _rolApiService;
     private readonly IglesiasApiService _iglesiasApiService;
-    private readonly ParametersApiService _parametersApiService;
+    private readonly RegistroCatalogosApiService _registroCatalogosApiService;
     private readonly GeographyApiService _geographyApiService;
     private readonly TokenStorageService _tokenStorageService;
     private readonly DenominacionesApiService _denominacionesApiService;
     private readonly ISnackbar _snackbar;
     private readonly NavigationManager _navigation;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AdminRegistroViewModel> _logger;
     private readonly HashSet<RegistroFormField> _touchedFields = [];
+    private readonly object _catalogLoadLock = new();
     private IglesiaDto? _iglesia;
     private IglesiaDto? _iglesiaSeleccionada;
     private string _searchText = string.Empty;
+    private int _catalogsDenominacionId;
+    private int _catalogsLoadingDenominacionId;
+    private Task? _catalogsLoadTask;
 
     public AdminRegistroViewModel(
         RegistroApiService registroApiService,
         UsuariosApiService usuariosApiService,
-        RolApiService rolApiService,
         IglesiasApiService iglesiasApiService,
-        ParametersApiService parametersApiService,
+        RegistroCatalogosApiService registroCatalogosApiService,
         GeographyApiService geographyApiService,
         TokenStorageService tokenStorageService,
         DenominacionesApiService denominacionesApiService,
         ISnackbar snackbar,
         NavigationManager navigation,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AdminRegistroViewModel> logger)
     {
         _registroApiService = registroApiService;
         _usuariosApiService = usuariosApiService;
-        _rolApiService = rolApiService;
         _iglesiasApiService = iglesiasApiService;
-        _parametersApiService = parametersApiService;
+        _registroCatalogosApiService = registroCatalogosApiService;
         _geographyApiService = geographyApiService;
         _tokenStorageService = tokenStorageService;
         _denominacionesApiService = denominacionesApiService;
         _snackbar = snackbar;
         _navigation = navigation;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public int DenominacionId { get; private set; }
     public int IglesiaId { get; private set; }
     public bool EsInterno { get; private set; }
+    public bool IsInitializing { get; private set; }
     public bool IsLoading { get; private set; }
     public bool IsSaving { get; private set; }
     public bool IsLoadingGeography { get; private set; }
@@ -128,37 +136,67 @@ public sealed class AdminRegistroViewModel
         CrearUsuarioCon
     }
 
-    public async Task InitializeAsync(bool esInterno, int? denominacionId = null)
+    public async Task InitializeAsync(
+        bool esInterno,
+        int? denominacionId = null,
+        string? denominacionNombre = null)
     {
         EsInterno = esInterno;
         ErrorMessage = null;
+        IsInitializing = true;
 
-        if (EsInterno)
+        try
         {
-            DenominacionId = await _tokenStorageService.GetAuthDenominacionIdAsync();
-            IglesiaId = await _tokenStorageService.GetAuthIglesiaIdAsync();
-
-            if (DenominacionId <= 0)
+            if (EsInterno)
             {
-                ErrorMessage = "No fue posible obtener la denominación del usuario autenticado.";
-                _snackbar.Add(ErrorMessage, Severity.Error);
-                return;
-            }
-        }
-        else
-        {
-            var denominacionExterna = denominacionId.GetValueOrDefault();
-            DenominacionId = denominacionExterna > 0
-                ? denominacionExterna
-                : _configuration.GetValue<int?>("Registro:DefaultDenominacionId") ?? DefaultPublicDenominacionId;
-            IglesiaId = 0;
-        }
+                DenominacionId = await _tokenStorageService.GetAuthDenominacionIdAsync();
+                IglesiaId = await _tokenStorageService.GetAuthIglesiaIdAsync();
 
-        await LoadDenominacionAsync();
-        await LoadCatalogsAsync();
-        await LoadIglesiaAsync();
-        StartNewRegistro();
-        await LoadRegistrosAsync();
+                if (DenominacionId <= 0)
+                {
+                    ErrorMessage = "No fue posible obtener la denominación del usuario autenticado.";
+                    _snackbar.Add(ErrorMessage, Severity.Error);
+                    return;
+                }
+            }
+            else
+            {
+                var denominacionExterna = denominacionId.GetValueOrDefault();
+                DenominacionId = denominacionExterna > 0
+                    ? denominacionExterna
+                    : _configuration.GetValue<int?>("Registro:DefaultDenominacionId") ?? DefaultPublicDenominacionId;
+                DenominacionNombre = string.IsNullOrWhiteSpace(denominacionNombre)
+                    ? null
+                    : denominacionNombre.Trim();
+                IglesiaId = 0;
+            }
+
+            // Deja listo el modelo antes de la primera espera para que el formulario
+            // pueda renderizarse inmediatamente mientras llegan los catálogos.
+            StartNewRegistro();
+
+            var initializationTasks = new List<Task>
+            {
+                LoadCatalogsAsync()
+            };
+
+            if (EsInterno || string.IsNullOrWhiteSpace(DenominacionNombre))
+                initializationTasks.Add(LoadDenominacionAsync());
+
+            if (IglesiaId > 0)
+                initializationTasks.Add(LoadIglesiaAsync());
+
+            // El registro público solo crea una cuenta; no necesita descargar el
+            // listado completo de personas de la denominación.
+            if (EsInterno)
+                initializationTasks.Add(LoadRegistrosAsync());
+
+            await Task.WhenAll(initializationTasks);
+        }
+        finally
+        {
+            IsInitializing = false;
+        }
     }
 
     public async Task LoadRegistrosAsync()
@@ -328,7 +366,8 @@ public sealed class AdminRegistroViewModel
 
             LastSaveSucceeded = usuarioCreado;
             StartNewRegistro();
-            await LoadRegistrosAsync();
+            if (EsInterno)
+                await LoadRegistrosAsync();
         }
         catch
         {
@@ -426,31 +465,114 @@ public sealed class AdminRegistroViewModel
         return _iglesia?.IglesiaId == iglesiaId ? IglesiaNombre : "Sin iglesia";
     }
 
-    private async Task LoadCatalogsAsync()
+    private Task LoadCatalogsAsync()
     {
-        if (DenominacionId <= 0)
-            return;
+        var denominacionId = DenominacionId;
+        if (denominacionId <= 0)
+            return Task.CompletedTask;
+
+        if (_catalogsDenominacionId == denominacionId)
+        {
+            EnsurePublicRolVisitante();
+            return Task.CompletedTask;
+        }
+
+        lock (_catalogLoadLock)
+        {
+            if (_catalogsLoadingDenominacionId == denominacionId &&
+                _catalogsLoadTask is { IsCompleted: false })
+            {
+                return _catalogsLoadTask;
+            }
+
+            _catalogsLoadingDenominacionId = denominacionId;
+            _catalogsLoadTask = LoadCatalogsCoreAsync(denominacionId);
+            return _catalogsLoadTask;
+        }
+    }
+
+    private async Task LoadCatalogsCoreAsync(int denominacionId)
+    {
+        using var timeout = new CancellationTokenSource(CatalogLoadTimeout);
+        var total = Stopwatch.StartNew();
+        IsLoadingGeography = true;
 
         try
         {
-            var clases = await _parametersApiService.GetClasesAsync(DenominacionId);
-            //var parametros = await _parametersApiService.GetParametrosByClaseAsync(1, DenominacionId);
+            // Un solo viaje navegador -> proxy -> API. El API ejecuta internamente
+            // las cinco consultas independientes en paralelo.
+            var catalogos = await _registroCatalogosApiService.GetAsync(
+                denominacionId,
+                timeout.Token);
 
-            TipoDocumentoOptions = await _parametersApiService.GetParametrosByNombreClase("Tipos de Documentos", DenominacionId);//clases.Where(IsTipoDocumentoClase).Select(clase => clase.ClaseId).ToHashSet();
-            SexoOptions = await _parametersApiService.GetParametrosByNombreClase("Sexo", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
-            InteresOptions = await _parametersApiService.GetParametrosByNombreClase("Interés", DenominacionId);//clases.Where(IsSexoClase).Select(clase => clase.ClaseId).ToHashSet();
-            RolOptions = (await _rolApiService.GetRolesAsync(DenominacionId))
-                .Where(rol => rol.Activo)
-                .OrderBy(rol => rol.Nombre)
-                .ToList();
+            if (DenominacionId != denominacionId)
+                return;
+
+            if (catalogos is null || catalogos.DenominacionId != denominacionId)
+                throw new InvalidOperationException("La API no devolvió catálogos válidos para la denominación solicitada.");
+
+            TipoDocumentoOptions = catalogos.TiposDocumento;
+            SexoOptions = catalogos.Sexos;
+            InteresOptions = catalogos.Intereses;
+            RolOptions = catalogos.Roles;
+            Paises = catalogos.Paises;
+
+            var emptyCatalogs = GetEmptyCatalogNames(catalogos);
+            if (emptyCatalogs.Count > 0)
+            {
+                _logger.LogWarning(
+                    "La API respondió en {ElapsedMilliseconds} ms, pero estos catálogos están vacíos: {EmptyCatalogs}.",
+                    total.ElapsedMilliseconds,
+                    string.Join(", ", emptyCatalogs));
+                _snackbar.Add(
+                    $"Los siguientes catálogos no tienen datos configurados: {string.Join(", ", emptyCatalogs)}.",
+                    Severity.Warning);
+                return;
+            }
+
+            _catalogsDenominacionId = denominacionId;
             EnsurePublicRolVisitante();
-            //GetParametrosByNombreClase
-            await LoadPaisesAsync();
+            _logger.LogInformation(
+                "Catálogos de registro cargados en una sola solicitud para la denominación {DenominacionId} en {ElapsedMilliseconds} ms.",
+                denominacionId,
+                total.ElapsedMilliseconds);
         }
-        catch
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
         {
+            _logger.LogWarning(
+                "La carga de catálogos para la denominación {DenominacionId} superó el límite de {TimeoutSeconds} segundos.",
+                denominacionId,
+                CatalogLoadTimeout.TotalSeconds);
+            _snackbar.Add("La carga de los catálogos excedió el tiempo permitido. Intente nuevamente.", Severity.Warning);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestTimeout)
+        {
+            _logger.LogWarning(
+                "La carga de catálogos para la denominación {DenominacionId} superó el límite de {TimeoutSeconds} segundos.",
+                denominacionId,
+                CatalogLoadTimeout.TotalSeconds);
+            _snackbar.Add("La carga de los catálogos excedió el tiempo permitido. Intente nuevamente.", Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cargando los catálogos de registro para la denominación {DenominacionId}.", denominacionId);
             _snackbar.Add("No fue posible cargar los catálogos del registro.", Severity.Error);
         }
+        finally
+        {
+            IsLoadingGeography = false;
+        }
+    }
+
+    private static List<string> GetEmptyCatalogNames(RegistroCatalogosDto catalogos)
+    {
+        var emptyCatalogs = new List<string>();
+        if (catalogos.TiposDocumento.Count == 0) emptyCatalogs.Add("Tipos de documentos");
+        if (catalogos.Sexos.Count == 0) emptyCatalogs.Add("Sexo");
+        if (catalogos.Intereses.Count == 0) emptyCatalogs.Add("Interés");
+        if (catalogos.Roles.Count == 0) emptyCatalogs.Add("Roles");
+        if (catalogos.Paises.Count == 0) emptyCatalogs.Add("Países");
+        return emptyCatalogs;
     }
 
     private async Task LoadIglesiaAsync()

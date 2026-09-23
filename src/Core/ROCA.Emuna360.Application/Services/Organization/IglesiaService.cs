@@ -53,6 +53,30 @@ public class IglesiaService : MultiOrganizationalBaseService<IglesiaDto, Iglesia
         return Result<System.Collections.Generic.IEnumerable<IglesiaDto>>.Success(dtos);
     }
 
+    public async Task<Result<IEnumerable<IglesiaDto>>> GetForSelectorAsync(int denominacionId)
+    {
+        if (denominacionId <= 0)
+            return Result<IEnumerable<IglesiaDto>>.Failure("La denominación es obligatoria.");
+
+        var entities = await _specificRepository.GetAllAsync(denominacionId);
+        var dtos = entities
+            .Where(iglesia => iglesia.Activa)
+            .OrderBy(iglesia => iglesia.Nombre)
+            .Select(iglesia => new IglesiaDto
+            {
+                IglesiaId = iglesia.IglesiaId,
+                DenominacionId = iglesia.DenominacionId,
+                Nombre = iglesia.Nombre,
+                Direccion = iglesia.Direccion,
+                Activa = iglesia.Activa
+            })
+            .ToList();
+
+        // El selector no utiliza la estructura organizacional. Omitir su enriquecimiento
+        // evita dos consultas adicionales por cada iglesia devuelta.
+        return Result<IEnumerable<IglesiaDto>>.Success(dtos);
+    }
+
     public async Task<Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId)
     {
         var entities = await _specificRepository.GetAllPorUsuarioIdDenIdAsync(usuarioId, denominacionId);

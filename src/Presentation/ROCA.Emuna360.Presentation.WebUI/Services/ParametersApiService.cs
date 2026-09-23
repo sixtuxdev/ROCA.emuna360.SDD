@@ -49,10 +49,15 @@ public sealed class ParametersApiService
         return response?.Data ?? [];
     }
 
-    public async Task<IReadOnlyList<ParametroDto>> GetParametrosByNombreClase(string nombreClase, int denominacionId)
+    public async Task<IReadOnlyList<ParametroDto>> GetParametrosByNombreClase(
+        string nombreClase,
+        int denominacionId,
+        CancellationToken cancellationToken = default)
     {
         var nombreClaseEncoded = Uri.EscapeDataString(nombreClase);
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<ParametroDto>>>($"api/v1/parametros/nombre-clase/{nombreClaseEncoded}/denominacion/{denominacionId}");
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<ParametroDto>>>(
+            $"api/v1/parametros/nombre-clase/{nombreClaseEncoded}/denominacion/{denominacionId}",
+            cancellationToken);
         return response?.Data ?? [];
     }
 

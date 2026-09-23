@@ -71,11 +71,20 @@ builder.Services.AddHttpClient("ApiProxyUpstream", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
 });
+builder.Services.AddHttpClient("PublicRegistrationApi", client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient());
 
 builder.Services.AddScoped(sp => new AuthApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreatePublicClient()));
 builder.Services.AddScoped(sp => new DenominacionesApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreatePublicClient()));
+builder.Services.AddScoped(sp => new RegistroCatalogosApiService(
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicRegistrationApi")));
+builder.Services.AddScoped(sp => new IglesiaSelectorApiService(
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("PublicRegistrationApi")));
 builder.Services.AddScoped(sp => new ParametersApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
 builder.Services.AddScoped(sp => new IglesiasApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));
 builder.Services.AddScoped(sp => new RegistroApiService(sp.GetRequiredService<BrowserApiClientFactory>().CreateAuthenticatedClient()));

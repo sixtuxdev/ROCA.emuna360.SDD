@@ -8,6 +8,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
 {
     public AdminIglesiaViewModel(
         IglesiasApiService iglesiasApiService,
+        IglesiaSelectorApiService iglesiaSelectorApiService,
         UsuariosApiService usuariosApiService,
         IglesiasEstructurasApiService iglesiasEstructurasApiService,
         EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
@@ -20,6 +21,7 @@ public sealed class AdminIglesiaViewModel : ConfigIglesiasViewModel, IDisposable
         )
         : base(
             iglesiasApiService,
+            iglesiaSelectorApiService,
             usuariosApiService,
             iglesiasEstructurasApiService,
             estructuraOrganizacionalApiService,

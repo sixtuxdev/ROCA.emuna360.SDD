@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ROCA.Emuna360.Application.DTOs.Organization;
 using ROCA.Emuna360.Application.Interfaces.Services.Organization;
@@ -14,6 +15,15 @@ public class IglesiasController : MultiOrganizationalBaseController<IglesiaDto>
     public IglesiasController(IIglesiaService service) : base(service) 
     {
         _iglesiaService = service;
+    }
+
+    [AllowAnonymous]
+    [HttpGet("selector/denominacion/{denominacionId:int}")]
+    public async Task<IActionResult> GetForSelector(int denominacionId)
+    {
+        var result = await _iglesiaService.GetForSelectorAsync(denominacionId);
+        if (result.IsFailure) return BadRequest(new { error = result.Error });
+        return this.ToOk(result.Value);
     }
 
     [HttpGet("GetAllPorUsuarioIdDenId/{usuarioId}/{denominacionId}")]

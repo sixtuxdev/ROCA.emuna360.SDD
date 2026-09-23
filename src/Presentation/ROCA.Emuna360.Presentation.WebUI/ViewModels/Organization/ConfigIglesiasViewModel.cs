@@ -18,6 +18,7 @@ public class ConfigIglesiasViewModel
     private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     protected readonly IglesiasApiService _iglesiasApiService;
+    private readonly IglesiaSelectorApiService _iglesiaSelectorApiService;
     protected readonly UsuariosApiService _usuariosApiService;
     protected readonly IglesiasEstructurasApiService _iglesiasEstructurasApiService;
     protected readonly EstructuraOrganizacionalApiService _estructuraOrganizacionalApiService;
@@ -36,6 +37,7 @@ public class ConfigIglesiasViewModel
 
     public ConfigIglesiasViewModel(
         IglesiasApiService iglesiasApiService,
+        IglesiaSelectorApiService iglesiaSelectorApiService,
         UsuariosApiService usuariosApiService,
         IglesiasEstructurasApiService iglesiasEstructurasApiService,
         EstructuraOrganizacionalApiService estructuraOrganizacionalApiService,
@@ -47,6 +49,7 @@ public class ConfigIglesiasViewModel
         IglesiaStateService iglesiaStateService)
     {
         _iglesiasApiService = iglesiasApiService;
+        _iglesiaSelectorApiService = iglesiaSelectorApiService;
         _usuariosApiService = usuariosApiService;
         _iglesiasEstructurasApiService = iglesiasEstructurasApiService;
         _estructuraOrganizacionalApiService = estructuraOrganizacionalApiService;
@@ -162,7 +165,38 @@ public class ConfigIglesiasViewModel
             return;
         }
 
-        await LoadIglesiasAsync();
+        await LoadIglesiasForSelectorAsync();
+    }
+
+    private async Task LoadIglesiasForSelectorAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+        Iglesias = [];
+
+        try
+        {
+            // El selector solo necesita la información incluida en la consulta de iglesias.
+            // No debe ejecutar la carga N+1 de ciudades/corregimientos usada por la pantalla
+            // administrativa, porque esos datos no se muestran en este diálogo.
+            Iglesias = await _iglesiaSelectorApiService.GetAsync(DenominacionId);
+
+            if (SelectedIglesia is not null)
+            {
+                SelectedIglesia = Iglesias.FirstOrDefault(
+                    iglesia => iglesia.IglesiaId == SelectedIglesia.IglesiaId);
+            }
+        }
+        catch
+        {
+            Iglesias = [];
+            ErrorMessage = "No fue posible cargar las iglesias.";
+            _snackbar.Add(ErrorMessage, Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     public async Task LoadIglesiasAsync()

@@ -13,9 +13,13 @@ public sealed class RolApiService
         _httpClient = httpClient;
     }
 
-    public async Task<IReadOnlyList<RolDto>> GetRolesAsync(int denominacionId)
+    public async Task<IReadOnlyList<RolDto>> GetRolesAsync(
+        int denominacionId,
+        CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<RolDto>>>($"api/v1/roles/denominacion/{denominacionId}");
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<RolDto>>>(
+            $"api/v1/roles/denominacion/{denominacionId}",
+            cancellationToken);
         return response?.Data ?? [];
     }
 }

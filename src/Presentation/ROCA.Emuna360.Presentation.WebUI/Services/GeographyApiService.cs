@@ -13,9 +13,11 @@ public sealed class GeographyApiService
         _httpClient = httpClient;
     }
 
-    public async Task<IReadOnlyList<PaisDto>> GetPaisesAsync()
+    public async Task<IReadOnlyList<PaisDto>> GetPaisesAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<PaisDto>>>("api/v1/paises");
+        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<PaisDto>>>(
+            "api/v1/paises",
+            cancellationToken);
         return response?.Data ?? [];
     }
 

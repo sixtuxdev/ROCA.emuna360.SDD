@@ -5,5 +5,6 @@ namespace ROCA.Emuna360.Application.Interfaces.Services.Organization;
 public interface IIglesiaService : IMultiOrganizationalService<IglesiaDto>
 {
     System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetByDenominacionAsync(int denominacionId);
+    System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetForSelectorAsync(int denominacionId);
     System.Threading.Tasks.Task<ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<IglesiaDto>>> GetAllPorUsuarioIdDenIdAsync(int usuarioId, int denominacionId);
 }
