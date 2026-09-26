@@ -139,7 +139,8 @@ public sealed class AdminRegistroViewModel
     public async Task InitializeAsync(
         bool esInterno,
         int? denominacionId = null,
-        string? denominacionNombre = null)
+        string? denominacionNombre = null,
+        int? iglesiaId = null)
     {
         EsInterno = esInterno;
         ErrorMessage = null;
@@ -168,7 +169,9 @@ public sealed class AdminRegistroViewModel
                 DenominacionNombre = string.IsNullOrWhiteSpace(denominacionNombre)
                     ? null
                     : denominacionNombre.Trim();
-                IglesiaId = 0;
+                IglesiaId = iglesiaId.GetValueOrDefault() > 0
+                    ? iglesiaId.GetValueOrDefault()
+                    : 0;
             }
 
             // Deja listo el modelo antes de la primera espera para que el formulario
@@ -588,11 +591,39 @@ public sealed class AdminRegistroViewModel
         try
         {
             _iglesia = await _iglesiasApiService.GetIglesiaAsync(IglesiaId, DenominacionId);
+
+            if (_iglesia is null || _iglesia.DenominacionId != DenominacionId)
+            {
+                if (EsInterno)
+                {
+                    _snackbar.Add("No fue posible cargar la iglesia asociada.", Severity.Error);
+                    return;
+                }
+
+                ClearIglesiaPreseleccionada();
+                _snackbar.Add(
+                    "La iglesia indicada en la URL no pertenece a la denominación actual.",
+                    Severity.Warning);
+            }
         }
         catch
         {
-            _snackbar.Add("No fue posible cargar la iglesia asociada.", Severity.Error);
+            if (EsInterno)
+            {
+                _snackbar.Add("No fue posible cargar la iglesia asociada.", Severity.Error);
+                return;
+            }
+
+            ClearIglesiaPreseleccionada();
+            _snackbar.Add("No fue posible validar la iglesia indicada en la URL.", Severity.Error);
         }
+    }
+
+    private void ClearIglesiaPreseleccionada()
+    {
+        _iglesia = null;
+        IglesiaId = 0;
+        RegistroForm.IglesiaId = 0;
     }
 
     private async Task LoadPaisesAsync()

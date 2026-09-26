@@ -27,8 +27,12 @@ public sealed class IglesiasApiService
 
     public async Task<IglesiaDto?> GetIglesiaAsync(int iglesiaId, int denominacionId)
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<IglesiaDto>>($"api/v1/iglesias/{iglesiaId}/denominacion/{denominacionId}");
-        return response?.Data;
+        using var response = await _httpClient.GetAsync($"api/v1/iglesias/{iglesiaId}/denominacion/{denominacionId}");
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var payload = await response.Content.ReadFromJsonAsync<ApiResponseDto<IglesiaDto>>();
+        return payload is { Success: true } ? payload.Data : null;
     }
 
     public async Task<int?> CreateIglesiaAsync(IglesiaDto iglesia)

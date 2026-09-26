@@ -34,9 +34,12 @@
     [Parameter]
     public string? DenominacionNombre { get; set; }
 
+    [Parameter]
+    public int? IglesiaId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        await ViewModel.InitializeAsync(esInterno: false, DenominacionId, DenominacionNombre);
+        await ViewModel.InitializeAsync(esInterno: false, DenominacionId, DenominacionNombre, IglesiaId);
         _isLoading = false;
     }
 

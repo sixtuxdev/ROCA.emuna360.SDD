@@ -93,6 +93,10 @@
     private MudForm _form = null!;
     private bool _success;
 
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "iglesiaId")]
+    public int? IglesiaId { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -115,7 +119,8 @@
         var parameters = new DialogParameters
         {
             [nameof(RegistroDialog.DenominacionId)] = ViewModel.LoginRequest.DenominacionId,
-            [nameof(RegistroDialog.DenominacionNombre)] = ViewModel.DenominacionNombre
+            [nameof(RegistroDialog.DenominacionNombre)] = ViewModel.DenominacionNombre,
+            [nameof(RegistroDialog.IglesiaId)] = IglesiaId
         };
 
         var options = new DialogOptions

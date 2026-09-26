@@ -38,11 +38,12 @@ public abstract class BaseRepository<TEntity>
 
         var resultado = parameters.Get<string>("@Resultado");
         var mensaje = parameters.Get<string>("@Mensaje");
-        var id = parameters.Get<int>(outIdParameter);
+        var success = resultado?.Trim().Equals("Ok", System.StringComparison.OrdinalIgnoreCase) ?? false;
+        var id = success ? parameters.Get<int>(outIdParameter) : default;
 
         return new OperationResult<int>
         {
-            Success = resultado?.Trim().Equals("Ok", System.StringComparison.OrdinalIgnoreCase) ?? false,
+            Success = success,
             Data = id,
             Result = resultado ?? string.Empty,
             Message = mensaje ?? string.Empty
