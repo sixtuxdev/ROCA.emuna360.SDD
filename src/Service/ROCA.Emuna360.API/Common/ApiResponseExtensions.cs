@@ -32,4 +32,22 @@ public static class ApiResponseExtensions
             Message = message
         });
     }
+
+    public static IActionResult ToUnauthorized(this ControllerBase controller, string message = "Unauthorized")
+    {
+        return controller.Unauthorized(new ApiResponseDto<object>
+        {
+            Success = false,
+            Message = message
+        });
+    }
+
+    public static IActionResult ToForbidden(this ControllerBase controller, string message = "Forbidden")
+    {
+        return controller.StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDto<object>
+        {
+            Success = false,
+            Message = message
+        });
+    }
 }

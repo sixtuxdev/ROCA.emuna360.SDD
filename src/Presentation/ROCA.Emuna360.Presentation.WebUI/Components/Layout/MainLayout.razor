@@ -1,9 +1,14 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@using ROCA.Emuna360.Application.Common
 @using ROCA.Emuna360.Application.DTOs.Organization
+@using ROCA.Emuna360.Application.DTOs.Registry
 @using ROCA.Emuna360.Presentation.WebUI.Security
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject TokenStorageService TokenStorage
 @inject AuthApiService AuthApiService
+@inject RegistroApiService RegistroApiService
+@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
 <MudThemeProvider Theme="@CustomMudTheme.Theme" IsDarkMode="_isDarkMode" />
@@ -14,7 +19,9 @@
 <MudLayout>
     <MudAppBar Elevation="1" Class="main-app-bar">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">ROCA.Emuna360</MudText>
+        <div class="app-title ml-3">
+            <MudText Typo="Typo.h5">ROCA.Emuna360</MudText>
+        </div>
         @* <MudImage Src="/image/logo.png" Alt="Emuna360" Class="app-logo ml-3" /> *@
 
         @if (HasDenominacionInfo)
@@ -36,11 +43,129 @@
         <AuthorizeView>
             <Authorized>
                 <MudText Class="user-greeting mr-4">Hola, @context.User.Identity?.Name</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="layout-action" OnClick="Logout" />
             </Authorized>
         </AuthorizeView>
 
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" Class="layout-action" OnClick="@DarkModeToggle" />
+
+        @if (_canApproveRegistros)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight"
+                     TransformOrigin="Origin.TopRight"
+                     MaxHeight="600"
+                     Dense="true"
+                     AriaLabel="Registros pendientes de aprobación">
+                <ActivatorContent>
+                    <MudBadge Content="@PendingCount"
+                              Color="Color.Secondary"
+                              Visible="@(PendingCount > 0)"
+                              Overlap="true"
+                              Bordered="true">
+                        <MudIconButton Icon="@Icons.Material.Filled.Notifications"
+                                       Color="Color.Inherit"
+                                       Class="layout-action"
+                                       aria-label="Abrir registros pendientes de aprobación" />
+                    </MudBadge>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem AutoClose="false" Class="pa-0">
+                        <div class="notification-panel" @onclick:stopPropagation="true">
+                            <div class="notification-header">
+                                <div>
+                                    <MudText Typo="Typo.subtitle1">Pendientes de aprobación</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @PendingSummary
+                                    </MudText>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                               Color="Color.Secondary"
+                                               Size="Size.Small"
+                                               Disabled="@IsPendingRefreshDisabled"
+                                               OnClick="LoadPendientesAsync"
+                                               aria-label="Actualizar registros pendientes" />
+                            </div>
+
+                            <MudDivider />
+
+                            @if (_isLoadingPending)
+                            {
+                                <div class="notification-state">
+                                    <MudProgressCircular Color="Color.Secondary"
+                                                         Size="Size.Small"
+                                                         Indeterminate="true" />
+                                    <MudText Typo="Typo.body2">Cargando registros pendientes...</MudText>
+                                </div>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(_pendingError))
+                            {
+                                <div class="notification-state">
+                                    <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Color="Color.Error" />
+                                    <MudText Typo="Typo.body2" Align="Align.Center">@_pendingError</MudText>
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.Refresh"
+                                               Disabled="@IsPendingRefreshDisabled"
+                                               OnClick="LoadPendientesAsync">
+                                        Reintentar
+                                    </MudButton>
+                                </div>
+                            }
+                            else if (PendingCount == 0)
+                            {
+                                <div class="notification-state">
+                                    <MudIcon Icon="@Icons.Material.Outlined.NotificationsNone" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.body2" Align="Align.Center">
+                                        No hay registros pendientes de aprobación.
+                                    </MudText>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="notification-list">
+                                    @foreach (var registro in _registrosPendientes)
+                                    {
+                                        <div class="notification-record" @key="registro.RegistroId">
+                                            <div class="notification-record-info">
+                                                <MudText Typo="Typo.subtitle2" Class="notification-document">
+                                                    @GetDocumentLabel(registro)
+                                                </MudText>
+                                                <MudText Typo="Typo.body2" Class="notification-name">
+                                                    @GetFullName(registro)
+                                                </MudText>
+                                                <MudText Typo="Typo.caption" Class="mud-text-secondary notification-phone">
+                                                    Celular: @GetPhone(registro)
+                                                </MudText>
+                                            </div>
+                                            <MudButton Variant="Variant.Filled"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       Class="approve-button"
+                                                       Disabled="@IsApproving(registro.RegistroId)"
+                                                       OnClick="@(() => AprobarRegistroAsync(registro))">
+                                                @if (IsApproving(registro.RegistroId))
+                                                {
+                                                    <MudProgressCircular Color="Color.Inherit"
+                                                                         Size="Size.Small"
+                                                                         Indeterminate="true"
+                                                                         Class="mr-2" />
+                                                    <span>Aprobando...</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Aprobar</span>
+                                                }
+                                            </MudButton>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -53,16 +178,39 @@
 @code {
     private bool _drawerOpen = true;
     private bool _isDarkMode = false;
+    private bool _canApproveRegistros;
+    private bool _isLoadingPending;
+    private bool _pendingRefreshRequested;
+    private bool _disposed;
+    private int _authenticationEvaluationVersion;
+    private int _authorizationContextVersion;
+    private int _pendingLoadVersion;
+    private int _authorizedUsuarioId;
+    private int _authorizedDenominacionId;
+    private string? _pendingError;
     private DenominacionDto? _denominacion;
+    private List<RegistroPendienteDto> _registrosPendientes = [];
+    private readonly HashSet<int> _approvingRegistroIds = [];
 
     private string? DenominacionNombre => Normalize(_denominacion?.Nombre);
     private string? DenominacionPersoneriaJuridica => Normalize(_denominacion?.IglesiaInfo?.PersoneriaJuridica);
     private bool HasDenominacionInfo => !string.IsNullOrWhiteSpace(DenominacionNombre);
+    private int PendingCount => _registrosPendientes.Count;
+    private bool IsPendingRefreshDisabled => _isLoadingPending || _approvingRegistroIds.Count > 0;
+    private string PendingSummary => PendingCount == 1
+        ? "1 registro pendiente"
+        : $"{PendingCount} registros pendientes";
     private string DenominacionTooltip => string.Join(" | ", new[]
     {
         DenominacionNombre,
         string.IsNullOrWhiteSpace(DenominacionPersoneriaJuridica) ? null : $"Personería Jurídica: {DenominacionPersoneriaJuridica}",
     }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    protected override void OnInitialized()
+    {
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        RegistroApiService.RegistroCreado += OnRegistroCreado;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -70,7 +218,296 @@
             return;
 
         _denominacion = await TokenStorage.GetInfoDenominacionAsync();
-        StateHasChanged();
+        await InitializePendingNotificationsAsync();
+        if (!_disposed)
+            StateHasChanged();
+    }
+
+    private async Task InitializePendingNotificationsAsync()
+    {
+        var authenticationState = await AuthStateProvider.GetAuthenticationStateAsync();
+        await UpdatePendingAuthorizationAsync(authenticationState);
+    }
+
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
+    {
+        _ = HandleAuthenticationStateChangedAsync(authenticationStateTask);
+    }
+
+    private void OnRegistroCreado(object? sender, EventArgs e)
+    {
+        _pendingRefreshRequested = true;
+        _ = ProcessPendingRefreshRequestAsync();
+    }
+
+    private async Task ProcessPendingRefreshRequestAsync()
+    {
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                if (_disposed)
+                    return;
+
+                if (!_canApproveRegistros)
+                {
+                    _pendingRefreshRequested = false;
+                    return;
+                }
+
+                if (IsPendingRefreshDisabled)
+                    return;
+
+                _pendingRefreshRequested = false;
+                await LoadPendientesAsync();
+
+                if (!_disposed)
+                    StateHasChanged();
+            });
+        }
+        catch (ObjectDisposedException)
+        {
+            // El layout fue descartado mientras se procesaba la actualización.
+        }
+    }
+
+    private async Task HandleAuthenticationStateChangedAsync(Task<AuthenticationState> authenticationStateTask)
+    {
+        try
+        {
+            var authenticationState = await authenticationStateTask;
+            if (_disposed)
+                return;
+
+            await InvokeAsync(async () =>
+            {
+                if (_disposed)
+                    return;
+
+                await UpdatePendingAuthorizationAsync(authenticationState);
+                if (!_disposed)
+                    StateHasChanged();
+            });
+        }
+        catch
+        {
+            if (_disposed)
+                return;
+
+            try
+            {
+                await InvokeAsync(() =>
+                {
+                    ResetPendingAuthorization();
+                    StateHasChanged();
+                });
+            }
+            catch (ObjectDisposedException)
+            {
+                // El layout fue descartado mientras se procesaba el cambio de sesión.
+            }
+        }
+    }
+
+    private async Task UpdatePendingAuthorizationAsync(AuthenticationState authenticationState)
+    {
+        var evaluationVersion = ++_authenticationEvaluationVersion;
+
+        if (authenticationState.User.Identity?.IsAuthenticated != true)
+        {
+            ApplyPendingAuthorization(false, 0, 0);
+            return;
+        }
+
+        var userInfo = await TokenStorage.GetUserInfoAsync();
+        var denominacionId = await TokenStorage.GetAuthDenominacionIdAsync();
+        if (denominacionId <= 0)
+            denominacionId = userInfo?.DenominacionId ?? 0;
+
+        var roleIds = (await TokenStorage.GetRolesAsync())
+            .Select(role => role.RolId)
+            .Where(roleId => roleId > 0)
+            .ToHashSet();
+
+        if (userInfo is { RolId: > 0 })
+            roleIds.Add(userInfo.RolId);
+
+        if (_disposed || evaluationVersion != _authenticationEvaluationVersion)
+            return;
+
+        var canApproveRegistros = denominacionId > 0 &&
+            roleIds.Overlaps(RegistroApprovalAccess.AllowedRoleIds);
+        var usuarioId = userInfo?.UsuarioId ?? 0;
+
+        if (!ApplyPendingAuthorization(canApproveRegistros, usuarioId, denominacionId))
+            return;
+
+        if (!_canApproveRegistros)
+            return;
+
+        _isLoadingPending = true;
+        await InvokeAsync(StateHasChanged);
+        await LoadPendientesCoreAsync(_authorizationContextVersion);
+    }
+
+    private bool ApplyPendingAuthorization(bool canApproveRegistros, int usuarioId, int denominacionId)
+    {
+        var contextChanged = _canApproveRegistros != canApproveRegistros ||
+            _authorizedUsuarioId != usuarioId ||
+            _authorizedDenominacionId != denominacionId;
+
+        if (!contextChanged)
+            return false;
+
+        _authorizationContextVersion++;
+        InvalidatePendingLoads();
+        _canApproveRegistros = canApproveRegistros;
+        _authorizedUsuarioId = usuarioId;
+        _authorizedDenominacionId = denominacionId;
+        _pendingRefreshRequested = false;
+        _pendingError = null;
+        _registrosPendientes = [];
+        return true;
+    }
+
+    private void ResetPendingAuthorization()
+    {
+        _authenticationEvaluationVersion++;
+        ApplyPendingAuthorization(false, 0, 0);
+    }
+
+    private async Task LoadPendientesAsync()
+    {
+        if (!_canApproveRegistros || IsPendingRefreshDisabled)
+            return;
+
+        _isLoadingPending = true;
+        _pendingError = null;
+        await InvokeAsync(StateHasChanged);
+        await LoadPendientesCoreAsync(_authorizationContextVersion);
+    }
+
+    private async Task LoadPendientesCoreAsync(int authorizationContextVersion)
+    {
+        var loadVersion = ++_pendingLoadVersion;
+
+        try
+        {
+            var response = await RegistroApiService.GetPendientesAsync();
+            if (!IsCurrentPendingLoad(loadVersion, authorizationContextVersion))
+                return;
+
+            if (!response.Success)
+            {
+                _pendingError = GetMessage(response.Message, "No fue posible cargar los registros pendientes.");
+                Snackbar.Add(_pendingError, Severity.Error);
+                return;
+            }
+
+            _registrosPendientes = response.Data ?? [];
+            _pendingError = null;
+        }
+        catch
+        {
+            if (!IsCurrentPendingLoad(loadVersion, authorizationContextVersion))
+                return;
+
+            _pendingError = "No fue posible cargar los registros pendientes. Intente nuevamente.";
+            Snackbar.Add(_pendingError, Severity.Error);
+        }
+        finally
+        {
+            if (IsCurrentPendingLoad(loadVersion, authorizationContextVersion))
+            {
+                _isLoadingPending = false;
+
+                if (_pendingRefreshRequested && _approvingRegistroIds.Count == 0)
+                    await ProcessPendingRefreshRequestAsync();
+            }
+        }
+    }
+
+    private bool IsCurrentPendingLoad(int loadVersion, int authorizationContextVersion)
+    {
+        return !_disposed &&
+            loadVersion == _pendingLoadVersion &&
+            authorizationContextVersion == _authorizationContextVersion;
+    }
+
+    private void InvalidatePendingLoads()
+    {
+        _pendingLoadVersion++;
+        _isLoadingPending = false;
+    }
+
+    private async Task AprobarRegistroAsync(RegistroPendienteDto registro)
+    {
+        if (!_canApproveRegistros || !_approvingRegistroIds.Add(registro.RegistroId))
+            return;
+
+        var authorizationContextVersion = _authorizationContextVersion;
+        InvalidatePendingLoads();
+
+        try
+        {
+            var response = await RegistroApiService.AprobarRegistroAsync(registro.RegistroId);
+            if (_disposed || authorizationContextVersion != _authorizationContextVersion)
+                return;
+
+            if (!response.Success || !response.Data)
+            {
+                Snackbar.Add(
+                    GetMessage(response.Message, "No fue posible aprobar el registro."),
+                    Severity.Error);
+                return;
+            }
+
+            _registrosPendientes.RemoveAll(item => item.RegistroId == registro.RegistroId);
+            Snackbar.Add(
+                GetMessage(response.Message, "Registro aprobado correctamente."),
+                Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add(
+                "No fue posible aprobar el registro. Verifique su conexión e intente nuevamente.",
+                Severity.Error);
+        }
+        finally
+        {
+            _approvingRegistroIds.Remove(registro.RegistroId);
+
+            if (_pendingRefreshRequested && _approvingRegistroIds.Count == 0)
+                await ProcessPendingRefreshRequestAsync();
+        }
+    }
+
+    private bool IsApproving(int registroId)
+    {
+        return _approvingRegistroIds.Contains(registroId);
+    }
+
+    private static string GetDocumentLabel(RegistroPendienteDto registro)
+    {
+        var tipoDocumento = Normalize(registro.TipoDocumento) ?? "Documento";
+        var documento = Normalize(registro.Documento) ?? "Sin número";
+        return $"{tipoDocumento} - {documento}";
+    }
+
+    private static string GetFullName(RegistroPendienteDto registro)
+    {
+        var fullName = $"{registro.Nombres} {registro.Apellidos}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? "Sin nombre" : fullName;
+    }
+
+    private static string GetPhone(RegistroPendienteDto registro)
+    {
+        return Normalize(registro.Telefono) ?? "No registrado";
+    }
+
+    private static string GetMessage(string? message, string fallback)
+    {
+        return Normalize(message) ?? fallback;
     }
 
     private void DrawerToggle()
@@ -111,5 +548,15 @@
     private static string? Normalize(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _authenticationEvaluationVersion++;
+        _authorizationContextVersion++;
+        _pendingLoadVersion++;
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        RegistroApiService.RegistroCreado -= OnRegistroCreado;
     }
 }

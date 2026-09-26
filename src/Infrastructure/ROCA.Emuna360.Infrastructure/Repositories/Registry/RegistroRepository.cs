@@ -2,6 +2,7 @@ using ROCA.Emuna360.Domain.Common.Results;
 using ROCA.Emuna360.Domain.Entities.Registry;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using ROCA.Emuna360.Application.DTOs.Registry;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
 using System.Collections.Generic;
 using System.Data;
@@ -20,6 +21,27 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         parameters.Add("@IglesiaId", iglesiaId);
         parameters.Add("@DenominacionId", denominacionId);
         return await connection.QueryAsync<Registro>("usp_Registro_ListarPorIglesia", parameters, commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<IEnumerable<RegistroPendienteDto>> GetPendientesAsync(int denominacionId)
+    {
+        using var connection = CreateConnection();
+        var parameters = new DynamicParameters();
+        parameters.Add("@DenominacionId", denominacionId);
+
+        return await connection.QueryAsync<RegistroPendienteDto>(
+            "usp_Registro_ListarPendientes",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<OperationResult<bool>> AprobarAsync(int registroId, int denominacionId)
+    {
+        var parameters = new DynamicParameters();
+        parameters.Add("@RegistroId", registroId);
+        parameters.Add("@DenominacionId", denominacionId);
+
+        return await ExecuteUpdateAsync("usp_Registro_Aprobar", parameters, string.Empty);
     }
 
     public async Task<OperationResult<int>> CreateAsync(Registro entity)
@@ -63,6 +85,7 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
         parameters.Add("@Correo", entity.Correo);
         parameters.Add("@Telefono", entity.Telefono);
         parameters.Add("@ParametroIdSexo", entity.ParametroIdSexo);
+        parameters.Add("@Interno", entity.Interno);
         parameters.Add("@ParametroIdInteres", entity.ParametroIdInteres);
 
         return await ExecuteUpdateAsync("usp_Registro_Actualizar", parameters, "");
@@ -87,12 +110,11 @@ public class RegistroRepository : BaseRepository<Registro>, IRegistroRepository
 
     public async Task<bool> DeleteAsync(int id, int denominacionId)
     {
-        using var connection = CreateConnection();
         var parameters = new Dapper.DynamicParameters();
         parameters.Add("@RegistroId", id);
         parameters.Add("@DenominacionId", denominacionId);
-        var rows = await connection.ExecuteAsync("usp_Registro_Eliminar", parameters, commandType: CommandType.StoredProcedure);
-        return rows > 0;
+        var result = await ExecuteUpdateAsync("usp_Registro_Eliminar", parameters, string.Empty);
+        return result.Success;
     }
 }
 

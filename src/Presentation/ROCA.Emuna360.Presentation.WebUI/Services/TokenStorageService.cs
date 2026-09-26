@@ -227,7 +227,7 @@ public class TokenStorageService
         try
         {
             var result = await _localStorage.GetAsync<int?>(InfoUserIdKey);
-            if (result.Success) return int.Parse(result!.Value!.ToString());
+            if (result.Success) return result.Value;
         }
         catch
         {

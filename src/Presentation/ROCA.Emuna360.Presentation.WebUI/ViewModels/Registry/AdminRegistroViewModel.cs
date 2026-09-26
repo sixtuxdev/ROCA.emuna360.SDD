@@ -353,14 +353,18 @@ public sealed class AdminRegistroViewModel
             }
 
             RegistroForm.FechaCreacion = DateTime.UtcNow;
-            var newId = await _registroApiService.CreateRegistroAsync(RegistroForm);
-            if (newId is null || newId is 0)
+            var createResponse = await _registroApiService.CreateRegistroAsync(RegistroForm);
+            if (!createResponse.Success || createResponse.Data <= 0)
             {
-                _snackbar.Add("No fue posible crear el registro.", Severity.Error);
+                _snackbar.Add(
+                    string.IsNullOrWhiteSpace(createResponse.Message)
+                        ? "No fue posible crear el registro."
+                        : createResponse.Message,
+                    Severity.Error);
                 return;
             }
 
-            var usuarioCreado = await TryCreateUsuarioAsync(newId.Value);
+            var usuarioCreado = await TryCreateUsuarioAsync(createResponse.Data);
             _snackbar.Add(
                 usuarioCreado
                     ? "Registro y usuario creados correctamente."
@@ -872,7 +876,8 @@ public sealed class AdminRegistroViewModel
         {
             DenominacionId = denominacionId,
             IglesiaId = iglesiaId,
-            Interno = interno
+            Interno = interno,
+            Aprobado = false
         };
     }
 
@@ -897,6 +902,7 @@ public sealed class AdminRegistroViewModel
             ParametroIdSexo = registro.ParametroIdSexo,
             Interno = registro.Interno,
             ParametroIdInteres = registro.ParametroIdInteres,
+            Aprobado = registro.Aprobado,
             FechaCreacion = registro.FechaCreacion,
             FechaActualizacion = registro.FechaActualizacion
         };

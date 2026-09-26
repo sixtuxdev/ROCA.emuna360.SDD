@@ -94,10 +94,8 @@ public class AuthService : IAuthService
         if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash ?? string.Empty))
             return Result<LoginResponseDto>.Failure("Credenciales incorrectas.");
 
-        // Cargar detalles adicionales
-        //user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId, request.IglesiaId);
-        //user.Roles = await _authRepository.GetUserRolesAsync(request.DenominacionId, user.UsuarioId);
-        //user.Menus = await _authRepository.GetUserMenusAsync(request.DenominacionId, user.UsuarioId);
+        // Mantener los roles completos y vigentes tanto para acceso por correo como por documento.
+        user.Roles = await _authRepository.GetUserRolesAsync(user.DenominacionId, user.UsuarioId);
 
         // Generar tokens
         var token = _jwtTokenService.GenerateToken(user);
@@ -109,7 +107,7 @@ public class AuthService : IAuthService
             DenominacionId = user.DenominacionId,
             UsuarioId = user.UsuarioId,
             IglesiaId = user.Registro?.IglesiaId ?? 0,
-            EsAdministrador = user.UsuarioIglesia.EsAdministrador,
+            EsAdministrador = user.UsuarioIglesia?.EsAdministrador ?? false,
             TokenHash = HashToken(refreshToken),
             ExpiraEn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenDays),
             FechaCreacion = DateTime.UtcNow
@@ -249,7 +247,10 @@ public class AuthService : IAuthService
             return Result<RefreshTokenResponseDto>.Failure("Usuario no encontrado.");
 
         // Cargar detalles para el nuevo JWT
-        user.Registro = await _authRepository.GetRegistroByIdAsync(request.DenominacionId, user.RegistroId, user.UsuarioIglesia.IglesiaId);
+        user.Registro = await _authRepository.GetRegistroByIdAsync(
+            request.DenominacionId,
+            user.RegistroId,
+            user.UsuarioIglesia?.IglesiaId);
         user.Roles = await _authRepository.GetUserRolesAsync(request.DenominacionId, user.UsuarioId);
         user.Menus = await _authRepository.GetUserMenusAsync(request.DenominacionId, user.UsuarioId);
 
@@ -299,6 +300,23 @@ public class AuthService : IAuthService
         }
 
         return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> HasAnyRoleAsync(
+        int usuarioId,
+        int denominacionId,
+        IReadOnlyCollection<int> roleIds)
+    {
+        if (usuarioId <= 0 || denominacionId <= 0)
+            return Result<bool>.Failure("El contexto del usuario autenticado no es válido.");
+
+        if (roleIds.Count == 0)
+            return Result<bool>.Success(false);
+
+        var allowedRoleIds = roleIds.ToHashSet();
+        var userRoles = await _authRepository.GetUserRolesAsync(denominacionId, usuarioId);
+
+        return Result<bool>.Success(userRoles.Any(role => allowedRoleIds.Contains(role.RolId)));
     }
 
     private string HashToken(string token)

@@ -11,4 +11,5 @@ public interface IAuthService
     Task<Result<bool>> ConfirmEmailAsync(ConfirmEmailRequestDto request);
     Task<Result<RefreshTokenResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result<bool>> LogoutAsync(LogoutRequestDto request);
+    Task<Result<bool>> HasAnyRoleAsync(int usuarioId, int denominacionId, IReadOnlyCollection<int> roleIds);
 }

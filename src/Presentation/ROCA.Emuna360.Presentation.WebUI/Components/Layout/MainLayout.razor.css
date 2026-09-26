@@ -6,6 +6,71 @@
     white-space: nowrap;
 }
 
+::deep .layout-action {
+    flex: 0 0 auto;
+}
+
+.notification-panel {
+    width: min(24rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    overflow: hidden;
+    background-color: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.notification-state {
+    min-height: 9rem;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+}
+
+.notification-list {
+    max-height: min(28rem, calc(100vh - 11rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.notification-record {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1rem;
+    border-bottom: 1px solid var(--mud-palette-divider);
+}
+
+.notification-record:last-child {
+    border-bottom: 0;
+}
+
+.notification-record-info {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.notification-document,
+.notification-name,
+.notification-phone {
+    overflow-wrap: anywhere;
+}
+
+::deep .approve-button {
+    flex: 0 0 auto;
+}
+
 ::deep .app-logo {
     display: block;
     width: auto;
@@ -86,6 +151,10 @@
 }
 
 @media (max-width: 600px) {
+    .app-title {
+        display: none;
+    }
+
     ::deep .app-logo {
         height: 1.5rem;
         max-height: 1.5rem;
@@ -94,7 +163,7 @@
 
     ::deep .denomination-tooltip {
         flex-basis: auto;
-        max-width: 42vw;
+        max-width: 34vw;
     }
 
     ::deep .denomination-summary {
@@ -102,6 +171,22 @@
     }
 
     ::deep .user-greeting {
+        display: none;
+    }
+
+    .notification-record {
+        align-items: stretch;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    ::deep .approve-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    ::deep .denomination-tooltip {
         display: none;
     }
 }

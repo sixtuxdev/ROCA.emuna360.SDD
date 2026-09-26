@@ -21,5 +21,6 @@ public class RegistroDto : BaseAuditDto
     public int? ParametroIdSexo { get; set; }
     public bool? Interno { get; set; }
     public int? ParametroIdInteres { get; set; }
+    public bool Aprobado { get; set; }
 
 }

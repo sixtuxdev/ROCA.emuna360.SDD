@@ -46,6 +46,36 @@ public class RegistroService : MultiOrganizationalBaseService<RegistroDto, Regis
         return ROCA.Emuna360.Domain.Common.Results.Result<System.Collections.Generic.IEnumerable<RegistroDto>>.Success(_mapper.Map<IEnumerable<RegistroDto>>(entities)); 
     }
 
+    public async Task<Result<IEnumerable<RegistroPendienteDto>>> GetPendientesAsync(int denominacionId)
+    {
+        if (denominacionId <= 0)
+            return Result<IEnumerable<RegistroPendienteDto>>.Failure("La denominación es obligatoria.");
+
+        var registros = await _specificRepository.GetPendientesAsync(denominacionId);
+        return Result<IEnumerable<RegistroPendienteDto>>.Success(registros);
+    }
+
+    public async Task<Result<bool>> AprobarAsync(int registroId, int denominacionId)
+    {
+        if (registroId <= 0)
+            return Result<bool>.Failure("El registro es obligatorio.");
+
+        if (denominacionId <= 0)
+            return Result<bool>.Failure("La denominación es obligatoria.");
+
+        var result = await _specificRepository.AprobarAsync(registroId, denominacionId);
+        if (!result.Success)
+        {
+            var message = string.IsNullOrWhiteSpace(result.Message)
+                ? "No se pudo aprobar el registro."
+                : result.Message;
+
+            return Result<bool>.Failure(message);
+        }
+
+        return Result<bool>.Success(true);
+    }
+
     private async Task<Result<bool>> ValidateIglesiaAsync(RegistroDto dto)
     {
         var denominacionId = dto.DenominacionId.GetValueOrDefault();

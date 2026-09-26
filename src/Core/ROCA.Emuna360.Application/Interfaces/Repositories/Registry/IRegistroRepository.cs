@@ -8,4 +8,6 @@ namespace ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
 public interface IRegistroRepository : IMultiOrganizationalRepository<Registro>
 {
     Task<IEnumerable<Registro>> GetByIglesiaAsync(int iglesiaId, int denominacionId);
+    Task<IEnumerable<RegistroPendienteDto>> GetPendientesAsync(int denominacionId);
+    Task<Domain.Common.Results.OperationResult<bool>> AprobarAsync(int registroId, int denominacionId);
 }
