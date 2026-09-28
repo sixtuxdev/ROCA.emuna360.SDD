@@ -4,6 +4,7 @@
 @using ROCA.Emuna360.Application.DTOs.Organization
 @using ROCA.Emuna360.Application.DTOs.Registry
 @using ROCA.Emuna360.Presentation.WebUI.Security
+@using System.Security.Claims
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject TokenStorageService TokenStorage
 @inject AuthApiService AuthApiService
@@ -59,7 +60,7 @@
                 <ActivatorContent>
                     <MudBadge Content="@PendingCount"
                               Color="Color.Secondary"
-                              Visible="@(PendingCount > 0)"
+                              Visible="true"
                               Overlap="true"
                               Bordered="true">
                         <MudIconButton Icon="@Icons.Material.Filled.Notifications"
@@ -320,24 +321,42 @@
         }
 
         var userInfo = await TokenStorage.GetUserInfoAsync();
-        var denominacionId = await TokenStorage.GetAuthDenominacionIdAsync();
+        var denominacionId = GetPositiveIntClaim(authenticationState.User, "DenominacionId");
+        if (denominacionId <= 0)
+            denominacionId = await TokenStorage.GetAuthDenominacionIdAsync();
         if (denominacionId <= 0)
             denominacionId = userInfo?.DenominacionId ?? 0;
 
-        var roleIds = (await TokenStorage.GetRolesAsync())
-            .Select(role => role.RolId)
-            .Where(roleId => roleId > 0)
-            .ToHashSet();
-
-        if (userInfo is { RolId: > 0 })
-            roleIds.Add(userInfo.RolId);
+        var storedRoles = await TokenStorage.GetRolesAsync();
 
         if (_disposed || evaluationVersion != _authenticationEvaluationVersion)
             return;
 
-        var canApproveRegistros = denominacionId > 0 &&
-            roleIds.Overlaps(RegistroApprovalAccess.AllowedRoleIds);
-        var usuarioId = userInfo?.UsuarioId ?? 0;
+        var hasApprovalRole = authenticationState.User.Claims
+                .Where(IsRoleCodeClaim)
+                .Any(claim => RegistroApprovalAccess.IsAllowedRoleCode(claim.Value)) ||
+            storedRoles.Any(role => RegistroApprovalAccess.IsAllowedRoleCode(role.Codigo));
+        var usuarioId = GetPositiveIntClaim(authenticationState.User, "UsuarioId");
+        if (usuarioId <= 0)
+            usuarioId = userInfo?.UsuarioId ?? 0;
+
+        var canApproveRegistros = false;
+        if (usuarioId > 0 && denominacionId > 0)
+        {
+            var approvalAccessResponse = await RegistroApiService.GetApprovalAccessAsync();
+            if (_disposed || evaluationVersion != _authenticationEvaluationVersion)
+                return;
+
+            canApproveRegistros = approvalAccessResponse.Success &&
+                approvalAccessResponse.Data;
+
+            if (!approvalAccessResponse.Success && hasApprovalRole)
+            {
+                Snackbar.Add(
+                    GetMessage(approvalAccessResponse.Message, "No fue posible validar el permiso para aprobar registros."),
+                    Severity.Warning);
+            }
+        }
 
         if (!ApplyPendingAuthorization(canApproveRegistros, usuarioId, denominacionId))
             return;
@@ -508,6 +527,19 @@
     private static string GetMessage(string? message, string fallback)
     {
         return Normalize(message) ?? fallback;
+    }
+
+    private static bool IsRoleCodeClaim(Claim claim)
+    {
+        return claim.Type.Equals(
+            RegistroApprovalAccess.RoleCodeClaimType,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static int GetPositiveIntClaim(ClaimsPrincipal user, string claimType)
+    {
+        var claimValue = user.FindFirst(claimType)?.Value;
+        return int.TryParse(claimValue, out var value) && value > 0 ? value : 0;
     }
 
     private void DrawerToggle()

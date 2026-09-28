@@ -90,6 +90,24 @@ public class RegistroController : MultiOrganizationalBaseController<RegistroDto>
     }
 
     [Authorize]
+    [HttpGet("approval-access")]
+    public async Task<IActionResult> GetApprovalAccess()
+    {
+        if (!TryGetAuthenticatedUserContext(out var usuarioId, out var denominacionId))
+            return this.ToUnauthorized("No fue posible determinar el usuario autenticado.");
+
+        var authorization = await _authService.HasAnyRoleAsync(
+            usuarioId,
+            denominacionId,
+            RegistroApprovalAccess.AllowedRoleKeys);
+
+        if (authorization.IsFailure)
+            return this.ToBadRequest(authorization.Error);
+
+        return this.ToOk(authorization.Value);
+    }
+
+    [Authorize]
     [HttpGet("pendientes")]
     public async Task<IActionResult> GetPendientes()
     {
@@ -99,7 +117,7 @@ public class RegistroController : MultiOrganizationalBaseController<RegistroDto>
         var authorization = await _authService.HasAnyRoleAsync(
             usuarioId,
             denominacionId,
-            RegistroApprovalAccess.AllowedRoleIds);
+            RegistroApprovalAccess.AllowedRoleKeys);
 
         if (authorization.IsFailure)
             return this.ToBadRequest(authorization.Error);
@@ -124,7 +142,7 @@ public class RegistroController : MultiOrganizationalBaseController<RegistroDto>
         var authorization = await _authService.HasAnyRoleAsync(
             usuarioId,
             denominacionId,
-            RegistroApprovalAccess.AllowedRoleIds);
+            RegistroApprovalAccess.AllowedRoleKeys);
 
         if (authorization.IsFailure)
             return this.ToBadRequest(authorization.Error);

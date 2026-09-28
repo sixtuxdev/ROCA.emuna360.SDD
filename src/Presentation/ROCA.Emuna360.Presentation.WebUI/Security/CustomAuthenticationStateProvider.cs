@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using ROCA.Emuna360.Application.Common;
 using ROCA.Emuna360.Presentation.WebUI.Services;
 using System.Security.Claims;
 using System.Text.Json;
@@ -133,9 +134,10 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 claims.Add(new Claim(ClaimTypes.Role, role.Nombre));
             }
 
-            if (!string.IsNullOrWhiteSpace(role.Codigo) && !claims.Any(c => c.Type == "Roles" && c.Value == role.Codigo))
+            if (!string.IsNullOrWhiteSpace(role.Codigo) &&
+                !claims.Any(c => c.Type == RegistroApprovalAccess.RoleCodeClaimType && c.Value == role.Codigo))
             {
-                claims.Add(new Claim("Roles", role.Codigo));
+                claims.Add(new Claim(RegistroApprovalAccess.RoleCodeClaimType, role.Codigo));
             }
         }
 

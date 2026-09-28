@@ -42,7 +42,7 @@ public class JwtTokenService : IJwtTokenService
         foreach (var role in user.Roles)
         {
             claims.Add(new(ClaimTypes.Role, role.Nombre));
-            claims.Add(new("Roles", role.Codigo));
+            claims.Add(new(RegistroApprovalAccess.RoleCodeClaimType, role.Codigo));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));

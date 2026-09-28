@@ -94,8 +94,14 @@ public class AuthService : IAuthService
         if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash ?? string.Empty))
             return Result<LoginResponseDto>.Failure("Credenciales incorrectas.");
 
-        // Mantener los roles completos y vigentes tanto para acceso por correo como por documento.
-        user.Roles = await _authRepository.GetUserRolesAsync(user.DenominacionId, user.UsuarioId);
+        // Consultar nuevamente los roles para incluir siempre Roles.Codigo en el login,
+        // tanto para acceso por correo como por documento.
+        var userRoles = (await _authRepository.GetUserRolesAsync(user.DenominacionId, user.UsuarioId))
+            .ToList();
+        if (userRoles.Any(role => string.IsNullOrWhiteSpace(role.Codigo)))
+            return Result<LoginResponseDto>.Failure("No fue posible obtener el código de los roles del usuario.");
+
+        user.Roles = userRoles;
 
         // Generar tokens
         var token = _jwtTokenService.GenerateToken(user);
@@ -305,18 +311,22 @@ public class AuthService : IAuthService
     public async Task<Result<bool>> HasAnyRoleAsync(
         int usuarioId,
         int denominacionId,
-        IReadOnlyCollection<int> roleIds)
+        IReadOnlyCollection<string> roleKeys)
     {
         if (usuarioId <= 0 || denominacionId <= 0)
             return Result<bool>.Failure("El contexto del usuario autenticado no es válido.");
 
-        if (roleIds.Count == 0)
+        if (roleKeys.Count == 0)
             return Result<bool>.Success(false);
 
-        var allowedRoleIds = roleIds.ToHashSet();
+        var allowedRoleKeys = roleKeys
+            .Where(roleKey => !string.IsNullOrWhiteSpace(roleKey))
+            .Select(roleKey => roleKey.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var userRoles = await _authRepository.GetUserRolesAsync(denominacionId, usuarioId);
 
-        return Result<bool>.Success(userRoles.Any(role => allowedRoleIds.Contains(role.RolId)));
+        return Result<bool>.Success(userRoles.Any(role =>
+            allowedRoleKeys.Contains(role.Codigo?.Trim() ?? string.Empty)));
     }
 
     private string HashToken(string token)

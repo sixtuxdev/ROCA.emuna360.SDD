@@ -62,6 +62,16 @@ public sealed class RegistroApiService
         return await ReadApiResponseAsync<List<RegistroPendienteDto>>(response, cancellationToken);
     }
 
+    public async Task<ApiResponseDto<bool>> GetApprovalAccessAsync(
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await _httpClient.GetAsync(
+            "api/v1/registros/approval-access",
+            cancellationToken);
+
+        return await ReadApiResponseAsync<bool>(response, cancellationToken);
+    }
+
     public async Task<ApiResponseDto<bool>> AprobarRegistroAsync(
         int registroId,
         CancellationToken cancellationToken = default)
