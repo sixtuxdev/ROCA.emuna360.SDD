@@ -159,8 +159,8 @@
                        SelectedValues="@ViewModel.Model.ParametrosEstudiosAcademicos"
                        SelectedValuesChanged="@(values => ViewModel.Model.ParametrosEstudiosAcademicos = values.ToList())"
                        ToStringFunc="@(id => ViewModel.EstudiosAcademicos
-                                   .FirstOrDefault(x => x.ParametroId == id)
-                                   ?.Descripcion ?? id.ToString())">
+                                                   .FirstOrDefault(x => x.ParametroId == id)
+                                                   ?.Descripcion ?? id.ToString())">
 
                 @foreach (var parametro in ViewModel.EstudiosAcademicos)
                 {
@@ -191,8 +191,8 @@
                        SelectedValues="@ViewModel.Model.ParametrosEstudiosTeologicos"
                        SelectedValuesChanged="@(values => ViewModel.Model.ParametrosEstudiosTeologicos = values.ToList())"
                        ToStringFunc="@(id => ViewModel.EstudiosTeologicos
-                                   .FirstOrDefault(x => x.ParametroId == id)
-                                   ?.Descripcion ?? id.ToString())">
+                                                   .FirstOrDefault(x => x.ParametroId == id)
+                                                   ?.Descripcion ?? id.ToString())">
 
                 @foreach (var parametro in ViewModel.EstudiosTeologicos)
                 {
@@ -364,6 +364,18 @@
         </MudItem>
 
 
+        <!-- EDAD -->
+        <!-- EDAD -->
+
+        <MudItem xs="12" sm="6">
+
+            <MudText Typo="Typo.body1">
+                <strong>Edad:</strong> @CalcularEdad()
+            </MudText>
+
+        </MudItem>
+
+
         <!-- BOTONES -->
 
         <MudItem xs="12">
@@ -505,6 +517,27 @@
                 x.IglesiaId == ViewModel.Model.IglesiaId.Value);
 
         return iglesia?.Nombre ?? "Cargando iglesia...";
+    }
+
+
+    private string CalcularEdad()
+    {
+        if (!ViewModel.Model.FechaNacimiento.HasValue)
+        {
+            return string.Empty;
+        }
+
+        var fechaNacimiento = ViewModel.Model.FechaNacimiento.Value.Date;
+        var hoy = DateTime.Today;
+
+        var edad = hoy.Year - fechaNacimiento.Year;
+
+        if (fechaNacimiento > hoy.AddYears(-edad))
+        {
+            edad--;
+        }
+
+        return edad.ToString();
     }
 
 
