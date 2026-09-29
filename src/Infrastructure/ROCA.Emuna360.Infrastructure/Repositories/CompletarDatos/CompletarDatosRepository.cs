@@ -3,12 +3,15 @@ using Microsoft.Extensions.Configuration;
 using ROCA.Emuna360.Application.DTOs.Registry;
 using ROCA.Emuna360.Application.Interfaces.Repositories.CompletarDatos;
 using System.Data;
+using System.Text.Json;
 
 namespace ROCA.Emuna360.Infrastructure.Repositories.CompletarDatos;
 
-public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosRepository
+public class CompletarDatosRepository
+    : BaseRepository<object>, ICompletarDatosRepository
 {
-    public CompletarDatosRepository(IConfiguration configuration) : base(configuration)
+    public CompletarDatosRepository(IConfiguration configuration)
+        : base(configuration)
     {
     }
 
@@ -19,10 +22,26 @@ public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosR
         var parameters = new DynamicParameters();
         parameters.Add("@RegistroId", registroId);
 
-        return await connection.QueryFirstOrDefaultAsync<CompletarDatosDto>(
+        using var multi = await connection.QueryMultipleAsync(
             "usp_CompletarDatos_ObtenerPorRegistro",
             parameters,
             commandType: CommandType.StoredProcedure);
+
+        // 1. Datos principales
+        var dto = await multi.ReadFirstOrDefaultAsync<CompletarDatosDto>();
+
+        if (dto is null)
+            return null;
+
+        // 2. Estudios académicos
+        dto.ParametrosEstudiosAcademicos =
+            (await multi.ReadAsync<int>()).ToList();
+
+        // 3. Estudios teológicos
+        dto.ParametrosEstudiosTeologicos =
+            (await multi.ReadAsync<int>()).ToList();
+
+        return dto;
     }
 
     public async Task<int> CreateAsync(CompletarDatosDto dto)
@@ -37,8 +56,16 @@ public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosR
         parameters.Add("@CiudadResidenciaId", dto.CiudadResidenciaId);
         parameters.Add("@FechaNacimiento", dto.FechaNacimiento);
         parameters.Add("@ParametroIdEstadoCivil", dto.ParametroIdEstadoCivil);
-        parameters.Add("@ParametroIdEstudiosAcademicos", dto.ParametroIdEstudiosAcademicos);
-        parameters.Add("@ParametroIdEstudiosTeologicos", dto.ParametroIdEstudiosTeologicos);
+
+        // NUEVO: listas de estudios
+        parameters.Add(
+            "@EstudiosAcademicosJson",
+            JsonSerializer.Serialize(dto.ParametrosEstudiosAcademicos));
+
+        parameters.Add(
+            "@EstudiosTeologicosJson",
+            JsonSerializer.Serialize(dto.ParametrosEstudiosTeologicos));
+
         parameters.Add("@ParametroIdSituacionLaboral", dto.ParametroIdSituacionLaboral);
         parameters.Add("@ParametroIdTipoMiembro", dto.ParametroIdTipoMiembro);
         parameters.Add("@ParametroIdTipoPoblacion", dto.ParametroIdTipoPoblacion);
@@ -63,7 +90,9 @@ public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosR
         return parameters.Get<int>("@OutCompletarDatosId");
     }
 
-    public async Task<bool> UpdateAsync(int id, CompletarDatosDto dto)
+    public async Task<bool> UpdateAsync(
+        int id,
+        CompletarDatosDto dto)
     {
         using var connection = CreateConnection();
 
@@ -76,8 +105,16 @@ public class CompletarDatosRepository : BaseRepository<object>, ICompletarDatosR
         parameters.Add("@CiudadResidenciaId", dto.CiudadResidenciaId);
         parameters.Add("@FechaNacimiento", dto.FechaNacimiento);
         parameters.Add("@ParametroIdEstadoCivil", dto.ParametroIdEstadoCivil);
-        parameters.Add("@ParametroIdEstudiosAcademicos", dto.ParametroIdEstudiosAcademicos);
-        parameters.Add("@ParametroIdEstudiosTeologicos", dto.ParametroIdEstudiosTeologicos);
+
+        // NUEVO: listas de estudios
+        parameters.Add(
+            "@EstudiosAcademicosJson",
+            JsonSerializer.Serialize(dto.ParametrosEstudiosAcademicos));
+
+        parameters.Add(
+            "@EstudiosTeologicosJson",
+            JsonSerializer.Serialize(dto.ParametrosEstudiosTeologicos));
+
         parameters.Add("@ParametroIdSituacionLaboral", dto.ParametroIdSituacionLaboral);
         parameters.Add("@ParametroIdTipoMiembro", dto.ParametroIdTipoMiembro);
         parameters.Add("@ParametroIdTipoPoblacion", dto.ParametroIdTipoPoblacion);

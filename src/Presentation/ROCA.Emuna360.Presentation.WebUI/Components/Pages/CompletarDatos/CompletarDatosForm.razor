@@ -143,22 +143,29 @@
         </MudItem>
 
 
-        <!-- ESTUDIOS ACADÉMICOS -->
+        <!-- ========================================================= -->
+        <!-- ESTUDIOS ACADÉMICOS - MULTISELECCIÓN -->
+        <!-- ========================================================= -->
 
         <MudItem xs="12" sm="6">
 
-            <MudSelect T="int?"
-                       Label="Estudios realizados"
+            <MudSelect T="int"
+                       Label="Estudios académicos"
                        Variant="Variant.Outlined"
                        Margin="Margin.Dense"
+                       MultiSelection="true"
                        Required="true"
-                       RequiredError="Los estudios realizados son obligatorios."
-                       @bind-Value="ViewModel.Model.ParametroIdEstudiosAcademicos">
+                       RequiredError="Los estudios académicos son obligatorios."
+                       SelectedValues="@ViewModel.Model.ParametrosEstudiosAcademicos"
+                       SelectedValuesChanged="@(values => ViewModel.Model.ParametrosEstudiosAcademicos = values.ToList())"
+                       ToStringFunc="@(id => ViewModel.EstudiosAcademicos
+                                   .FirstOrDefault(x => x.ParametroId == id)
+                                   ?.Descripcion ?? id.ToString())">
 
                 @foreach (var parametro in ViewModel.EstudiosAcademicos)
                 {
-                    <MudSelectItem T="int?"
-                                   Value="@((int?)parametro.ParametroId)">
+                    <MudSelectItem T="int"
+                                   Value="@parametro.ParametroId">
                         @parametro.Descripcion
                     </MudSelectItem>
                 }
@@ -168,22 +175,29 @@
         </MudItem>
 
 
-        <!-- ESTUDIOS TEOLÓGICOS -->
+        <!-- ========================================================= -->
+        <!-- ESTUDIOS TEOLÓGICOS - MULTISELECCIÓN -->
+        <!-- ========================================================= -->
 
         <MudItem xs="12" sm="6">
 
-            <MudSelect T="int?"
+            <MudSelect T="int"
                        Label="Estudios teológicos"
                        Variant="Variant.Outlined"
                        Margin="Margin.Dense"
+                       MultiSelection="true"
                        Required="true"
                        RequiredError="Los estudios teológicos son obligatorios."
-                       @bind-Value="ViewModel.Model.ParametroIdEstudiosTeologicos">
+                       SelectedValues="@ViewModel.Model.ParametrosEstudiosTeologicos"
+                       SelectedValuesChanged="@(values => ViewModel.Model.ParametrosEstudiosTeologicos = values.ToList())"
+                       ToStringFunc="@(id => ViewModel.EstudiosTeologicos
+                                   .FirstOrDefault(x => x.ParametroId == id)
+                                   ?.Descripcion ?? id.ToString())">
 
                 @foreach (var parametro in ViewModel.EstudiosTeologicos)
                 {
-                    <MudSelectItem T="int?"
-                                   Value="@((int?)parametro.ParametroId)">
+                    <MudSelectItem T="int"
+                                   Value="@parametro.ParametroId">
                         @parametro.Descripcion
                     </MudSelectItem>
                 }
@@ -457,6 +471,7 @@
     private async Task ChangePaisAsync(int? value)
     {
         ViewModel.Model.PaisResidenciaId = value;
+
         await ViewModel.ChangePaisAsync(value);
     }
 
@@ -464,6 +479,7 @@
     private async Task ChangeDepartamentoAsync(int? value)
     {
         ViewModel.Model.DepartamentoResidenciaId = value;
+
         await ViewModel.ChangeDepartamentoAsync(value);
     }
 
@@ -471,6 +487,7 @@
     private async Task ChangeCiudadAsync(int? value)
     {
         ViewModel.Model.CiudadResidenciaId = value;
+
         await ViewModel.ChangeCiudadAsync(value);
     }
 
@@ -507,6 +524,7 @@
             }
         }
 
+
         if (!PuedeGuardar)
         {
             Snackbar.Add(
@@ -516,7 +534,9 @@
             return;
         }
 
+
         var ok = await ViewModel.SaveAsync();
+
 
         if (ok)
         {
@@ -538,19 +558,24 @@
          * Guardamos el ID actual, reiniciamos el formulario
          * y luego restauramos la iglesia.
          */
+
         var iglesiaId = ViewModel.Model.IglesiaId;
 
+
         await ViewModel.InitializeAsync();
+
 
         if (iglesiaId.HasValue && iglesiaId.Value > 0)
         {
             ViewModel.Model.IglesiaId = iglesiaId.Value;
         }
 
+
         if (_form is not null)
         {
             _form.ResetValidation();
         }
+
 
         StateHasChanged();
     }
@@ -559,13 +584,16 @@
     private bool EsBautizado =>
         ViewModel.TipoMiembro
             .FirstOrDefault(x =>
-                x.ParametroId == ViewModel.Model.ParametroIdTipoMiembro)
+                x.ParametroId ==
+                ViewModel.Model.ParametroIdTipoMiembro)
             ?.Descripcion == "Bautizado";
 
 
     private bool PuedeGuardar =>
         !EsBautizado ||
         (ViewModel.Model.FechaBautismo.HasValue &&
-         !string.IsNullOrWhiteSpace(ViewModel.Model.IglesiaBautismo) &&
-         !string.IsNullOrWhiteSpace(ViewModel.Model.PastorBautismo));
+         !string.IsNullOrWhiteSpace(
+             ViewModel.Model.IglesiaBautismo) &&
+         !string.IsNullOrWhiteSpace(
+             ViewModel.Model.PastorBautismo));
 }

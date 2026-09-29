@@ -19,8 +19,8 @@ public sealed class CompletarDatosDto : BaseAuditDto
 
     // Parámetros (FK a Parametro)
     public int? ParametroIdEstadoCivil { get; set; }
-    public int? ParametroIdEstudiosAcademicos { get; set; }
-    public int? ParametroIdEstudiosTeologicos { get; set; }
+    public List<int> ParametrosEstudiosAcademicos { get; set; } = [];
+    public List<int> ParametrosEstudiosTeologicos { get; set; } = [];
     public int? ParametroIdSituacionLaboral { get; set; }
     public int? ParametroIdTipoMiembro { get; set; }
     public int? ParametroIdTipoPoblacion { get; set; }
