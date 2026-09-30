@@ -43,8 +43,8 @@
     <File Path="docs/specs/SPEC-011-Estructura-Organizacional-MVVM-UI.md" />
     <File Path="docs/specs/SPEC-012-Registro-MVVM-UI.md" />
   </Folder>
-  <Folder Name="/src/" />
-  <Folder Name="/src/Core/">
+  <Folder Name="/docs/src/" />
+  <Folder Name="/docs/src/Core/">
     <Project Path="src/Core/ROCA.Emuna360.Application/ROCA.Emuna360.Application.csproj">
       <BuildType Project="Debug" />
     </Project>
@@ -52,17 +52,17 @@
       <BuildType Project="Debug" />
     </Project>
   </Folder>
-  <Folder Name="/src/Infrastructure/">
+  <Folder Name="/docs/src/Infrastructure/">
     <Project Path="src/Infrastructure/ROCA.Emuna360.Infrastructure/ROCA.Emuna360.Infrastructure.csproj">
       <BuildType Project="Debug" />
     </Project>
   </Folder>
-  <Folder Name="/src/Presentation/">
+  <Folder Name="/docs/src/Presentation/">
     <Project Path="src/Presentation/ROCA.Emuna360.Presentation.WebUI/ROCA.Emuna360.Presentation.WebUI.csproj">
       <BuildType Project="Debug" />
     </Project>
   </Folder>
-  <Folder Name="/src/Service/">
+  <Folder Name="/docs/src/Service/">
     <Project Path="src/Service/ROCA.Emuna360.API/ROCA.Emuna360.API.csproj">
       <BuildType Project="Debug" />
     </Project>

@@ -55,4 +55,20 @@ public class CompletarDatosController : ControllerBase
             return Problem(detail: ex.Message, statusCode: 500);
         }
     }
+
+    [HttpGet("bautizados")]
+    public async Task<IActionResult> ListarBautizados(
+    [FromQuery] string? buscar = null,
+    [FromQuery] int pagina = 1,
+    [FromQuery] int registrosPorPagina = 10)
+    {
+        var result = await _service.ListarAsync(
+            buscar,
+            pagina,
+            registrosPorPagina);
+
+        return Ok(result);
+    }
+
+
 }

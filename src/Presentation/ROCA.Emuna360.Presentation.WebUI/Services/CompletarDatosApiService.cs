@@ -49,4 +49,23 @@ public sealed class CompletarDatosApiService
         }
         return true;
     }
+
+    public async Task<BautizadosPaginadoDto> ListarAsync(
+    string? buscar,
+    int pagina,
+    int registrosPorPagina)
+    {
+        var url =
+            $"api/v1/completar-datos/bautizados" +
+            $"?pagina={pagina}" +
+            $"&registrosPorPagina={registrosPorPagina}";
+
+        if (!string.IsNullOrWhiteSpace(buscar))
+        {
+            url += $"&buscar={Uri.EscapeDataString(buscar)}";
+        }
+
+        return await _httpClient.GetFromJsonAsync<BautizadosPaginadoDto>(url)
+               ?? new BautizadosPaginadoDto();
+    }
 }

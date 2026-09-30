@@ -1,9 +1,17 @@
 using ROCA.Emuna360.Application.DTOs.Registry;
+
 namespace ROCA.Emuna360.Application.Interfaces.Repositories.CompletarDatos;
 
 public interface ICompletarDatosRepository
 {
     Task<CompletarDatosDto?> GetByRegistroAsync(int registroId);
+
     Task<int> CreateAsync(CompletarDatosDto dto);
+
     Task<bool> UpdateAsync(int id, CompletarDatosDto dto);
+
+    Task<BautizadosPaginadoDto> ListarAsync(
+        string? buscar,
+        int pagina,
+        int registrosPorPagina);
 }

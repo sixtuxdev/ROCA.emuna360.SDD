@@ -29,4 +29,15 @@ public class CompletarDatosService : ICompletarDatosService
     {
         return await _repository.UpdateAsync(id, dto);
     }
+
+    public async Task<BautizadosPaginadoDto> ListarAsync(
+        string? buscar,
+        int pagina,
+        int registrosPorPagina)
+    {
+        return await _repository.ListarAsync(
+            buscar,
+            pagina,
+            registrosPorPagina);
+    }
 }

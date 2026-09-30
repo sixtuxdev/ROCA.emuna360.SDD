@@ -7,6 +7,7 @@ using ROCA.Emuna360.Presentation.WebUI.Services;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.App;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Auth;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos; // <-- AGREGADO
+using ROCA.Emuna360.Presentation.WebUI.ViewModels.Bautizados; // <-- AGREGADO
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Dashboard;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Layout;
 using ROCA.Emuna360.Presentation.WebUI.ViewModels.Organization;
@@ -58,6 +59,7 @@ builder.Services.AddScoped<ConfigIglesiasViewModel>();
 builder.Services.AddScoped<AdminIglesiaViewModel>();
 builder.Services.AddScoped<AdminRegistroViewModel>();
 builder.Services.AddScoped<CompletarDatosViewModel>(); // <-- AGREGADO
+builder.Services.AddScoped<BautizadosViewModel>(); // <-- AGREGADO
 builder.Services.AddScoped<ConfigEstructuraOrganizacionalViewModel>();
 
 // API Client

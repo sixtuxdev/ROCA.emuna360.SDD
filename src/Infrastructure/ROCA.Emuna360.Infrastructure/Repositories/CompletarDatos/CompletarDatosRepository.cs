@@ -106,14 +106,15 @@ public class CompletarDatosRepository
         parameters.Add("@FechaNacimiento", dto.FechaNacimiento);
         parameters.Add("@ParametroIdEstadoCivil", dto.ParametroIdEstadoCivil);
 
-        // NUEVO: listas de estudios
         parameters.Add(
             "@EstudiosAcademicosJson",
-            JsonSerializer.Serialize(dto.ParametrosEstudiosAcademicos));
+            JsonSerializer.Serialize(
+                dto.ParametrosEstudiosAcademicos ?? new List<int>()));
 
         parameters.Add(
             "@EstudiosTeologicosJson",
-            JsonSerializer.Serialize(dto.ParametrosEstudiosTeologicos));
+            JsonSerializer.Serialize(
+                dto.ParametrosEstudiosTeologicos ?? new List<int>()));
 
         parameters.Add("@ParametroIdSituacionLaboral", dto.ParametroIdSituacionLaboral);
         parameters.Add("@ParametroIdTipoMiembro", dto.ParametroIdTipoMiembro);
@@ -126,11 +127,44 @@ public class CompletarDatosRepository
         parameters.Add("@IglesiaBautismo", dto.IglesiaBautismo);
         parameters.Add("@PastorBautismo", dto.PastorBautismo);
 
-        var rows = await connection.ExecuteAsync(
+        await connection.ExecuteAsync(
             "usp_CompletarDatos_Actualizar",
             parameters,
             commandType: CommandType.StoredProcedure);
 
-        return rows > 0;
+        // Si el SP no lanzó excepción, consideramos que la operación terminó correctamente.
+        return true;
+    }
+
+    public async Task<BautizadosPaginadoDto> ListarAsync(
+        string? buscar,
+        int pagina,
+        int registrosPorPagina)
+    {
+        using var connection = CreateConnection();
+
+        var parameters = new DynamicParameters();
+
+        parameters.Add("@Buscar", buscar);
+        parameters.Add("@Pagina", pagina);
+        parameters.Add("@RegistrosPorPagina", registrosPorPagina);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "usp_CompletarDatos_ListarBautizados",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        var items = (await multi.ReadAsync<BautizadosDto>())
+            .ToList();
+
+        var totalRegistros = await multi.ReadFirstAsync<int>();
+
+        return new BautizadosPaginadoDto
+        {
+            Items = items,
+            TotalRegistros = totalRegistros,
+            Pagina = pagina,
+            RegistrosPorPagina = registrosPorPagina
+        };
     }
 }

@@ -1,0 +1,584 @@
+﻿@page "/bautizados"
+@page "/baptized"
+
+@using ROCA.Emuna360.Application.DTOs.Registry
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.Bautizados
+@using ROCA.Emuna360.Presentation.WebUI.ViewModels.CompletarDatos
+
+@inject BautizadosViewModel BautizadosVm
+@inject CompletarDatosViewModel CompletarVm
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Bautizados - ROCA.Emuna360</PageTitle>
+
+<section class="bautizados-shell">
+
+    <!-- ===================================================== -->
+    <!-- ENCABEZADO -->
+    <!-- ===================================================== -->
+
+    <div class="bautizados-header">
+
+        <div>
+
+            <MudText Typo="Typo.h4"
+                     Color="Color.Primary"
+                     Class="bautizados-title">
+                Bautizados
+            </MudText>
+
+            <MudText Typo="Typo.body1"
+                     Color="Color.Secondary">
+                Consulta y administración de los registros de bautismo
+            </MudText>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- PANEL -->
+    <!-- ===================================================== -->
+
+    <MudPaper Elevation="1"
+              Class="config-panel pa-4">
+
+
+        <!-- ================================================= -->
+        <!-- BUSCADOR -->
+        <!-- ================================================= -->
+
+        <div class="bautizados-toolbar">
+
+            <MudTextField T="string"
+                          Label="Buscar"
+                          Placeholder="Documento, nombre o número único de bautizo"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Clearable="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Value="@_buscarTexto"
+                          ValueChanged="OnBuscarChanged"
+                          Class="bautizados-search" />
+
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       Disabled="@BautizadosVm.IsLoading"
+                       OnClick="BuscarAsync">
+
+                Buscar
+
+            </MudButton>
+
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Default"
+                       StartIcon="@Icons.Material.Filled.Clear"
+                       Disabled="@BautizadosVm.IsLoading"
+                       OnClick="LimpiarBusquedaAsync">
+
+                Limpiar
+
+            </MudButton>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- INFORMACIÓN -->
+        <!-- ================================================= -->
+
+        <div class="bautizados-info">
+
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary">
+
+                @if (BautizadosVm.IsLoading)
+                {
+                    <span>Cargando registros...</span>
+                }
+                else
+                {
+                    <span>
+                        Total de registros:
+                        <strong>@BautizadosVm.TotalRegistros</strong>
+                    </span>
+                }
+
+            </MudText>
+
+            @if (!BautizadosVm.IsLoading &&
+                 BautizadosVm.TotalPaginas > 0)
+            {
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary">
+
+                    Página
+                    <strong>@BautizadosVm.Pagina</strong>
+                    de
+                    <strong>@BautizadosVm.TotalPaginas</strong>
+
+                </MudText>
+            }
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- LOADING -->
+        <!-- ================================================= -->
+        @if (BautizadosVm.IsLoading)
+        {
+            <MudProgressLinear Color="Color.Primary"
+                               Indeterminate="true"
+                               Class="mb-3" />
+        }
+
+
+        <!-- ================================================= -->
+        <!-- TABLA -->
+        <!-- ================================================= -->
+        @if (!BautizadosVm.IsLoading &&
+                     !BautizadosVm.Items.Any())
+        {
+            <MudAlert Severity="Severity.Info"
+                      Variant="Variant.Outlined"
+                      Class="mt-3">
+
+                @if (string.IsNullOrWhiteSpace(_buscarTexto))
+                {
+                    <span>
+                        No existen registros de bautizados.
+                    </span>
+                }
+                else
+                {
+                    <span>
+                        No se encontraron bautizados con el criterio
+                        de búsqueda.
+                    </span>
+                }
+
+            </MudAlert>
+        }
+        else
+        {
+            <div class="bautizados-table-wrapper">
+
+                <MudTable T="BautizadosDto"
+                          Items="@BautizadosVm.Items"
+                          Hover="true"
+                          Dense="true"
+                          Bordered="true"
+                          Striped="true"
+                          Elevation="0">
+
+                    <HeaderContent>
+
+                        <MudTh>
+                            Documento
+                        </MudTh>
+
+                        <MudTh>
+                            Nombre
+                        </MudTh>
+
+                        <MudTh>
+                            Número único
+                        </MudTh>
+
+                        <MudTh>
+                            Fecha bautismo
+                        </MudTh>
+
+                        <MudTh>
+                            Iglesia bautismo
+                        </MudTh>
+
+                    </HeaderContent>
+
+
+                    <RowTemplate>
+
+                        <MudTd DataLabel="Documento">
+                            @context.Documento
+                        </MudTd>
+
+
+                        <MudTd DataLabel="Nombre">
+
+                            <div class="bautizado-name">
+
+                                <MudText Typo="Typo.body2">
+                                    <strong>
+                                        @context.NombreCompleto
+                                    </strong>
+                                </MudText>
+
+                            </div>
+
+                        </MudTd>
+
+
+                        <MudTd DataLabel="Número único">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                context.NumeroUnicoBautizo))
+                            {
+                                <MudChip T="string"
+                                         Size="Size.Small"
+                                         Color="Color.Primary"
+                                         Variant="Variant.Outlined">
+
+                                    @context.NumeroUnicoBautizo
+
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Secondary">
+
+                                    Sin asignar
+
+                                </MudText>
+                            }
+
+                        </MudTd>
+
+
+                        <MudTd DataLabel="Fecha bautismo">
+
+                            @if (context.FechaBautismo.HasValue)
+                            {
+                                @context.FechaBautismo.Value.ToString(
+                                    "dd/MM/yyyy")
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+
+                        </MudTd>
+
+
+                        <MudTd DataLabel="Iglesia bautismo">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                context.IglesiaBautismo))
+                            {
+                                @context.IglesiaBautismo
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+
+                        </MudTd>
+
+
+
+                    </RowTemplate>
+
+                </MudTable>
+
+            </div>
+        }
+
+
+        <!-- ================================================= -->
+        <!-- PAGINACIÓN -->
+        <!-- ================================================= -->
+        @if (!BautizadosVm.IsLoading &&
+                     BautizadosVm.TotalRegistros > 0)
+        {
+            <div class="bautizados-pagination">
+
+                <div class="bautizados-page-size">
+
+                    <MudText Typo="Typo.body2"
+                             Color="Color.Secondary">
+
+                        Registros por página:
+
+                    </MudText>
+
+                    <MudSelect T="int"
+                               Value="@BautizadosVm.RegistrosPorPagina"
+                               ValueChanged="CambiarRegistrosPorPaginaAsync"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Dense="true">
+
+                        <MudSelectItem T="int" Value="5">
+                            5
+                        </MudSelectItem>
+
+                        <MudSelectItem T="int" Value="10">
+                            10
+                        </MudSelectItem>
+
+                        <MudSelectItem T="int" Value="20">
+                            20
+                        </MudSelectItem>
+
+                        <MudSelectItem T="int" Value="50">
+                            50
+                        </MudSelectItem>
+
+                    </MudSelect>
+
+                </div>
+
+
+                <MudPagination Count="@BautizadosVm.TotalPaginas"
+                               Selected="@BautizadosVm.Pagina"
+                               SelectedChanged="CambiarPaginaAsync"
+                               Color="Color.Primary"
+                               Size="Size.Medium"
+                               ShowFirstButton="true"
+                               ShowLastButton="true" />
+
+            </div>
+        }
+
+    </MudPaper>
+
+</section>
+
+
+<style>
+
+    .bautizados-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+
+    .bautizados-header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+    }
+
+
+    .bautizados-title {
+        font-weight: 700;
+    }
+
+
+    .config-panel {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        background-color: var(--mud-palette-surface);
+    }
+
+
+    .bautizados-toolbar {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+
+
+    .bautizados-search {
+        flex: 1;
+        min-width: 280px;
+    }
+
+
+    .bautizados-info {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: .75rem;
+    }
+
+
+    .bautizados-table-wrapper {
+        border: 1px solid var(--mud-palette-divider);
+        border-radius: var(--mud-default-borderradius);
+        overflow-x: auto;
+    }
+
+
+    .bautizado-name {
+        min-width: 220px;
+    }
+
+
+    .bautizados-pagination {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+
+    .bautizados-page-size {
+        align-items: center;
+        display: flex;
+        gap: .75rem;
+    }
+
+
+    @@media (max-width: 700px) {
+
+        .bautizados-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+
+        .bautizados-search {
+            min-width: 100%;
+            width: 100%;
+        }
+
+
+        .bautizados-info {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+
+        .bautizados-pagination {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+
+        .bautizados-page-size {
+            justify-content: space-between;
+        }
+    }
+
+</style>
+
+
+@code {
+
+    private string? _buscarTexto;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await BautizadosVm.InitializeAsync();
+    }
+
+
+    // =========================================================
+    // BUSCADOR
+    // =========================================================
+
+    private Task OnBuscarChanged(string? value)
+    {
+        _buscarTexto = value;
+
+        return Task.CompletedTask;
+    }
+
+
+    private async Task BuscarAsync()
+    {
+        await BautizadosVm.BuscarAsync(_buscarTexto);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async Task LimpiarBusquedaAsync()
+    {
+        _buscarTexto = null;
+
+        await BautizadosVm.LimpiarBusquedaAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    // =========================================================
+    // PAGINACIÓN
+    // =========================================================
+
+    private async Task CambiarPaginaAsync(int pagina)
+    {
+        await BautizadosVm.CambiarPaginaAsync(pagina);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async Task CambiarRegistrosPorPaginaAsync(
+        int cantidad)
+    {
+        await BautizadosVm.CambiarRegistrosPorPaginaAsync(
+            cantidad);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    // =========================================================
+    // EDITAR
+    // =========================================================
+
+    private async Task EditarAsync(BautizadosDto item)
+    {
+        if (item.RegistroId <= 0)
+        {
+            Snackbar.Add(
+                "No se encontró el RegistroId del bautizado.",
+                Severity.Error);
+
+            return;
+        }
+
+
+        var parameters =
+            new DialogParameters
+            {
+                ["RegistroId"] = item.RegistroId
+            };
+
+
+        var options =
+            new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                BackdropClick = false
+            };
+
+
+        var dialog =
+            await DialogService.ShowAsync<BautizadosDialog>(
+                "Editar bautizado",
+                parameters,
+                options);
+
+
+        var result =
+            await dialog.Result;
+
+
+        if (result is not null &&
+            !result.Canceled)
+        {
+            await BautizadosVm.CargarAsync();
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}
