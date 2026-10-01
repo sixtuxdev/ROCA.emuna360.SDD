@@ -1,5 +1,6 @@
 using ROCA.Emuna360.Application.DTOs.Registry;
 using ROCA.Emuna360.Application.Interfaces.Repositories.Registry;
+using ROCA.Emuna360.Application.Interfaces.Services.CompletarDatos;
 using ROCA.Emuna360.Application.Interfaces.Services.Registry;
 using System.Threading.Tasks;
 
